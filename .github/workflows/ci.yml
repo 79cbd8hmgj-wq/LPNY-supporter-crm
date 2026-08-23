@@ -15,167 +15,152 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  app:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package.json
+
       - name: Install dependencies
+        id: install
+        continue-on-error: true
         shell: bash
         run: |
-          set -o pipefail
-          npm install 2>&1 | tee ci-app.log
+          set -euo pipefail
+          npm install 2>&1 | tee ci-install.log
+
       - name: Verify application
+        id: app
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
         shell: bash
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
         run: |
-          set -o pipefail
-          {
-            npm run lint
-            npm run typecheck
-            npm test
-            npm run build
-          } 2>&1 | tee -a ci-app.log
-      - name: Upload app output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-app-output
-          path: |
-            ci-app.log
-            package-lock.json
-          if-no-files-found: ignore
+          set -euo pipefail
+          npm run lint 2>&1 | tee ci-app.log
+          npm run typecheck 2>&1 | tee -a ci-app.log
+          npm test 2>&1 | tee -a ci-app.log
+          npm run build 2>&1 | tee -a ci-app.log
 
-  database:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      - name: Install Supabase CLI
+        id: supabase_cli
+        continue-on-error: true
+        uses: supabase/setup-cli@v1
         with:
           version: latest
+
       - name: Verify database migrations and RLS
+        id: database
+        if: steps.supabase_cli.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
-          set -o pipefail
-          {
-            supabase start
-            supabase db reset
-            supabase test db
-          } 2>&1 | tee ci-database.log
-      - name: Upload database log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-database-output
-          path: ci-database.log
-          if-no-files-found: ignore
+          set -euo pipefail
+          supabase start 2>&1 | tee ci-database.log
+          supabase db reset 2>&1 | tee -a ci-database.log
+          supabase test db 2>&1 | tee -a ci-database.log
 
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package.json
-      - name: Install dependencies
-        shell: bash
-        run: |
-          set -o pipefail
-          npm install 2>&1 | tee ci-e2e.log
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      - name: Start local Supabase
-        shell: bash
-        run: |
-          set -o pipefail
-          {
-            supabase start
-            supabase db reset
-          } 2>&1 | tee -a ci-e2e.log
       - name: Export local Supabase environment
+        id: local_env
+        if: steps.database.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
+          set -euo pipefail
           eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
+          test -n "$API_URL"
+          test -n "$ANON_KEY"
           echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+
       - name: Verify protected CRM in browser
+        id: e2e
+        if: steps.install.outcome == 'success' && steps.database.outcome == 'success' && steps.local_env.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
-          set -o pipefail
-          {
-            npx playwright install --with-deps chromium
-            npm run test:e2e
-          } 2>&1 | tee -a ci-e2e.log
-      - name: Upload E2E log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-e2e-output
-          path: ci-e2e.log
-          if-no-files-found: ignore
+          set -euo pipefail
+          npx playwright install --with-deps chromium 2>&1 | tee ci-e2e.log
+          npm run test:e2e 2>&1 | tee -a ci-e2e.log
 
-  report:
-    if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
-    needs: [app, database, e2e]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download verification outputs
-        uses: actions/download-artifact@v4
-        with:
-          pattern: ci-*-output
-          path: ci-outputs
-      - name: Refresh feature branch
+      - name: Refresh feature branch before reporting
+        if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
         shell: bash
         run: |
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
       - name: Write verification report
+        if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
         shell: bash
         env:
-          APP_RESULT: ${{ needs.app.result }}
-          DATABASE_RESULT: ${{ needs.database.result }}
-          E2E_RESULT: ${{ needs.e2e.result }}
+          INSTALL_RESULT: ${{ steps.install.outcome }}
+          APP_RESULT: ${{ steps.app.outcome }}
+          SUPABASE_CLI_RESULT: ${{ steps.supabase_cli.outcome }}
+          DATABASE_RESULT: ${{ steps.database.outcome }}
+          ENV_RESULT: ${{ steps.local_env.outcome }}
+          E2E_RESULT: ${{ steps.e2e.outcome }}
         run: |
-          lockfile="$(find ci-outputs -type f -name 'package-lock.json' | head -n 1)"
-          if [ -n "$lockfile" ]; then
-            cp "$lockfile" package-lock.json
-          fi
           mkdir -p ci-results
           {
             echo "# CI verification"
             echo
             echo "Commit: \`$GITHUB_SHA\`"
             echo
-            echo "- App: **$APP_RESULT**"
-            echo "- Database/RLS: **$DATABASE_RESULT**"
-            echo "- E2E: **$E2E_RESULT**"
+            echo "- Dependency install: **$INSTALL_RESULT**"
+            echo "- App lint/typecheck/unit/build: **$APP_RESULT**"
+            echo "- Supabase CLI setup: **$SUPABASE_CLI_RESULT**"
+            echo "- Database migrations/RLS: **$DATABASE_RESULT**"
+            echo "- Local Supabase environment: **$ENV_RESULT**"
+            echo "- Protected CRM E2E: **$E2E_RESULT**"
             echo
-            for log in $(find ci-outputs -type f -name '*.log' | sort); do
-              echo "## $(basename "$log")"
-              echo '```text'
-              tail -n 120 "$log"
-              echo '```'
-              echo
+            for log in ci-install.log ci-app.log ci-database.log ci-e2e.log; do
+              if [ -f "$log" ]; then
+                echo "## $log"
+                echo '```text'
+                tail -n 160 "$log"
+                echo '```'
+                echo
+              fi
             done
           } > ci-results/latest.md
-      - name: Commit verification report
+
+      - name: Commit verification report and lockfile
+        if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci-results/latest.md package-lock.json
+          git add ci-results/latest.md
+          if [ -f package-lock.json ]; then
+            git add package-lock.json
+          fi
           if git diff --cached --quiet; then
             exit 0
           fi
           git commit -m "ci-results: record verification for $GITHUB_SHA"
           git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Fail workflow when verification failed
+        if: always()
+        shell: bash
+        env:
+          INSTALL_RESULT: ${{ steps.install.outcome }}
+          APP_RESULT: ${{ steps.app.outcome }}
+          SUPABASE_CLI_RESULT: ${{ steps.supabase_cli.outcome }}
+          DATABASE_RESULT: ${{ steps.database.outcome }}
+          ENV_RESULT: ${{ steps.local_env.outcome }}
+          E2E_RESULT: ${{ steps.e2e.outcome }}
+        run: |
+          set -euo pipefail
+          for result in "$INSTALL_RESULT" "$APP_RESULT" "$SUPABASE_CLI_RESULT" "$DATABASE_RESULT" "$ENV_RESULT" "$E2E_RESULT"; do
+            if [ "$result" != "success" ]; then
+              echo "Verification did not fully succeed: $result"
+              exit 1
+            fi
+          done
