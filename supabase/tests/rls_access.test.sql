@@ -87,6 +87,8 @@ set local role authenticated;
 select throws_ok(
   $$insert into public.people (first_name, last_name, normalized_email, county_id)
     values ('Blocked', 'Erie', 'blocked-erie@test.local', (select id from public.counties where name = 'Erie'))$$,
+  '42501',
+  null,
   'Albany County Organizer cannot insert an Erie person'
 );
 reset role;
@@ -96,6 +98,8 @@ set local role authenticated;
 select throws_ok(
   $$insert into public.people (first_name, last_name, normalized_email, county_id)
     values ('Blocked', 'Volunteer', 'blocked-volunteer@test.local', (select id from public.counties where name = 'Albany'))$$,
+  '42501',
+  null,
   'Volunteer/Staff cannot insert canonical people records'
 );
 reset role;
