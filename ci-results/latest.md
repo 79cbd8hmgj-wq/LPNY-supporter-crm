@@ -1,6 +1,6 @@
 # CI verification
 
-Commit: `e7637eb34d2ec7d5c59ec6d31b9b5d2dc6191e03`
+Commit: `56dc336006d5ae3d4be2edac54f9c398ffcb8831`
 
 - Dependency install: **success**
 - App lint/typecheck/unit/build/audit: **success**
@@ -11,17 +11,10 @@ Commit: `e7637eb34d2ec7d5c59ec6d31b9b5d2dc6191e03`
 
 ## ci-install.log
 ```text
-
-up to date, audited 632 packages in 12s
-
-207 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
 npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
 
-added 498 packages, and audited 499 packages in 20s
+added 498 packages, and audited 499 packages in 14s
 
 174 packages are looking for funding
   run `npm fund` for details
@@ -46,19 +39,19 @@ found 0 vulnerabilities
 
 [1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/LPNY-supporter-crm/LPNY-supporter-crm[39m
 
- [32m✓[39m tests/auth/access.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/auth/access.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[32m5 passed[39m[22m[90m (5)[39m
-[2m   Start at [22m 11:45:03
-[2m   Duration [22m 915ms[2m (transform 68ms, setup 97ms, collect 31ms, tests 6ms, environment 400ms, prepare 98ms)[22m
+[2m   Start at [22m 11:52:02
+[2m   Duration [22m 714ms[2m (transform 51ms, setup 75ms, collect 26ms, tests 4ms, environment 334ms, prepare 65ms)[22m
 
 
 > lpny-supporter-crm@0.1.0 build
 > next build
 
 ▲ Next.js 16.3.2 (Turbopack)
-✓ Running next.config.ts took 30ms
+✓ Running next.config.ts took 26ms
 ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
 Attention: Next.js now collects completely anonymous telemetry regarding usage.
 This information is used to shape Next.js' roadmap and prioritize features.
@@ -67,25 +60,15 @@ https://nextjs.org/telemetry
 
 
   Creating an optimized production build ...
-✓ Compiled successfully in 8.6s
+✓ Compiled successfully in 8.1s
   Running TypeScript ...
-
-  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
-  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
-
-  	- include was updated to add '.next/dev/types/**/*.ts'
-
-  The following mandatory changes were made to your tsconfig.json:
-
-  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
-
-  Finished TypeScript in 4.2s ...
+  Finished TypeScript in 3.4s ...
   Collecting page data using 1 worker ...
   Generating static pages using 1 worker (0/6) ...
   Generating static pages using 1 worker (1/6) 
   Generating static pages using 1 worker (2/6) 
   Generating static pages using 1 worker (4/6) 
-✓ Generating static pages using 1 worker (6/6) in 188ms
+✓ Generating static pages using 1 worker (6/6) in 152ms
   Finalizing page optimization ...
 
 Route (app)
@@ -104,52 +87,52 @@ found 0 vulnerabilities
 
 ## ci-database.log
 ```text
-95faff249800: Pull complete
-9e8e4081669a: Pull complete
-5bc6849ef973: Pull complete
-73adcb25feab: Pull complete
-0d29c829782d: Pull complete
+c80645774acf: Pull complete
+ad8aa6f5f9a9: Pull complete
+Digest: sha256:362659ca70eaa75ba05bbaf963caa84c1c5afe5e8fbf0777e17b830dd5f0f60a
+Status: Downloaded newer image for ghcr.io/supabase/gotrue:v2.195.0
+ghcr.io/supabase/gotrue:v2.195.0
+5e731b050e43: Pull complete
+8f99eb9866f3: Pull complete
+8f99eb9866f3: Pull complete
 777b5f4d3eb2: Pull complete
+662b1f44f1ee: Pull complete
 c350c088cde5: Pull complete
-7e1afeac9515: Pull complete
-753ab3b39a58: Pull complete
-7dd51689e5de: Pull complete
+c0ed9f2d0e0e: Pull complete
+c0ed9f2d0e0e: Pull complete
 4f4fb700ef54: Pull complete
-521c5280947c: Pull complete
+ba9e24d39072: Pull complete
 Digest: sha256:48ee05253213f014006a20bb34d0639f936b36a78e1972ec16b1985ac951d917
 Status: Downloaded newer image for ghcr.io/supabase/realtime:v2.129.0
-4f4fb700ef54: Pull complete
 ghcr.io/supabase/realtime:v2.129.0
-3f609ae12598: Pull complete
-662b1f44f1ee: Pull complete
-c80645774acf: Pull complete
-5e731b050e43: Pull complete
-5c18a8cdfd6b: Pull complete
-7505145a46ec: Pull complete
-Digest: sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a
-Status: Downloaded newer image for ghcr.io/supabase/postgres-meta:v0.98.0
-ghcr.io/supabase/postgres-meta:v0.98.0
-ba9e24d39072: Pull complete
 Digest: sha256:c52405002a890ca9fcf77978671c57f3a988e03174afb277f84ac65bc917013c
 Status: Downloaded newer image for ghcr.io/supabase/edge-runtime:v1.74.3
 ghcr.io/supabase/edge-runtime:v1.74.3
+4b118796ff6a: Pull complete
+23c96171f2fe: Pull complete
 0f248d4fdffd: Pull complete
 731b962a30ac: Pull complete
+753ab3b39a58: Pull complete
 b7d0efd3fc9c: Pull complete
+5c18a8cdfd6b: Pull complete
+7505145a46ec: Pull complete
 c0c4dc518956: Pull complete
+Digest: sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a
+Status: Downloaded newer image for ghcr.io/supabase/postgres-meta:v0.98.0
+ghcr.io/supabase/postgres-meta:v0.98.0
 512fd86e6200: Pull complete
+ad8cc52b5158: Pull complete
+daa7c753cf32: Pull complete
 264588d8dd60: Pull complete
 Digest: sha256:08dc77f12e08faacc55960fef1dce37fa73d16acb52abeb216aa23dc5e70824b
 Status: Downloaded newer image for ghcr.io/supabase/studio:2026.08.17-sha-0c1da8f
 ghcr.io/supabase/studio:2026.08.17-sha-0c1da8f
-ad8cc52b5158: Pull complete
 5fc99faf3b9a: Pull complete
 70b9c97b39c0: Pull complete
 7be4889067d6: Pull complete
 Digest: sha256:97ed68d33417d253a45fe0a70f84324d92250a3e239bf18aa6cf87269dbf6727
 Status: Downloaded newer image for ghcr.io/supabase/storage-api:v1.69.11
 ghcr.io/supabase/storage-api:v1.69.11
-daa7c753cf32: Pull complete
 c61d94d80b8d: Pull complete
 73d5273f17e0: Pull complete
 5d4d12d40ee2: Pull complete
@@ -265,15 +248,15 @@ dcccee43ad5d: Pulling fs layer
 a22cb17b3b93: Pulling fs layer
 4f4fb700ef54: Pulling fs layer
 4f4fb700ef54: Waiting
-a22cb17b3b93: Verifying Checksum
-a22cb17b3b93: Download complete
 dcccee43ad5d: Verifying Checksum
 dcccee43ad5d: Download complete
-06d62d0de6d7: Verifying Checksum
-06d62d0de6d7: Download complete
+a22cb17b3b93: Verifying Checksum
+a22cb17b3b93: Download complete
 dcccee43ad5d: Pull complete
 4f4fb700ef54: Verifying Checksum
 4f4fb700ef54: Download complete
+06d62d0de6d7: Verifying Checksum
+06d62d0de6d7: Download complete
 06d62d0de6d7: Pull complete
 a22cb17b3b93: Pull complete
 4f4fb700ef54: Pull complete
@@ -282,7 +265,7 @@ Status: Downloaded newer image for ghcr.io/supabase/pg_prove:3.36
 ghcr.io/supabase/pg_prove:3.36
 /home/runner/work/LPNY-supporter-crm/LPNY-supporter-crm/supabase/tests/rls_access.test.sql .. ok
 All tests successful.
-Files=1, Tests=26,  0 wallclock secs ( 0.02 usr +  0.01 sys =  0.03 CPU)
+Files=1, Tests=26,  0 wallclock secs ( 0.02 usr +  0.00 sys =  0.02 CPU)
 Result: PASS
 ```
 
@@ -467,6 +450,6 @@ Running 2 tests using 1 worker
 [WebServer] 
 [WebServer] Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
 ··
-  2 passed (15.8s)
+  2 passed (16.5s)
 ```
 
