@@ -17,6 +17,9 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
               <Link href="/crm" className="font-medium text-slate-700 hover:text-slate-950">
                 Dashboard
               </Link>
+              <Link href="/crm/people" className="font-medium text-slate-700 hover:text-slate-950">
+                People
+              </Link>
             </nav>
           </div>
           <div className="shrink-0 text-right text-sm">
