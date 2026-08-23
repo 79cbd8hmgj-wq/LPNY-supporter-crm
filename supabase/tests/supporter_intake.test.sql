@@ -1,6 +1,6 @@
 begin;
 
-select plan(15);
+select plan(20);
 
 select ok(
   to_regprocedure('public.process_get_involved_intake(text,text,text,text,text,text,text,text,text,text[],boolean,boolean)') is not null,
@@ -74,6 +74,16 @@ select is(
   'repeat submission preserves a second source occurrence'
 );
 select is(
+  (select count(*)::bigint from public.person_interests where person_id=(select person_id from intake_test_ids where label='ada')),
+  3::bigint,
+  'repeat submission adds interests without erasing existing interests'
+);
+select is(
+  (select count(*)::bigint from public.activities where person_id=(select person_id from intake_test_ids where label='ada') and activity_type='form_submitted'),
+  2::bigint,
+  'repeat submission preserves another form activity occurrence'
+);
+select is(
   (select count(*)::bigint from public.tasks where person_id=(select person_id from intake_test_ids where label='ada') and task_type='initial_follow_up' and status='open'),
   1::bigint,
   'repeat submission does not duplicate the open initial follow-up task'
@@ -81,6 +91,32 @@ select is(
 
 insert into public.people (first_name,last_name,phone,normalized_phone,zip_code,engagement_stage)
 values ('Robert','Smith','5185550000','5185550000','12207','contacted');
+
+insert into intake_test_ids
+select 'robert', id
+from public.people
+where normalized_phone='5185550000' and lower(last_name)='smith'
+order by created_at asc
+limit 1;
+
+insert into intake_test_ids values (
+  'robert-reuse',
+  public.process_get_involved_intake(
+    'Rob','Smith',null,null,'(518) 555-0000','5185550000','12207','Albany','Albany',
+    array['outreach'],false,false
+  )
+);
+
+select is(
+  (select person_id::text from intake_test_ids where label='robert-reuse'),
+  (select person_id::text from intake_test_ids where label='robert'),
+  'normalized phone plus case-insensitive last name reuses an existing person'
+);
+select is(
+  (select engagement_stage::text from public.people where id=(select person_id from intake_test_ids where label='robert')),
+  'contacted'::text,
+  'repeat self-submission does not downgrade a contacted supporter'
+);
 
 insert into intake_test_ids values (
   'alice',
