@@ -49,6 +49,28 @@ function getNewYorkCalendarDate(date: Date): CalendarDate {
   };
 }
 
+function parseCalendarDate(value: string): CalendarDate {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    throw new Error("Expected an ISO calendar date.");
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const normalized = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    normalized.getUTCFullYear() !== year ||
+    normalized.getUTCMonth() + 1 !== month ||
+    normalized.getUTCDate() !== day
+  ) {
+    throw new Error("Expected a valid ISO calendar date.");
+  }
+
+  return { year, month, day };
+}
+
 function getNewYorkOffsetMs(date: Date) {
   const parts = dateTimePartsFormatter.formatToParts(date);
   const asUtc = Date.UTC(
@@ -91,11 +113,17 @@ function nextCalendarDate(calendarDate: CalendarDate): CalendarDate {
   };
 }
 
-export function getNewYorkDayRange(now: Date = new Date()): DayRange {
-  const calendarDate = getNewYorkCalendarDate(now);
-
+function rangeForCalendarDate(calendarDate: CalendarDate): DayRange {
   return {
     startIso: newYorkMidnightUtc(calendarDate).toISOString(),
     endIso: newYorkMidnightUtc(nextCalendarDate(calendarDate)).toISOString(),
   };
+}
+
+export function getNewYorkCalendarDayRange(value: string): DayRange {
+  return rangeForCalendarDate(parseCalendarDate(value));
+}
+
+export function getNewYorkDayRange(now: Date = new Date()): DayRange {
+  return rangeForCalendarDate(getNewYorkCalendarDate(now));
 }
