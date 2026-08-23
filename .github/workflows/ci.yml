@@ -42,12 +42,14 @@ jobs:
             npm test
             npm run build
           } 2>&1 | tee -a ci-app.log
-      - name: Upload app log
+      - name: Upload app output
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-app-log
-          path: ci-app.log
+          name: ci-app-output
+          path: |
+            ci-app.log
+            package-lock.json
           if-no-files-found: ignore
 
   database:
@@ -70,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-database-log
+          name: ci-database-output
           path: ci-database.log
           if-no-files-found: ignore
 
@@ -117,7 +119,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-e2e-log
+          name: ci-e2e-output
           path: ci-e2e.log
           if-no-files-found: ignore
 
@@ -127,11 +129,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download verification logs
+      - name: Download verification outputs
         uses: actions/download-artifact@v4
         with:
-          pattern: ci-*-log
-          path: ci-logs
+          pattern: ci-*-output
+          path: ci-outputs
+      - name: Refresh feature branch
+        shell: bash
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
       - name: Write verification report
         shell: bash
         env:
@@ -139,6 +146,10 @@ jobs:
           DATABASE_RESULT: ${{ needs.database.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
         run: |
+          lockfile="$(find ci-outputs -type f -name 'package-lock.json' | head -n 1)"
+          if [ -n "$lockfile" ]; then
+            cp "$lockfile" package-lock.json
+          fi
           mkdir -p ci-results
           {
             echo "# CI verification"
@@ -149,7 +160,7 @@ jobs:
             echo "- Database/RLS: **$DATABASE_RESULT**"
             echo "- E2E: **$E2E_RESULT**"
             echo
-            for log in $(find ci-logs -type f -name '*.log' | sort); do
+            for log in $(find ci-outputs -type f -name '*.log' | sort); do
               echo "## $(basename "$log")"
               echo '```text'
               tail -n 120 "$log"
@@ -162,7 +173,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci-results/latest.md
+          git add ci-results/latest.md package-lock.json
           if git diff --cached --quiet; then
             exit 0
           fi
