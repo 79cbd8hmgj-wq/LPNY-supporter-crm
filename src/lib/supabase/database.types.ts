@@ -10,24 +10,9 @@ export type Database = {
   public: {
     Tables: {
       counties: {
-        Row: {
-          id: string;
-          name: string;
-          fips_code: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          fips_code: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          fips_code?: string;
-          created_at?: string;
-        };
+        Row: { id: string; name: string; fips_code: string; created_at: string };
+        Insert: { id?: string; name: string; fips_code: string; created_at?: string };
+        Update: { id?: string; name?: string; fips_code?: string; created_at?: string };
         Relationships: [];
       };
       staff_users: {
@@ -169,84 +154,39 @@ export type Database = {
         Relationships: [];
       };
       activities: {
-        Row: {
-          id: string;
-          person_id: string;
-          activity_type: string;
-          actor_staff_user_id: string | null;
-          occurred_at: string;
-          metadata: Json;
-        };
-        Insert: {
-          id?: string;
-          person_id: string;
-          activity_type: string;
-          actor_staff_user_id?: string | null;
-          occurred_at?: string;
-          metadata?: Json;
-        };
-        Update: {
-          id?: string;
-          person_id?: string;
-          activity_type?: string;
-          actor_staff_user_id?: string | null;
-          occurred_at?: string;
-          metadata?: Json;
-        };
+        Row: { id: string; person_id: string; activity_type: string; actor_staff_user_id: string | null; occurred_at: string; metadata: Json };
+        Insert: { id?: string; person_id: string; activity_type: string; actor_staff_user_id?: string | null; occurred_at?: string; metadata?: Json };
+        Update: { id?: string; person_id?: string; activity_type?: string; actor_staff_user_id?: string | null; occurred_at?: string; metadata?: Json };
+        Relationships: [];
+      };
+      relationship_types: {
+        Row: { id: string; slug: string; name: string; active: boolean };
+        Insert: { id?: string; slug: string; name: string; active?: boolean };
+        Update: { id?: string; slug?: string; name?: string; active?: boolean };
+        Relationships: [];
+      };
+      interests: {
+        Row: { id: string; slug: string; name: string; active: boolean };
+        Insert: { id?: string; slug: string; name: string; active?: boolean };
+        Update: { id?: string; slug?: string; name?: string; active?: boolean };
+        Relationships: [];
+      };
+      tags: {
+        Row: { id: string; name: string; active: boolean; created_by_staff_user_id: string | null; created_at: string };
+        Insert: { id?: string; name: string; active?: boolean; created_by_staff_user_id?: string | null; created_at?: string };
+        Update: { id?: string; name?: string; active?: boolean; created_by_staff_user_id?: string | null; created_at?: string };
         Relationships: [];
       };
       sources: {
-        Row: {
-          id: string;
-          slug: string;
-          category: string;
-          name: string;
-          active: boolean;
-          metadata: Json;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          slug: string;
-          category: string;
-          name: string;
-          active?: boolean;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          slug?: string;
-          category?: string;
-          name?: string;
-          active?: boolean;
-          metadata?: Json;
-          created_at?: string;
-        };
+        Row: { id: string; slug: string; category: string; name: string; active: boolean; metadata: Json; created_at: string };
+        Insert: { id?: string; slug: string; category: string; name: string; active?: boolean; metadata?: Json; created_at?: string };
+        Update: { id?: string; slug?: string; category?: string; name?: string; active?: boolean; metadata?: Json; created_at?: string };
         Relationships: [];
       };
       person_sources: {
-        Row: {
-          id: string;
-          person_id: string;
-          source_id: string;
-          occurred_at: string;
-          metadata: Json;
-        };
-        Insert: {
-          id?: string;
-          person_id: string;
-          source_id: string;
-          occurred_at?: string;
-          metadata?: Json;
-        };
-        Update: {
-          id?: string;
-          person_id?: string;
-          source_id?: string;
-          occurred_at?: string;
-          metadata?: Json;
-        };
+        Row: { id: string; person_id: string; source_id: string; occurred_at: string; metadata: Json };
+        Insert: { id?: string; person_id: string; source_id: string; occurred_at?: string; metadata?: Json };
+        Update: { id?: string; person_id?: string; source_id?: string; occurred_at?: string; metadata?: Json };
         Relationships: [];
       };
     };
