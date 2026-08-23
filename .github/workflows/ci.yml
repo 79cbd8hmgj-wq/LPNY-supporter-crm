@@ -63,18 +63,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
+          eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
           test -n "$API_URL"
           test -n "$ANON_KEY"
+          test -n "$SERVICE_ROLE_KEY"
           echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
 
       - name: Install browser dependencies
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Protected CRM E2E
+      - name: Browser E2E
         run: npm run test:e2e
 
       - name: Stop local Supabase
         if: always()
-        run: supabase stop --no-backup
+        shell: bash
+        run: |
+          if command -v supabase >/dev/null 2>&1; then
+            supabase stop --no-backup
+          fi
