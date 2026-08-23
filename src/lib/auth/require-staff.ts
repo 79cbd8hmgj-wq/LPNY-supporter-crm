@@ -3,6 +3,10 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { evaluateStaffAccess } from "./access";
 import type { StaffContext, StaffRecord } from "./types";
 
+function normalizeAssuranceLevel(value: string | null | undefined): "aal1" | "aal2" | null {
+  return value === "aal1" || value === "aal2" ? value : null;
+}
+
 export async function requireStaffUser(): Promise<StaffContext> {
   const supabase = await createServerSupabaseClient();
   const {
@@ -24,7 +28,7 @@ export async function requireStaffUser(): Promise<StaffContext> {
 
   const decision = evaluateStaffAccess({
     authUserId: user?.id ?? null,
-    currentAal: assurance?.currentLevel ?? null,
+    currentAal: normalizeAssuranceLevel(assurance?.currentLevel),
     staff,
   });
 
