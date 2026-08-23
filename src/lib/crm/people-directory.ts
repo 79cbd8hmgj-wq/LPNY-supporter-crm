@@ -69,9 +69,30 @@ export async function loadPeopleDirectory(
 
   const totalCount = data[0]?.total_count ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const people = data.map((row) => {
+    const person: PeopleDirectoryRow = {
+      id: row.id,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      zip_code: row.zip_code,
+      county_id: row.county_id,
+      county_name: row.county_name,
+      municipality: row.municipality,
+      engagement_stage: row.engagement_stage,
+      assigned_staff_user_id: row.assigned_staff_user_id,
+      do_not_contact: row.do_not_contact,
+      last_activity_at: row.last_activity_at,
+      created_at: row.created_at,
+      has_open_task: row.has_open_task,
+    };
+
+    return person;
+  });
 
   return {
-    people: data.map(({ total_count: _totalCount, ...person }) => person),
+    people,
     totalCount,
     page: filters.page,
     pageSize: PAGE_SIZE,
