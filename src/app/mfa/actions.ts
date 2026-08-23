@@ -11,9 +11,12 @@ export interface EnrollmentState {
 }
 
 export async function startMfaEnrollmentAction(
-  _previous: EnrollmentState | null,
-  _formData: FormData,
+  previous: EnrollmentState | null,
+  formData: FormData,
 ): Promise<EnrollmentState> {
+  void previous;
+  void formData;
+
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
