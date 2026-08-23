@@ -269,6 +269,45 @@ export type Database = {
         };
         Returns: string;
       };
+      search_people_directory: {
+        Args: {
+          p_query?: string | null;
+          p_county_id?: string | null;
+          p_zip_code?: string | null;
+          p_engagement_stage?: Database["public"]["Enums"]["engagement_stage"] | null;
+          p_relationship_slug?: string | null;
+          p_interest_slug?: string | null;
+          p_tag_id?: string | null;
+          p_organizer_id?: string | null;
+          p_source_slug?: string | null;
+          p_joined_after?: string | null;
+          p_joined_before_exclusive?: string | null;
+          p_last_activity_before?: string | null;
+          p_has_open_task?: boolean | null;
+          p_candidate_interest?: boolean | null;
+          p_member_status?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string | null;
+          phone: string | null;
+          zip_code: string | null;
+          county_id: string | null;
+          county_name: string | null;
+          municipality: string | null;
+          engagement_stage: Database["public"]["Enums"]["engagement_stage"];
+          assigned_staff_user_id: string | null;
+          do_not_contact: boolean;
+          last_activity_at: string | null;
+          created_at: string;
+          has_open_task: boolean;
+          total_count: number;
+        }>;
+      };
     };
     Enums: {
       staff_role: "admin" | "state_organizer" | "county_organizer" | "volunteer_staff";
