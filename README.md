@@ -34,7 +34,9 @@ Requirements: Node.js 22+, npm, Docker, and the Supabase CLI.
 
 ## Verification
 
-Run the application checks:
+GitHub Actions runs application, database-policy, and browser checks for branch/PR changes.
+
+Run the application checks locally:
 
 ```bash
 npm run lint
