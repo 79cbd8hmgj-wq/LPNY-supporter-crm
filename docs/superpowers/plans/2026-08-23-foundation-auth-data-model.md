@@ -31,8 +31,6 @@
 
 ## File Structure
 
-Create this initial project structure:
-
 ```text
 LPNY-supporter-crm/
 ├── src/
@@ -45,11 +43,13 @@ LPNY-supporter-crm/
 │   │   │   └── page.tsx
 │   │   ├── mfa/
 │   │   │   ├── actions.ts
+│   │   │   ├── mfa-enrollment.tsx
 │   │   │   └── page.tsx
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── lib/
 │   │   ├── auth/
+│   │   │   ├── access.ts
 │   │   │   ├── require-staff.ts
 │   │   │   └── types.ts
 │   │   ├── env.ts
@@ -57,8 +57,7 @@ LPNY-supporter-crm/
 │   │       ├── browser.ts
 │   │       ├── database.types.ts
 │   │       └── server.ts
-│   └── test/
-│       └── setup.ts
+│   └── test/setup.ts
 ├── supabase/
 │   ├── config.toml
 │   ├── migrations/
@@ -66,14 +65,12 @@ LPNY-supporter-crm/
 │   │   ├── 202608230002_people_taxonomy_and_workflow.sql
 │   │   └── 202608230003_rls_and_access_helpers.sql
 │   ├── seed.sql
-│   └── tests/
-│       └── rls_access.test.sql
+│   └── tests/rls_access.test.sql
 ├── tests/
-│   ├── auth/
-│   │   └── require-staff.test.ts
-│   └── e2e/
-│       └── protected-crm.spec.ts
+│   ├── auth/access.test.ts
+│   └── e2e/protected-crm.spec.ts
 ├── .env.example
+├── .github/workflows/ci.yml
 ├── package.json
 ├── playwright.config.ts
 ├── vitest.config.ts
@@ -82,55 +79,39 @@ LPNY-supporter-crm/
 
 ---
 
-### Task 1: Scaffold the application and test harness
+### Task 1: Scaffold Next.js, Supabase, and test tooling
 
 **Files:**
-- Create/modify: `package.json`
-- Create: `.env.example`
-- Create: `src/lib/env.ts`
-- Create: `vitest.config.ts`
-- Create: `src/test/setup.ts`
-- Create: `playwright.config.ts`
-- Create/modify: `README.md`
-- Create generated Next.js files under `src/app/`
-- Create generated Supabase files under `supabase/`
+- Create/modify: `package.json`, `package-lock.json`, generated Next.js files under `src/`, `supabase/config.toml`
+- Create: `.env.example`, `src/lib/env.ts`, `vitest.config.ts`, `src/test/setup.ts`, `playwright.config.ts`
 
 **Interfaces:**
-- Produces: `env` object exported from `src/lib/env.ts` with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- Produces: npm scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:watch`, `test:e2e`, `supabase:start`, `supabase:stop`, `supabase:reset`, and `test:db`.
+- Produces `env.NEXT_PUBLIC_SUPABASE_URL` and `env.NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Produces npm scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:watch`, `test:e2e`, `supabase:start`, `supabase:stop`, `supabase:reset`, `test:db`.
 
-- [ ] **Step 1: Scaffold Next.js in the repository root**
-
-Run:
+- [ ] **Step 1: Scaffold the application**
 
 ```bash
 npm create next-app@latest . -- --typescript --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm
-```
-
-Expected: `src/app`, `package.json`, TypeScript, ESLint, Tailwind, and App Router files exist without overwriting the approved design/plan documents.
-
-- [ ] **Step 2: Install application and test dependencies**
-
-Run:
-
-```bash
 npm install @supabase/ssr @supabase/supabase-js zod
-npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @playwright/test
-```
-
-Expected: all packages are recorded in `package.json` and `npm install` exits successfully.
-
-- [ ] **Step 3: Initialize Supabase local development**
-
-Run:
-
-```bash
+npm install -D supabase vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @playwright/test
 npx supabase init
 ```
 
-Expected: `supabase/config.toml` exists.
+Expected: the existing design/plan documents remain intact and the app scaffolds successfully.
 
-- [ ] **Step 4: Add environment validation**
+- [ ] **Step 2: Disable public Supabase Auth signup locally**
+
+In `supabase/config.toml`, set the Auth value to:
+
+```toml
+[auth]
+enable_signup = false
+```
+
+Keep any other generated `[auth]` keys intact.
+
+- [ ] **Step 3: Add environment validation**
 
 Create `.env.example`:
 
@@ -155,7 +136,7 @@ export const env = envSchema.parse({
 });
 ```
 
-- [ ] **Step 5: Add Vitest configuration**
+- [ ] **Step 4: Configure Vitest**
 
 Create `vitest.config.ts`:
 
@@ -171,9 +152,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
   },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: { "@": path.resolve(__dirname, "./src") },
   },
 });
 ```
@@ -184,7 +163,7 @@ Create `src/test/setup.ts`:
 import "@testing-library/jest-dom/vitest";
 ```
 
-- [ ] **Step 6: Add Playwright configuration**
+- [ ] **Step 5: Configure Playwright**
 
 Create `playwright.config.ts`:
 
@@ -209,16 +188,16 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 7: Add package scripts**
+- [ ] **Step 6: Normalize package scripts**
 
-Ensure `package.json` contains:
+Set these scripts in `package.json`:
 
 ```json
 {
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -231,59 +210,52 @@ Ensure `package.json` contains:
 }
 ```
 
-If the generated Next.js version does not expose `next lint`, replace only the `lint` script with the ESLint command generated/recommended by that Next.js release; do not change the remaining script names.
-
-- [ ] **Step 8: Verify the scaffold**
-
-Run:
+- [ ] **Step 7: Verify scaffold**
 
 ```bash
+npm run lint
 npm run typecheck
-npm run build
 npm test
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=build-placeholder npm run build
 ```
 
-Expected: all three commands exit 0.
+Expected: every command exits 0.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add package.json package-lock.json .env.example src supabase vitest.config.ts playwright.config.ts README.md
+git add package.json package-lock.json src supabase .env.example vitest.config.ts playwright.config.ts
  git commit -m "chore: scaffold CRM application foundation"
 ```
 
 ---
 
-### Task 2: Create staff, county, and role foundations
+### Task 2: Create staff roles and canonical New York counties
 
 **Files:**
 - Create: `supabase/migrations/202608230001_core_enums_and_staff.sql`
-- Modify: `supabase/seed.sql`
+- Create/modify: `supabase/seed.sql`
+- Create: `supabase/tests/rls_access.test.sql`
 
 **Interfaces:**
-- Produces enums: `public.staff_role`, `public.staff_status`.
-- Produces tables: `public.counties`, `public.staff_users`, `public.staff_counties`.
-- `staff_users.auth_user_id` references `auth.users(id)` and is unique.
-- One staff user has exactly one `role` in v1.
+- Produces `public.staff_role`, `public.staff_status`.
+- Produces `public.counties`, `public.staff_users`, `public.staff_counties`.
 
-- [ ] **Step 1: Write the first database test for staff constraints**
+- [ ] **Step 1: Write failing schema tests**
 
-Create the initial `supabase/tests/rls_access.test.sql` with:
+Create `supabase/tests/rls_access.test.sql`:
 
 ```sql
 begin;
-select plan(4);
-
+select plan(5);
 select has_type('public', 'staff_role', 'staff_role enum exists');
 select has_table('public', 'staff_users', 'staff_users exists');
 select has_table('public', 'counties', 'counties exists');
 select has_table('public', 'staff_counties', 'staff_counties exists');
-
+select is((select count(*) from public.counties)::bigint, 62::bigint, 'all 62 NY counties are seeded');
 select * from finish();
 rollback;
 ```
-
-- [ ] **Step 2: Run the database test and verify failure**
 
 Run:
 
@@ -292,9 +264,9 @@ npm run supabase:start
 npm run test:db
 ```
 
-Expected: FAIL because the enum/tables do not exist.
+Expected: FAIL because the migration does not exist yet.
 
-- [ ] **Step 3: Create the migration**
+- [ ] **Step 2: Create staff/county migration**
 
 Create `supabase/migrations/202608230001_core_enums_and_staff.sql`:
 
@@ -302,13 +274,7 @@ Create `supabase/migrations/202608230001_core_enums_and_staff.sql`:
 create extension if not exists pgcrypto;
 create extension if not exists pgtap with schema extensions;
 
-create type public.staff_role as enum (
-  'admin',
-  'state_organizer',
-  'county_organizer',
-  'volunteer_staff'
-);
-
+create type public.staff_role as enum ('admin', 'state_organizer', 'county_organizer', 'volunteer_staff');
 create type public.staff_status as enum ('active', 'disabled');
 
 create table public.counties (
@@ -321,7 +287,7 @@ create table public.counties (
 create table public.staff_users (
   id uuid primary key default gen_random_uuid(),
   auth_user_id uuid not null unique references auth.users(id) on delete restrict,
-  display_name text not null,
+  display_name text not null check (length(trim(display_name)) > 0),
   role public.staff_role not null,
   status public.staff_status not null default 'active',
   invited_at timestamptz,
@@ -340,9 +306,9 @@ create index staff_users_auth_user_id_idx on public.staff_users(auth_user_id);
 create index staff_counties_county_id_idx on public.staff_counties(county_id);
 ```
 
-- [ ] **Step 4: Seed the canonical New York county lookup**
+- [ ] **Step 3: Seed all 62 counties**
 
-Populate `supabase/seed.sql` with all 62 New York counties and their five-digit county FIPS values. The first rows must use this exact shape:
+Set `supabase/seed.sql` to begin with:
 
 ```sql
 insert into public.counties (name, fips_code) values
@@ -350,24 +316,77 @@ insert into public.counties (name, fips_code) values
   ('Allegany', '36003'),
   ('Bronx', '36005'),
   ('Broome', '36007'),
-  ('Cattaraugus', '36009')
+  ('Cattaraugus', '36009'),
+  ('Cayuga', '36011'),
+  ('Chautauqua', '36013'),
+  ('Chemung', '36015'),
+  ('Chenango', '36017'),
+  ('Clinton', '36019'),
+  ('Columbia', '36021'),
+  ('Cortland', '36023'),
+  ('Delaware', '36025'),
+  ('Dutchess', '36027'),
+  ('Erie', '36029'),
+  ('Essex', '36031'),
+  ('Franklin', '36033'),
+  ('Fulton', '36035'),
+  ('Genesee', '36037'),
+  ('Greene', '36039'),
+  ('Hamilton', '36041'),
+  ('Herkimer', '36043'),
+  ('Jefferson', '36045'),
+  ('Kings', '36047'),
+  ('Lewis', '36049'),
+  ('Livingston', '36051'),
+  ('Madison', '36053'),
+  ('Monroe', '36055'),
+  ('Montgomery', '36057'),
+  ('Nassau', '36059'),
+  ('New York', '36061'),
+  ('Niagara', '36063'),
+  ('Oneida', '36065'),
+  ('Onondaga', '36067'),
+  ('Ontario', '36069'),
+  ('Orange', '36071'),
+  ('Orleans', '36073'),
+  ('Oswego', '36075'),
+  ('Otsego', '36077'),
+  ('Putnam', '36079'),
+  ('Queens', '36081'),
+  ('Rensselaer', '36083'),
+  ('Richmond', '36085'),
+  ('Rockland', '36087'),
+  ('St. Lawrence', '36089'),
+  ('Saratoga', '36091'),
+  ('Schenectady', '36093'),
+  ('Schoharie', '36095'),
+  ('Schuyler', '36097'),
+  ('Seneca', '36099'),
+  ('Steuben', '36101'),
+  ('Suffolk', '36103'),
+  ('Sullivan', '36105'),
+  ('Tioga', '36107'),
+  ('Tompkins', '36109'),
+  ('Ulster', '36111'),
+  ('Warren', '36113'),
+  ('Washington', '36115'),
+  ('Wayne', '36117'),
+  ('Westchester', '36119'),
+  ('Wyoming', '36121'),
+  ('Yates', '36123')
 on conflict (fips_code) do update set name = excluded.name;
 ```
 
-Continue the same statement through all remaining New York counties in ascending FIPS order, ending with Yates (`36123`). Verify the final seed count is 62 with `select count(*) from public.counties;`.
-
-- [ ] **Step 5: Reset local database and run tests**
-
-Run:
+- [ ] **Step 4: Reset and verify**
 
 ```bash
 npm run supabase:reset
 npm run test:db
 ```
 
-Expected: PASS and the local database contains 62 county rows.
+Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add supabase/migrations/202608230001_core_enums_and_staff.sql supabase/seed.sql supabase/tests/rls_access.test.sql
@@ -376,7 +395,7 @@ git add supabase/migrations/202608230001_core_enums_and_staff.sql supabase/seed.
 
 ---
 
-### Task 3: Create the core people, taxonomy, activity, consent, and task schema
+### Task 3: Create the canonical people and workflow schema
 
 **Files:**
 - Create: `supabase/migrations/202608230002_people_taxonomy_and_workflow.sql`
@@ -384,13 +403,11 @@ git add supabase/migrations/202608230001_core_enums_and_staff.sql supabase/seed.
 - Modify: `supabase/tests/rls_access.test.sql`
 
 **Interfaces:**
-- Produces enums: `engagement_stage`, `task_priority`, `task_status`, `task_queue_scope`, `consent_channel`, `consent_state`, `duplicate_status`.
-- Produces canonical `people` records and child tables used by later intake/organizer plans.
-- Produces explicit `staff_person_assignments` for Volunteer/Staff access.
+- Produces `people`, taxonomy joins, sources, activities, notes, tasks, consent events, explicit staff/person assignments, and duplicate candidates.
 
-- [ ] **Step 1: Extend the schema-presence test and verify failure**
+- [ ] **Step 1: Extend schema tests and verify failure**
 
-Add these assertions before `finish()` in `supabase/tests/rls_access.test.sql` and increase the plan count accordingly:
+Change the pgTAP plan from 5 to 14 and add:
 
 ```sql
 select has_table('public', 'people', 'people exists');
@@ -406,14 +423,12 @@ select has_table('public', 'staff_person_assignments', 'staff_person_assignments
 
 Run `npm run test:db` and expect FAIL.
 
-- [ ] **Step 2: Create the workflow migration**
+- [ ] **Step 2: Create workflow migration**
 
-Create `supabase/migrations/202608230002_people_taxonomy_and_workflow.sql` with these exact enums and table contracts:
+Create `supabase/migrations/202608230002_people_taxonomy_and_workflow.sql`:
 
 ```sql
-create type public.engagement_stage as enum (
-  'new', 'follow_up_needed', 'contacted', 'engaged', 'inactive'
-);
+create type public.engagement_stage as enum ('new', 'follow_up_needed', 'contacted', 'engaged', 'inactive');
 create type public.task_priority as enum ('low', 'normal', 'high');
 create type public.task_status as enum ('open', 'completed', 'cancelled');
 create type public.task_queue_scope as enum ('statewide', 'county');
@@ -423,8 +438,8 @@ create type public.duplicate_status as enum ('open', 'merged', 'kept_separate');
 
 create table public.people (
   id uuid primary key default gen_random_uuid(),
-  first_name text not null,
-  last_name text not null,
+  first_name text not null check (length(trim(first_name)) > 0),
+  last_name text not null check (length(trim(last_name)) > 0),
   email text,
   normalized_email text,
   phone text,
@@ -440,9 +455,7 @@ create table public.people (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
-create unique index people_normalized_email_unique_idx
-  on public.people(normalized_email)
+create unique index people_normalized_email_unique_idx on public.people(normalized_email)
   where normalized_email is not null and archived_at is null;
 create index people_county_id_idx on public.people(county_id);
 create index people_assigned_staff_user_id_idx on public.people(assigned_staff_user_id);
@@ -582,7 +595,7 @@ create table public.duplicate_candidates (
 );
 ```
 
-- [ ] **Step 3: Seed the approved taxonomies and website source**
+- [ ] **Step 3: Seed approved relationship, interest, and source values**
 
 Append to `supabase/seed.sql`:
 
@@ -615,9 +628,7 @@ insert into public.sources (slug, category, name) values
 on conflict (slug) do update set name = excluded.name, category = excluded.category;
 ```
 
-- [ ] **Step 4: Reset and verify schema tests pass**
-
-Run:
+- [ ] **Step 4: Reset and verify**
 
 ```bash
 npm run supabase:reset
@@ -635,46 +646,20 @@ git add supabase/migrations/202608230002_people_taxonomy_and_workflow.sql supaba
 
 ---
 
-### Task 4: Implement RLS helper functions and policies
+### Task 4: Enforce role, county, and explicit-person RLS
 
 **Files:**
 - Create: `supabase/migrations/202608230003_rls_and_access_helpers.sql`
-- Modify: `supabase/tests/rls_access.test.sql`
+- Replace/extend: `supabase/tests/rls_access.test.sql`
 
 **Interfaces:**
-- Produces SQL helpers `private.current_staff_user_id()`, `private.current_staff_role()`, `private.is_active_staff()`, `private.can_access_county(uuid)`, and `private.can_access_person(uuid)`.
-- Every protected person-child table uses `private.can_access_person(person_id)` as the access predicate.
+- Produces `private.current_staff_user_id()`, `private.current_staff_role()`, `private.is_active_staff()`, `private.can_access_county(uuid)`, `private.can_access_person(uuid)`.
+- `people` is readable by Admin/State statewide, County Organizer within assigned counties, and Volunteer/Staff only through explicit assignment.
+- Volunteer/Staff cannot insert/update canonical `people` rows in this foundation plan; they can work through authorized child records such as tasks/notes when assigned.
 
-- [ ] **Step 1: Add failing RLS behavior tests**
+- [ ] **Step 1: Add access helper migration**
 
-Extend `supabase/tests/rls_access.test.sql` with fixtures representing one Admin, one State Organizer, one Albany County Organizer, one Erie County Organizer, and one Volunteer/Staff user. Insert Albany and Erie people, assign the volunteer only to the Albany person, then assert these behaviors using `set local role authenticated` and a JWT `sub` claim for each fixture auth user:
-
-```sql
-select is(
-  (select count(*) from public.people)::bigint,
-  1::bigint,
-  'Albany county organizer sees only Albany person'
-);
-```
-
-Add equivalent assertions that:
-
-```text
-Admin -> 2 people
-State Organizer -> 2 people
-Albany County Organizer -> 1 Albany person
-Erie County Organizer -> 1 Erie person
-Volunteer/Staff assigned Albany person -> 1 person
-Disabled staff user -> 0 people
-```
-
-Also assert the Volunteer/Staff user cannot insert a new `people` row and the County Organizer cannot select the other county's `activities` or `tasks` rows.
-
-Run `npm run test:db` and expect FAIL before policies exist.
-
-- [ ] **Step 2: Create access helper functions**
-
-Create schema and functions in `supabase/migrations/202608230003_rls_and_access_helpers.sql`:
+Create the start of `supabase/migrations/202608230003_rls_and_access_helpers.sql`:
 
 ```sql
 create schema if not exists private;
@@ -682,55 +667,30 @@ revoke all on schema private from public;
 grant usage on schema private to authenticated;
 
 create or replace function private.current_staff_user_id()
-returns uuid
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select su.id
-  from public.staff_users su
-  where su.auth_user_id = auth.uid()
-    and su.status = 'active'
+returns uuid language sql stable security definer set search_path = '' as $$
+  select su.id from public.staff_users su
+  where su.auth_user_id = auth.uid() and su.status = 'active'
   limit 1
 $$;
 
 create or replace function private.current_staff_role()
-returns public.staff_role
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select su.role
-  from public.staff_users su
-  where su.auth_user_id = auth.uid()
-    and su.status = 'active'
+returns public.staff_role language sql stable security definer set search_path = '' as $$
+  select su.role from public.staff_users su
+  where su.auth_user_id = auth.uid() and su.status = 'active'
   limit 1
 $$;
 
 create or replace function private.is_active_staff()
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
+returns boolean language sql stable security definer set search_path = '' as $$
   select private.current_staff_user_id() is not null
 $$;
 
 create or replace function private.can_access_county(target_county_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
+returns boolean language sql stable security definer set search_path = '' as $$
   select case
     when private.current_staff_role() in ('admin', 'state_organizer') then true
     when private.current_staff_role() = 'county_organizer' then exists (
-      select 1
-      from public.staff_counties sc
+      select 1 from public.staff_counties sc
       where sc.staff_user_id = private.current_staff_user_id()
         and sc.county_id = target_county_id
     )
@@ -739,24 +699,17 @@ as $$
 $$;
 
 create or replace function private.can_access_person(target_person_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
+returns boolean language sql stable security definer set search_path = '' as $$
   select case
     when private.current_staff_role() in ('admin', 'state_organizer') then true
     when private.current_staff_role() = 'county_organizer' then exists (
-      select 1
-      from public.people p
+      select 1 from public.people p
       where p.id = target_person_id
         and p.county_id is not null
         and private.can_access_county(p.county_id)
     )
     when private.current_staff_role() = 'volunteer_staff' then exists (
-      select 1
-      from public.staff_person_assignments spa
+      select 1 from public.staff_person_assignments spa
       where spa.staff_user_id = private.current_staff_user_id()
         and spa.person_id = target_person_id
     )
@@ -765,9 +718,9 @@ as $$
 $$;
 ```
 
-- [ ] **Step 3: Enable RLS on protected tables**
+- [ ] **Step 2: Enable RLS and add people policies**
 
-In the same migration:
+Append:
 
 ```sql
 alter table public.people enable row level security;
@@ -787,51 +740,183 @@ alter table public.tags enable row level security;
 alter table public.sources enable row level security;
 alter table public.relationship_types enable row level security;
 alter table public.interests enable row level security;
-```
 
-- [ ] **Step 4: Add people and child-table policies**
-
-Add policies with these exact predicates:
-
-```sql
-create policy people_select on public.people
-for select to authenticated
+create policy people_select on public.people for select to authenticated
 using (private.can_access_person(id));
 
-create policy people_insert on public.people
-for insert to authenticated
-with check (private.current_staff_role() in ('admin', 'state_organizer', 'county_organizer'));
+create policy people_insert on public.people for insert to authenticated
+with check (
+  private.current_staff_role() in ('admin', 'state_organizer')
+  or (
+    private.current_staff_role() = 'county_organizer'
+    and county_id is not null
+    and private.can_access_county(county_id)
+  )
+);
 
-create policy people_update on public.people
-for update to authenticated
+create policy people_update on public.people for update to authenticated
 using (private.can_access_person(id))
-with check (private.can_access_person(id));
+with check (
+  private.current_staff_role() in ('admin', 'state_organizer')
+  or (
+    private.current_staff_role() = 'county_organizer'
+    and county_id is not null
+    and private.can_access_county(county_id)
+  )
+);
 ```
 
-For each child table with `person_id` (`person_relationships`, `person_interests`, `person_tags`, `person_sources`, `activities`, `internal_notes`, `tasks`, `consent_events`), create `select`, `insert`, `update`, and `delete` policies that require `private.can_access_person(person_id)`. For `activities` and `consent_events`, omit update/delete policies so history is append-oriented. For `internal_notes`, allow update/delete only when the current user is the author or has Admin/State Organizer role.
+- [ ] **Step 3: Add child-record policies**
 
-For `duplicate_candidates`, allow select/update only to Admin/State Organizer when either linked person is accessible, and insert to Admin/State Organizer.
+Append:
 
-For `staff_person_assignments`, allow Admin/State Organizer to manage rows; allow the assigned Volunteer/Staff user to select only their own rows.
+```sql
+create policy person_relationships_select on public.person_relationships for select to authenticated using (private.can_access_person(person_id));
+create policy person_relationships_insert on public.person_relationships for insert to authenticated with check (private.can_access_person(person_id));
+create policy person_relationships_delete on public.person_relationships for delete to authenticated using (private.can_access_person(person_id));
 
-- [ ] **Step 5: Add lookup/staff policies**
+create policy person_interests_select on public.person_interests for select to authenticated using (private.can_access_person(person_id));
+create policy person_interests_insert on public.person_interests for insert to authenticated with check (private.can_access_person(person_id));
+create policy person_interests_delete on public.person_interests for delete to authenticated using (private.can_access_person(person_id));
 
-Add authenticated read policies for `relationship_types` and `interests` where `active = true`. Add authenticated read policy for `sources` where `active = true`. Allow Admin/State Organizer to create/update `tags`; allow all active staff to read active tags.
+create policy person_tags_select on public.person_tags for select to authenticated using (private.can_access_person(person_id));
+create policy person_tags_insert on public.person_tags for insert to authenticated with check (private.can_access_person(person_id));
+create policy person_tags_delete on public.person_tags for delete to authenticated using (private.can_access_person(person_id));
 
-For `staff_users`, allow active staff to select their own row; allow Admin to select/update all rows; allow State Organizer to select active staff rows for assignment UI but not update them.
+create policy person_sources_select on public.person_sources for select to authenticated using (private.can_access_person(person_id));
+create policy person_sources_insert on public.person_sources for insert to authenticated with check (private.can_access_person(person_id));
 
-For `staff_counties`, allow Admin to manage; allow the linked staff user and State Organizer to select.
+create policy activities_select on public.activities for select to authenticated using (private.can_access_person(person_id));
+create policy activities_insert on public.activities for insert to authenticated with check (private.can_access_person(person_id));
 
-- [ ] **Step 6: Reset and run RLS tests**
+create policy consent_events_select on public.consent_events for select to authenticated using (private.can_access_person(person_id));
+create policy consent_events_insert on public.consent_events for insert to authenticated with check (private.can_access_person(person_id));
 
-Run:
+create policy tasks_select on public.tasks for select to authenticated using (private.can_access_person(person_id));
+create policy tasks_insert on public.tasks for insert to authenticated with check (private.can_access_person(person_id));
+create policy tasks_update on public.tasks for update to authenticated using (private.can_access_person(person_id)) with check (private.can_access_person(person_id));
+create policy tasks_delete on public.tasks for delete to authenticated using (private.can_access_person(person_id));
+
+create policy internal_notes_select on public.internal_notes for select to authenticated using (private.can_access_person(person_id));
+create policy internal_notes_insert on public.internal_notes for insert to authenticated with check (
+  private.can_access_person(person_id) and author_staff_user_id = private.current_staff_user_id()
+);
+create policy internal_notes_update on public.internal_notes for update to authenticated using (
+  private.can_access_person(person_id)
+  and (author_staff_user_id = private.current_staff_user_id() or private.current_staff_role() in ('admin', 'state_organizer'))
+) with check (private.can_access_person(person_id));
+create policy internal_notes_delete on public.internal_notes for delete to authenticated using (
+  private.can_access_person(person_id)
+  and (author_staff_user_id = private.current_staff_user_id() or private.current_staff_role() in ('admin', 'state_organizer'))
+);
+```
+
+- [ ] **Step 4: Add staff, lookup, and duplicate-review policies**
+
+Append:
+
+```sql
+create policy relationship_types_read on public.relationship_types for select to authenticated using (private.is_active_staff() and active);
+create policy interests_read on public.interests for select to authenticated using (private.is_active_staff() and active);
+create policy sources_read on public.sources for select to authenticated using (private.is_active_staff() and active);
+create policy tags_read on public.tags for select to authenticated using (private.is_active_staff() and active);
+create policy tags_insert on public.tags for insert to authenticated with check (private.current_staff_role() in ('admin', 'state_organizer'));
+create policy tags_update on public.tags for update to authenticated using (private.current_staff_role() in ('admin', 'state_organizer')) with check (private.current_staff_role() in ('admin', 'state_organizer'));
+
+create policy staff_users_self_read on public.staff_users for select to authenticated using (id = private.current_staff_user_id());
+create policy staff_users_admin_read on public.staff_users for select to authenticated using (private.current_staff_role() = 'admin');
+create policy staff_users_state_read on public.staff_users for select to authenticated using (private.current_staff_role() = 'state_organizer' and status = 'active');
+create policy staff_users_admin_update on public.staff_users for update to authenticated using (private.current_staff_role() = 'admin') with check (private.current_staff_role() = 'admin');
+
+create policy staff_counties_read on public.staff_counties for select to authenticated using (
+  staff_user_id = private.current_staff_user_id() or private.current_staff_role() in ('admin', 'state_organizer')
+);
+create policy staff_counties_admin_insert on public.staff_counties for insert to authenticated with check (private.current_staff_role() = 'admin');
+create policy staff_counties_admin_delete on public.staff_counties for delete to authenticated using (private.current_staff_role() = 'admin');
+
+create policy staff_person_assignments_self_read on public.staff_person_assignments for select to authenticated using (
+  staff_user_id = private.current_staff_user_id() or private.current_staff_role() in ('admin', 'state_organizer')
+);
+create policy staff_person_assignments_manage on public.staff_person_assignments for all to authenticated using (
+  private.current_staff_role() in ('admin', 'state_organizer')
+) with check (private.current_staff_role() in ('admin', 'state_organizer'));
+
+create policy duplicate_candidates_read on public.duplicate_candidates for select to authenticated using (
+  private.current_staff_role() in ('admin', 'state_organizer')
+);
+create policy duplicate_candidates_insert on public.duplicate_candidates for insert to authenticated with check (
+  private.current_staff_role() in ('admin', 'state_organizer')
+);
+create policy duplicate_candidates_update on public.duplicate_candidates for update to authenticated using (
+  private.current_staff_role() in ('admin', 'state_organizer')
+) with check (private.current_staff_role() in ('admin', 'state_organizer'));
+```
+
+- [ ] **Step 5: Replace database test with role fixtures and access assertions**
+
+After the schema-presence assertions in `supabase/tests/rls_access.test.sql`, create fixed fixtures:
+
+```sql
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) values
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000101','authenticated','authenticated','admin@test.local','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000102','authenticated','authenticated','state@test.local','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000103','authenticated','authenticated','albany@test.local','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000104','authenticated','authenticated','erie@test.local','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000105','authenticated','authenticated','volunteer@test.local','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000106','authenticated','authenticated','disabled@test.local','',now(),'{}','{}',now(),now());
+
+insert into public.staff_users (id, auth_user_id, display_name, role, status) values
+('10000000-0000-0000-0000-000000000101','00000000-0000-0000-0000-000000000101','Admin','admin','active'),
+('10000000-0000-0000-0000-000000000102','00000000-0000-0000-0000-000000000102','State','state_organizer','active'),
+('10000000-0000-0000-0000-000000000103','00000000-0000-0000-0000-000000000103','Albany Organizer','county_organizer','active'),
+('10000000-0000-0000-0000-000000000104','00000000-0000-0000-0000-000000000104','Erie Organizer','county_organizer','active'),
+('10000000-0000-0000-0000-000000000105','00000000-0000-0000-0000-000000000105','Volunteer','volunteer_staff','active'),
+('10000000-0000-0000-0000-000000000106','00000000-0000-0000-0000-000000000106','Disabled','state_organizer','disabled');
+
+insert into public.staff_counties (staff_user_id, county_id)
+select '10000000-0000-0000-0000-000000000103', id from public.counties where name='Albany';
+insert into public.staff_counties (staff_user_id, county_id)
+select '10000000-0000-0000-0000-000000000104', id from public.counties where name='Erie';
+
+insert into public.people (id, first_name, last_name, normalized_email, county_id) values
+('20000000-0000-0000-0000-000000000201','Alice','Albany','alice@test.local',(select id from public.counties where name='Albany')),
+('20000000-0000-0000-0000-000000000202','Evan','Erie','evan@test.local',(select id from public.counties where name='Erie'));
+
+insert into public.staff_person_assignments (staff_user_id, person_id) values
+('10000000-0000-0000-0000-000000000105','20000000-0000-0000-0000-000000000201');
+```
+
+For each user, set the JWT claims and authenticated role, run the count assertion, then reset role. Use this exact pattern for Admin:
+
+```sql
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000000101","role":"authenticated"}', true);
+set local role authenticated;
+select is((select count(*) from public.people)::bigint, 2::bigint, 'Admin sees statewide people');
+reset role;
+```
+
+Repeat with these expected results:
+
+```text
+00000000-0000-0000-0000-000000000102 -> 2 (State Organizer)
+00000000-0000-0000-0000-000000000103 -> 1 and visible first_name = Alice (Albany County Organizer)
+00000000-0000-0000-0000-000000000104 -> 1 and visible first_name = Evan (Erie County Organizer)
+00000000-0000-0000-0000-000000000105 -> 1 and visible first_name = Alice (Volunteer/Staff explicit assignment)
+00000000-0000-0000-0000-000000000106 -> 0 (disabled account)
+```
+
+Add an `throws_ok` assertion proving the Albany County Organizer cannot insert a person whose `county_id` is Erie, and an `throws_ok` assertion proving Volunteer/Staff cannot insert into `people`.
+
+Update the pgTAP plan count to equal the final number of assertions in the file.
+
+- [ ] **Step 6: Reset and run database tests**
 
 ```bash
 npm run supabase:reset
 npm run test:db
 ```
 
-Expected: all role-scope tests PASS.
+Expected: all schema and RLS assertions PASS.
 
 - [ ] **Step 7: Commit**
 
@@ -842,33 +927,26 @@ git add supabase/migrations/202608230003_rls_and_access_helpers.sql supabase/tes
 
 ---
 
-### Task 5: Add typed Supabase clients and staff-session guard
+### Task 5: Add typed Supabase clients and deterministic staff-access logic
 
 **Files:**
-- Create: `src/lib/supabase/browser.ts`
-- Create: `src/lib/supabase/server.ts`
 - Create/generated: `src/lib/supabase/database.types.ts`
-- Create: `src/lib/auth/types.ts`
-- Create: `src/lib/auth/require-staff.ts`
-- Create: `tests/auth/require-staff.test.ts`
+- Create: `src/lib/supabase/browser.ts`, `src/lib/supabase/server.ts`
+- Create: `src/lib/auth/types.ts`, `src/lib/auth/access.ts`, `src/lib/auth/require-staff.ts`
+- Create: `tests/auth/access.test.ts`
 
 **Interfaces:**
-- `createBrowserSupabaseClient(): SupabaseClient<Database>`
-- `createServerSupabaseClient(): Promise<SupabaseClient<Database>>`
-- `requireStaffUser(): Promise<StaffContext>`
-- `StaffContext = { staffUserId: string; authUserId: string; displayName: string; role: StaffRole; aal: string | null }`
+- `createBrowserSupabaseClient()` and `createServerSupabaseClient()` return clients typed with `Database`.
+- `evaluateStaffAccess(input: StaffAccessInput): StaffAccessDecision` is pure and unit-tested.
+- `requireStaffUser(): Promise<StaffContext>` performs Supabase reads, applies the decision, and redirects when necessary.
 
 - [ ] **Step 1: Generate database types**
-
-With local Supabase running:
 
 ```bash
 npx supabase gen types typescript --local > src/lib/supabase/database.types.ts
 ```
 
-Expected: generated `Database` type includes `people`, `staff_users`, and the other migration-created tables.
-
-- [ ] **Step 2: Create typed browser client**
+- [ ] **Step 2: Create Supabase clients**
 
 Create `src/lib/supabase/browser.ts`:
 
@@ -878,14 +956,9 @@ import { env } from "@/lib/env";
 import type { Database } from "./database.types";
 
 export function createBrowserSupabaseClient() {
-  return createBrowserClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+  return createBrowserClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 ```
-
-- [ ] **Step 3: Create typed server client**
 
 Create `src/lib/supabase/server.ts`:
 
@@ -897,155 +970,192 @@ import type { Database } from "./database.types";
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
-
-  return createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Server Components can read cookies but cannot always write them.
-          }
-        },
+  return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      setAll: (items) => {
+        try {
+          items.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch {
+          // Cookie writes are unavailable from some Server Component render paths.
+        }
       },
     },
-  );
+  });
 }
 ```
 
-- [ ] **Step 4: Write failing tests for the staff guard**
-
-Create `tests/auth/require-staff.test.ts` covering three outcomes by mocking `createServerSupabaseClient()`:
-
-```ts
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/lib/supabase/server", () => ({
-  createServerSupabaseClient: vi.fn(),
-}));
-
-describe("requireStaffUser", () => {
-  it("rejects an unauthenticated session", async () => {
-    // Mock getUser() -> user null and assert the guard redirects to /login.
-  });
-
-  it("rejects a disabled or missing staff profile", async () => {
-    // Mock authenticated user and staff_users query -> no active row.
-  });
-
-  it("returns staff context for an active staff user", async () => {
-    // Mock authenticated user, AAL2 session, and active staff_users row.
-    // Assert role/displayName/staffUserId/authUserId are returned.
-  });
-});
-```
-
-Use Next.js `redirect` mocking so the first two tests assert the destination rather than throwing uninspected errors.
-
-- [ ] **Step 5: Implement staff role/context types**
+- [ ] **Step 3: Define access types**
 
 Create `src/lib/auth/types.ts`:
 
 ```ts
-export type StaffRole =
-  | "admin"
-  | "state_organizer"
-  | "county_organizer"
-  | "volunteer_staff";
+export type StaffRole = "admin" | "state_organizer" | "county_organizer" | "volunteer_staff";
+
+export interface StaffRecord {
+  id: string;
+  display_name: string;
+  role: StaffRole;
+  status: "active" | "disabled";
+}
 
 export interface StaffContext {
   staffUserId: string;
   authUserId: string;
   displayName: string;
   role: StaffRole;
-  aal: string | null;
+  aal: "aal1" | "aal2" | null;
 }
 ```
 
-- [ ] **Step 6: Implement `requireStaffUser()`**
+Create `src/lib/auth/access.ts`:
+
+```ts
+import type { StaffContext, StaffRecord } from "./types";
+
+export interface StaffAccessInput {
+  authUserId: string | null;
+  currentAal: "aal1" | "aal2" | null;
+  staff: StaffRecord | null;
+}
+
+export type StaffAccessDecision =
+  | { kind: "allow"; context: StaffContext }
+  | { kind: "redirect"; to: "/login" | "/mfa" | "/login?error=not-authorized" };
+
+export function evaluateStaffAccess(input: StaffAccessInput): StaffAccessDecision {
+  if (!input.authUserId) return { kind: "redirect", to: "/login" };
+  if (input.currentAal !== "aal2") return { kind: "redirect", to: "/mfa" };
+  if (!input.staff || input.staff.status !== "active") {
+    return { kind: "redirect", to: "/login?error=not-authorized" };
+  }
+  return {
+    kind: "allow",
+    context: {
+      staffUserId: input.staff.id,
+      authUserId: input.authUserId,
+      displayName: input.staff.display_name,
+      role: input.staff.role,
+      aal: input.currentAal,
+    },
+  };
+}
+```
+
+- [ ] **Step 4: Write access tests before wiring the guard**
+
+Create `tests/auth/access.test.ts`:
+
+```ts
+import { describe, expect, it } from "vitest";
+import { evaluateStaffAccess } from "@/lib/auth/access";
+
+const activeStaff = {
+  id: "staff-1",
+  display_name: "Test Organizer",
+  role: "county_organizer" as const,
+  status: "active" as const,
+};
+
+describe("evaluateStaffAccess", () => {
+  it("sends unauthenticated users to login", () => {
+    expect(evaluateStaffAccess({ authUserId: null, currentAal: null, staff: null })).toEqual({ kind: "redirect", to: "/login" });
+  });
+
+  it("requires aal2 before CRM access", () => {
+    expect(evaluateStaffAccess({ authUserId: "auth-1", currentAal: "aal1", staff: activeStaff })).toEqual({ kind: "redirect", to: "/mfa" });
+  });
+
+  it("rejects missing staff authorization", () => {
+    expect(evaluateStaffAccess({ authUserId: "auth-1", currentAal: "aal2", staff: null })).toEqual({ kind: "redirect", to: "/login?error=not-authorized" });
+  });
+
+  it("returns staff context for active aal2 staff", () => {
+    expect(evaluateStaffAccess({ authUserId: "auth-1", currentAal: "aal2", staff: activeStaff })).toEqual({
+      kind: "allow",
+      context: {
+        staffUserId: "staff-1",
+        authUserId: "auth-1",
+        displayName: "Test Organizer",
+        role: "county_organizer",
+        aal: "aal2",
+      },
+    });
+  });
+});
+```
+
+Run `npm test -- tests/auth/access.test.ts`; expected PASS after `access.ts` exists.
+
+- [ ] **Step 5: Implement the server guard**
 
 Create `src/lib/auth/require-staff.ts`:
 
 ```ts
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { StaffContext, StaffRole } from "./types";
+import { evaluateStaffAccess } from "./access";
+import type { StaffContext, StaffRecord } from "./types";
 
 export async function requireStaffUser(): Promise<StaffContext> {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (assurance?.currentLevel !== "aal2") redirect("/mfa");
 
-  const { data: staff } = await supabase
-    .from("staff_users")
-    .select("id, display_name, role, status")
-    .eq("auth_user_id", user.id)
-    .eq("status", "active")
-    .single();
+  let staff: StaffRecord | null = null;
+  if (user) {
+    const result = await supabase
+      .from("staff_users")
+      .select("id, display_name, role, status")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+    staff = result.data as StaffRecord | null;
+  }
 
-  if (!staff) redirect("/login?error=not-authorized");
+  const decision = evaluateStaffAccess({
+    authUserId: user?.id ?? null,
+    currentAal: assurance?.currentLevel ?? null,
+    staff,
+  });
 
-  return {
-    staffUserId: staff.id,
-    authUserId: user.id,
-    displayName: staff.display_name,
-    role: staff.role as StaffRole,
-    aal: assurance?.currentLevel ?? null,
-  };
+  if (decision.kind === "redirect") redirect(decision.to);
+  return decision.context;
 }
 ```
 
-- [ ] **Step 7: Run unit tests and typecheck**
-
-Run:
+- [ ] **Step 6: Verify**
 
 ```bash
-npm test -- tests/auth/require-staff.test.ts
+npm test -- tests/auth/access.test.ts
 npm run typecheck
 ```
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/lib tests/auth/require-staff.test.ts
- git commit -m "feat: add typed Supabase staff session guard"
+git add src/lib tests/auth/access.test.ts
+ git commit -m "feat: add typed Supabase staff access guard"
 ```
 
 ---
 
-### Task 6: Build login, MFA enrollment/challenge, and the protected CRM shell
+### Task 6: Build invite-only login, TOTP MFA, and protected CRM shell
 
 **Files:**
-- Create: `src/app/login/page.tsx`
-- Create: `src/app/login/actions.ts`
-- Create: `src/app/mfa/page.tsx`
-- Create: `src/app/mfa/actions.ts`
-- Create: `src/app/crm/layout.tsx`
-- Create: `src/app/crm/page.tsx`
+- Create: `src/app/login/actions.ts`, `src/app/login/page.tsx`
+- Create: `src/app/mfa/actions.ts`, `src/app/mfa/mfa-enrollment.tsx`, `src/app/mfa/page.tsx`
+- Create: `src/app/crm/layout.tsx`, `src/app/crm/page.tsx`
 - Create: `tests/e2e/protected-crm.spec.ts`
 
 **Interfaces:**
-- `loginAction(formData: FormData): Promise<void>` authenticates email/password only for invited Supabase users.
-- MFA page enrolls TOTP when no verified factor exists; otherwise challenges an existing TOTP factor.
-- `/crm/*` calls `requireStaffUser()` on the server before rendering protected content.
+- `loginAction(formData)` calls `signInWithPassword`; there is no signup action.
+- `startMfaEnrollmentAction(previousState, formData)` returns TOTP factor data.
+- `verifyMfaAction(formData)` challenges/verifies TOTP and redirects to `/crm`.
+- `/crm/*` requires `requireStaffUser()`.
 
-- [ ] **Step 1: Write failing protected-route end-to-end test**
+- [ ] **Step 1: Write unauthenticated E2E test**
 
 Create `tests/e2e/protected-crm.spec.ts`:
 
@@ -1059,9 +1169,9 @@ test("unauthenticated user is redirected from CRM to login", async ({ page }) =>
 });
 ```
 
-Run `npm run test:e2e -- tests/e2e/protected-crm.spec.ts` and expect FAIL before routes exist.
+Run it and expect FAIL before routes exist.
 
-- [ ] **Step 2: Implement login action**
+- [ ] **Step 2: Implement login action and page**
 
 Create `src/app/login/actions.ts`:
 
@@ -1072,40 +1182,61 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+const schema = z.object({ email: z.string().email(), password: z.string().min(1) });
 
 export async function loginAction(formData: FormData) {
-  const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-
+  const parsed = schema.safeParse({ email: formData.get("email"), password: formData.get("password") });
   if (!parsed.success) redirect("/login?error=invalid-input");
-
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) redirect("/login?error=invalid-credentials");
-
   redirect("/crm");
 }
 ```
 
-- [ ] **Step 3: Implement login page without signup affordance**
+Create `src/app/login/page.tsx`:
 
-Create `src/app/login/page.tsx` with a `Staff sign in` heading, email/password inputs, and a submit button bound to `loginAction`. Do not render a registration link or signup action. The page must explain only that staff accounts are invitation-only.
+```tsx
+import { loginAction } from "./actions";
 
-- [ ] **Step 4: Implement MFA actions**
+export default function LoginPage() {
+  return (
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center p-6">
+      <h1 className="text-2xl font-semibold">Staff sign in</h1>
+      <p className="mt-2 text-sm text-slate-600">Staff accounts are invitation-only.</p>
+      <form action={loginAction} className="mt-6 space-y-4">
+        <label className="block">Email<input className="mt-1 w-full border p-2" name="email" type="email" required /></label>
+        <label className="block">Password<input className="mt-1 w-full border p-2" name="password" type="password" required /></label>
+        <button className="w-full bg-slate-900 p-2 text-white" type="submit">Sign in</button>
+      </form>
+    </main>
+  );
+}
+```
 
-Create `src/app/mfa/actions.ts` with server actions that call Supabase MFA APIs:
+- [ ] **Step 3: Implement MFA server actions**
+
+Create `src/app/mfa/actions.ts`:
 
 ```ts
 "use server";
 
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export interface EnrollmentState {
+  factorId: string;
+  qrCode: string;
+  secret: string;
+  error: string | null;
+}
+
+export async function startMfaEnrollmentAction(_previous: EnrollmentState | null, _formData: FormData): Promise<EnrollmentState> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+  if (error) return { factorId: "", qrCode: "", secret: "", error: "Could not start MFA enrollment." };
+  return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret, error: null };
+}
 
 export async function verifyMfaAction(formData: FormData) {
   const factorId = String(formData.get("factorId") ?? "");
@@ -1115,21 +1246,76 @@ export async function verifyMfaAction(formData: FormData) {
   const supabase = await createServerSupabaseClient();
   const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
   if (challengeError) redirect("/mfa?error=challenge-failed");
-
-  const { error } = await supabase.auth.mfa.verify({
-    factorId,
-    challengeId: challenge.id,
-    code,
-  });
+  const { error } = await supabase.auth.mfa.verify({ factorId, challengeId: challenge.id, code });
   if (error) redirect("/mfa?error=verification-failed");
-
   redirect("/crm");
 }
 ```
 
-The enrollment branch on the MFA page must call `supabase.auth.mfa.enroll({ factorType: "totp" })` through a server action, display the returned QR/secret safely to the authenticated user, then use the same challenge/verify flow.
+- [ ] **Step 4: Implement MFA enrollment/challenge UI**
 
-- [ ] **Step 5: Implement protected CRM layout**
+Create `src/app/mfa/mfa-enrollment.tsx`:
+
+```tsx
+"use client";
+
+import { useActionState } from "react";
+import { startMfaEnrollmentAction, verifyMfaAction, type EnrollmentState } from "./actions";
+
+export function MfaEnrollment() {
+  const [state, action, pending] = useActionState<EnrollmentState | null, FormData>(startMfaEnrollmentAction, null);
+
+  if (!state) {
+    return <form action={action}><button disabled={pending} type="submit">Set up authenticator</button></form>;
+  }
+  if (state.error) return <p role="alert">{state.error}</p>;
+
+  return (
+    <div className="space-y-4">
+      <img alt="Authenticator QR code" src={state.qrCode} />
+      <p className="break-all text-sm">Manual key: {state.secret}</p>
+      <form action={verifyMfaAction} className="space-y-2">
+        <input name="factorId" type="hidden" value={state.factorId} />
+        <label className="block">6-digit code<input name="code" inputMode="numeric" pattern="[0-9]{6}" required /></label>
+        <button type="submit">Verify and continue</button>
+      </form>
+    </div>
+  );
+}
+```
+
+Create `src/app/mfa/page.tsx`:
+
+```tsx
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { verifyMfaAction } from "./actions";
+import { MfaEnrollment } from "./mfa-enrollment";
+
+export default async function MfaPage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data } = await supabase.auth.mfa.listFactors();
+  const verified = data?.totp.find((factor) => factor.status === "verified");
+
+  return (
+    <main className="mx-auto max-w-md p-6">
+      <h1 className="text-2xl font-semibold">Multi-factor authentication</h1>
+      {verified ? (
+        <form action={verifyMfaAction} className="mt-6 space-y-3">
+          <input name="factorId" type="hidden" value={verified.id} />
+          <label className="block">6-digit code<input name="code" inputMode="numeric" pattern="[0-9]{6}" required /></label>
+          <button type="submit">Verify</button>
+        </form>
+      ) : <div className="mt-6"><MfaEnrollment /></div>}
+    </main>
+  );
+}
+```
+
+- [ ] **Step 5: Implement protected CRM shell**
 
 Create `src/app/crm/layout.tsx`:
 
@@ -1139,7 +1325,6 @@ import { requireStaffUser } from "@/lib/auth/require-staff";
 
 export default async function CrmLayout({ children }: { children: ReactNode }) {
   const staff = await requireStaffUser();
-
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white px-4 py-3">
@@ -1154,11 +1339,15 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
 }
 ```
 
-Create `src/app/crm/page.tsx` as a minimal authenticated landing page with heading `CRM Dashboard` and copy that workflow modules arrive in the organizer-workflow plan. Do not build dashboard metrics in this task.
+Create `src/app/crm/page.tsx`:
 
-- [ ] **Step 6: Run tests**
+```tsx
+export default function CrmHomePage() {
+  return <h1 className="text-2xl font-semibold">CRM Dashboard</h1>;
+}
+```
 
-Run:
+- [ ] **Step 6: Verify auth shell**
 
 ```bash
 npm test
@@ -1184,19 +1373,15 @@ git add src/app/login src/app/mfa src/app/crm tests/e2e/protected-crm.spec.ts
 - Modify: `README.md`
 
 **Interfaces:**
-- Produces a CI gate that runs install, lint, typecheck, unit tests, build, and database tests on pushes/PRs.
-- Documents local setup without production credentials.
+- CI runs lint, typecheck, unit tests, build, database reset, and pgTAP tests.
 
-- [ ] **Step 1: Create CI workflow**
+- [ ] **Step 1: Create CI**
 
 Create `.github/workflows/ci.yml`:
 
 ```yaml
 name: CI
-
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   app:
@@ -1214,7 +1399,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
 
   database:
     runs-on: ubuntu-latest
@@ -1228,31 +1413,32 @@ jobs:
       - run: supabase test db
 ```
 
-- [ ] **Step 2: Update README with exact local workflow**
+- [ ] **Step 2: Document exact local workflow**
 
-Document:
+Add this setup sequence to `README.md`:
 
 ```text
 1. npm install
 2. npm run supabase:start
-3. copy .env.example to .env.local and replace the anon key with `supabase status` output
-4. npm run supabase:reset
-5. npm run dev
-6. npm test
-7. npm run test:db
+3. cp .env.example .env.local
+4. replace NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local with the anon key printed by `supabase status`
+5. npm run supabase:reset
+6. npm run dev
+7. npm run lint
+8. npm run typecheck
+9. npm test
+10. npm run test:db
 ```
 
-Also document that real supporter data and production service-role keys are prohibited in local/staging environments.
+Also state explicitly: production supporter records, production database dumps, production access tokens, and production service-role keys must not be used in local or staging environments.
 
-- [ ] **Step 3: Run the complete local verification suite**
-
-Run:
+- [ ] **Step 3: Run complete verification**
 
 ```bash
 npm run lint
 npm run typecheck
 npm test
-npm run build
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=build-placeholder npm run build
 npm run test:db
 ```
 
@@ -1269,25 +1455,24 @@ git add .github/workflows/ci.yml README.md
 
 ## Plan Self-Review
 
-### Spec coverage provided by this plan
+### Spec coverage in this plan
 
 - Standalone Next.js/Supabase foundation: Tasks 1 and 7.
 - Core people/relationship/interests/tags/sources/activity/tasks/consent/staff/county model: Tasks 2 and 3.
-- Invite-only staff authentication surface: Tasks 5 and 6.
+- Invite-only staff authentication surface: Task 6.
 - MFA enforcement: Tasks 5 and 6.
 - Admin/State/County/Volunteer role boundaries: Task 4.
-- County-based and explicit-person RLS: Task 4.
+- County and explicit-person database boundaries: Task 4.
 - Disabled-account protection: Tasks 4 and 5.
-- Versioned migrations and non-production local seed data: Tasks 2, 3, and 7.
+- Versioned migrations and non-production seed data: Tasks 2, 3, and 7.
 - Real database-policy testing: Task 4.
 
-### Deliberately deferred to later approved plans
+### Deferred to later roadmap plans
 
-- Public Get Involved intake and deduplication orchestration.
-- ZIP-to-county routing and statewide fallback.
-- Organizer dashboard, people directory, supporter profile, follow-up UX, Quick Add, and saved views.
-- Admin invitation UI, duplicate merge UI, taxonomy/source management, audit log, CSV imports/exports.
+- Public Get Involved intake, normalization, deduplication, ZIP routing, source handling, rate limiting, bot protection, and initial task creation.
+- Organizer dashboard, directory, supporter profile, follow-up actions, Quick Add, and saved views.
+- Admin invitation UI, duplicate merges, taxonomy/source administration, audit log, CSV imports/exports.
 - Reporting/source-performance analytics.
-- Production deployment, backup/recovery verification, and full launch hardening.
+- Staging/production deployment, backup/recovery validation, and full production launch hardening.
 
 No production supporter data is required to execute this plan.
