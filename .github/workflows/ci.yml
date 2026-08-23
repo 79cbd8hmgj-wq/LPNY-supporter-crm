@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         id: install
@@ -30,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install 2>&1 | tee ci-install.log
+          npm ci 2>&1 | tee ci-install.log
 
       - name: Verify application
         id: app
@@ -46,6 +48,7 @@ jobs:
           npm run typecheck 2>&1 | tee -a ci-app.log
           npm test 2>&1 | tee -a ci-app.log
           npm run build 2>&1 | tee -a ci-app.log
+          npm audit --omit=dev --audit-level=high 2>&1 | tee -a ci-app.log
 
       - name: Install Supabase CLI
         id: supabase_cli
@@ -85,7 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx playwright install --with-deps chromium 2>&1 | tee ci-e2e.log
+          npx playwright install --with-deps chromium webkit 2>&1 | tee ci-e2e.log
           npm run test:e2e 2>&1 | tee -a ci-e2e.log
 
       - name: Refresh feature branch before reporting
@@ -113,7 +116,7 @@ jobs:
             echo "Commit: \`$GITHUB_SHA\`"
             echo
             echo "- Dependency install: **$INSTALL_RESULT**"
-            echo "- App lint/typecheck/unit/build: **$APP_RESULT**"
+            echo "- App lint/typecheck/unit/build/audit: **$APP_RESULT**"
             echo "- Supabase CLI setup: **$SUPABASE_CLI_RESULT**"
             echo "- Database migrations/RLS: **$DATABASE_RESULT**"
             echo "- Local Supabase environment: **$ENV_RESULT**"
@@ -123,7 +126,7 @@ jobs:
               if [ -f "$log" ]; then
                 echo "## $log"
                 echo '```text'
-                tail -n 160 "$log"
+                tail -n 180 "$log"
                 echo '```'
                 echo
               fi
