@@ -10,7 +10,7 @@ export type PeopleFilterState = {
   engagementStage: EngagementStage | null;
   relationshipSlug: string | null;
   interestSlug: string | null;
-  tagSlug: string | null;
+  tagId: string | null;
   organizerId: string | null;
   sourceSlug: string | null;
   joinedAfter: string | null;
@@ -88,6 +88,7 @@ function parsePositiveInteger(value: string, maximum: number) {
 export function parsePeopleFilters(params: URLSearchParams): PeopleFilterState {
   const query = trimmed(params, "q").slice(0, 200);
   const countyId = parseUuid(trimmed(params, "county"));
+  const tagId = parseUuid(trimmed(params, "tag"));
   const organizerId = parseUuid(trimmed(params, "organizer"));
   const zipCandidate = trimmed(params, "zip");
   const stageCandidate = trimmed(params, "stage") as EngagementStage;
@@ -100,7 +101,7 @@ export function parsePeopleFilters(params: URLSearchParams): PeopleFilterState {
     engagementStage: ENGAGEMENT_STAGES.has(stageCandidate) ? stageCandidate : null,
     relationshipSlug: parseSlug(trimmed(params, "relationship")),
     interestSlug: parseSlug(trimmed(params, "interest")),
-    tagSlug: parseSlug(trimmed(params, "tag")),
+    tagId,
     organizerId,
     sourceSlug: parseSlug(trimmed(params, "source")),
     joinedAfter: parseDate(trimmed(params, "joinedAfter")),
@@ -122,7 +123,7 @@ export function serializePeopleFilters(filters: PeopleFilterState) {
   if (filters.engagementStage) params.set("stage", filters.engagementStage);
   if (filters.relationshipSlug) params.set("relationship", filters.relationshipSlug);
   if (filters.interestSlug) params.set("interest", filters.interestSlug);
-  if (filters.tagSlug) params.set("tag", filters.tagSlug);
+  if (filters.tagId) params.set("tag", filters.tagId);
   if (filters.organizerId) params.set("organizer", filters.organizerId);
   if (filters.sourceSlug) params.set("source", filters.sourceSlug);
   if (filters.joinedAfter) params.set("joinedAfter", filters.joinedAfter);
