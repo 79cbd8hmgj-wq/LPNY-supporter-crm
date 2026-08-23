@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+      - "ci-results/**"
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -19,14 +24,31 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package.json
-      - run: npm install
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          npm install 2>&1 | tee ci-app.log
+      - name: Verify application
+        shell: bash
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
+        run: |
+          set -o pipefail
+          {
+            npm run lint
+            npm run typecheck
+            npm test
+            npm run build
+          } 2>&1 | tee -a ci-app.log
+      - name: Upload app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-app-log
+          path: ci-app.log
+          if-no-files-found: ignore
 
   database:
     runs-on: ubuntu-latest
@@ -35,9 +57,22 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase start
-      - run: supabase db reset
-      - run: supabase test db
+      - name: Verify database migrations and RLS
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            supabase start
+            supabase db reset
+            supabase test db
+          } 2>&1 | tee ci-database.log
+      - name: Upload database log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-database-log
+          path: ci-database.log
+          if-no-files-found: ignore
 
   e2e:
     runs-on: ubuntu-latest
@@ -48,17 +83,88 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package.json
-      - run: npm install
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          npm install 2>&1 | tee ci-e2e.log
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase start
-      - run: supabase db reset
+      - name: Start local Supabase
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            supabase start
+            supabase db reset
+          } 2>&1 | tee -a ci-e2e.log
       - name: Export local Supabase environment
         shell: bash
         run: |
           eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
           echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Verify protected CRM in browser
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            npx playwright install --with-deps chromium
+            npm run test:e2e
+          } 2>&1 | tee -a ci-e2e.log
+      - name: Upload E2E log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-e2e-log
+          path: ci-e2e.log
+          if-no-files-found: ignore
+
+  report:
+    if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
+    needs: [app, database, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verification logs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ci-*-log
+          path: ci-logs
+      - name: Write verification report
+        shell: bash
+        env:
+          APP_RESULT: ${{ needs.app.result }}
+          DATABASE_RESULT: ${{ needs.database.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+        run: |
+          mkdir -p ci-results
+          {
+            echo "# CI verification"
+            echo
+            echo "Commit: \`$GITHUB_SHA\`"
+            echo
+            echo "- App: **$APP_RESULT**"
+            echo "- Database/RLS: **$DATABASE_RESULT**"
+            echo "- E2E: **$E2E_RESULT**"
+            echo
+            for log in $(find ci-logs -type f -name '*.log' | sort); do
+              echo "## $(basename "$log")"
+              echo '```text'
+              tail -n 120 "$log"
+              echo '```'
+              echo
+            done
+          } > ci-results/latest.md
+      - name: Commit verification report
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-results/latest.md
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "ci-results: record verification for $GITHUB_SHA"
+          git push origin "HEAD:${{ github.ref_name }}"
