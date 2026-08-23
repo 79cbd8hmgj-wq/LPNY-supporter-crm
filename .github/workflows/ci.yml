@@ -96,8 +96,14 @@ jobs:
         if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
         shell: bash
         run: |
+          if [ -f package-lock.json ]; then
+            cp package-lock.json /tmp/generated-package-lock.json
+          fi
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+          if [ -f /tmp/generated-package-lock.json ]; then
+            cp /tmp/generated-package-lock.json package-lock.json
+          fi
 
       - name: Write verification report
         if: always() && github.event_name == 'push' && github.ref_name == 'feat/foundation-auth-data-model'
