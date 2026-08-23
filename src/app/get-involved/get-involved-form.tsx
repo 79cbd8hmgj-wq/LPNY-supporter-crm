@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { readGetInvolvedForm } from "@/lib/intake/browser-form";
 
 const interests = [
   ["volunteering", "Volunteering"],
@@ -65,6 +66,7 @@ export function GetInvolvedForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const submission = readGetInvolvedForm(event.currentTarget);
     setSubmitting(true);
     setServerError(false);
     setErrors({});
@@ -73,7 +75,7 @@ export function GetInvolvedForm() {
       const response = await fetch("/api/intake/get-involved", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submission),
       });
       const payload = (await response.json()) as { ok?: boolean; errors?: FieldErrors };
 
@@ -134,7 +136,7 @@ export function GetInvolvedForm() {
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {interests.map(([slug, label]) => (
             <label key={slug} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50">
-              <input className="h-5 w-5" type="checkbox" checked={form.interests.includes(slug)} onChange={() => toggleInterest(slug)} />
+              <input className="h-5 w-5" type="checkbox" name="interests" value={slug} checked={form.interests.includes(slug)} onChange={() => toggleInterest(slug)} />
               <span>{label}</span>
             </label>
           ))}
@@ -146,13 +148,13 @@ export function GetInvolvedForm() {
           <legend className="font-medium text-slate-900">Contact preferences</legend>
           {form.email.trim() && (
             <label className="flex cursor-pointer items-start gap-3">
-              <input className="mt-1 h-5 w-5" type="checkbox" checked={form.emailOptIn} onChange={(event) => setValue("emailOptIn", event.target.checked)} />
+              <input className="mt-1 h-5 w-5" type="checkbox" name="emailOptIn" checked={form.emailOptIn} onChange={(event) => setValue("emailOptIn", event.target.checked)} />
               <span>Yes, I want to receive LPNY email updates.</span>
             </label>
           )}
           {form.phone.trim() && (
             <label className="flex cursor-pointer items-start gap-3">
-              <input className="mt-1 h-5 w-5" type="checkbox" checked={form.phoneOptIn} onChange={(event) => setValue("phoneOptIn", event.target.checked)} />
+              <input className="mt-1 h-5 w-5" type="checkbox" name="phoneOptIn" checked={form.phoneOptIn} onChange={(event) => setValue("phoneOptIn", event.target.checked)} />
               <span>Yes, LPNY may call or text me about organizing opportunities.</span>
             </label>
           )}
