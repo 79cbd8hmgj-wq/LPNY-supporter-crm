@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { DashboardActivity, DashboardData, DashboardPerson, DashboardTask } from "@/lib/crm/dashboard";
 
 function formatDateTime(value: string | null) {
@@ -48,6 +49,14 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return <p className="py-4 text-sm text-slate-500">{children}</p>;
 }
 
+function ProfileLink({ personId, children }: { personId: string; children: React.ReactNode }) {
+  return (
+    <Link className="font-medium text-slate-900 hover:underline" href={`/crm/people/${personId}`}>
+      {children}
+    </Link>
+  );
+}
+
 function PeopleList({ people }: { people: DashboardPerson[] }) {
   if (people.length === 0) {
     return <EmptyState>No contacts in this queue.</EmptyState>;
@@ -57,7 +66,7 @@ function PeopleList({ people }: { people: DashboardPerson[] }) {
     <ul className="divide-y divide-slate-100">
       {people.map((person) => (
         <li key={person.id} className="py-3 first:pt-0 last:pb-0">
-          <div className="font-medium text-slate-900">{person.name}</div>
+          <div><ProfileLink personId={person.id}>{person.name}</ProfileLink></div>
           <div className="mt-0.5 text-sm text-slate-600">{person.contact}</div>
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
             <span className="capitalize">{formatStage(person.engagementStage)}</span>
@@ -80,7 +89,7 @@ function TaskList({ tasks }: { tasks: DashboardTask[] }) {
         <li key={task.id} className="py-3 first:pt-0 last:pb-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="font-medium text-slate-900">{task.personName}</div>
+              <div><ProfileLink personId={task.personId}>{task.personName}</ProfileLink></div>
               <div className="mt-0.5 text-sm capitalize text-slate-600">
                 {task.taskType.replaceAll("_", " ")}
               </div>
@@ -105,7 +114,7 @@ function ActivityList({ activities }: { activities: DashboardActivity[] }) {
     <ul className="divide-y divide-slate-100">
       {activities.map((activity) => (
         <li key={activity.id} className="py-3 first:pt-0 last:pb-0">
-          <div className="font-medium text-slate-900">{activity.personName}</div>
+          <div><ProfileLink personId={activity.personId}>{activity.personName}</ProfileLink></div>
           <div className="mt-0.5 text-sm capitalize text-slate-600">
             {formatActivityType(activity.activityType)}
           </div>
