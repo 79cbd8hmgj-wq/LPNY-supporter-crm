@@ -1,4 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/intake/service", () => ({
+  processGetInvolvedSubmission: vi.fn(),
+}));
+
 import { handleGetInvolvedRequest } from "@/app/api/intake/get-involved/route";
 import { InvalidZipError } from "@/lib/intake/geography";
 
