@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      counties: {
+        Row: {
+          id: string;
+          name: string;
+          fips_code: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          fips_code: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          fips_code?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       staff_users: {
         Row: {
           id: string;
@@ -42,6 +63,192 @@ export type Database = {
         };
         Relationships: [];
       };
+      people: {
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string | null;
+          normalized_email: string | null;
+          phone: string | null;
+          normalized_phone: string | null;
+          zip_code: string | null;
+          county_id: string | null;
+          municipality: string | null;
+          engagement_stage: Database["public"]["Enums"]["engagement_stage"];
+          assigned_staff_user_id: string | null;
+          do_not_contact: boolean;
+          archived_at: string | null;
+          last_activity_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          first_name: string;
+          last_name: string;
+          email?: string | null;
+          normalized_email?: string | null;
+          phone?: string | null;
+          normalized_phone?: string | null;
+          zip_code?: string | null;
+          county_id?: string | null;
+          municipality?: string | null;
+          engagement_stage?: Database["public"]["Enums"]["engagement_stage"];
+          assigned_staff_user_id?: string | null;
+          do_not_contact?: boolean;
+          archived_at?: string | null;
+          last_activity_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          first_name?: string;
+          last_name?: string;
+          email?: string | null;
+          normalized_email?: string | null;
+          phone?: string | null;
+          normalized_phone?: string | null;
+          zip_code?: string | null;
+          county_id?: string | null;
+          municipality?: string | null;
+          engagement_stage?: Database["public"]["Enums"]["engagement_stage"];
+          assigned_staff_user_id?: string | null;
+          do_not_contact?: boolean;
+          archived_at?: string | null;
+          last_activity_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      tasks: {
+        Row: {
+          id: string;
+          person_id: string;
+          assignee_staff_user_id: string | null;
+          queue_scope: Database["public"]["Enums"]["task_queue_scope"] | null;
+          queue_county_id: string | null;
+          task_type: string;
+          due_at: string | null;
+          priority: Database["public"]["Enums"]["task_priority"];
+          status: Database["public"]["Enums"]["task_status"];
+          completed_at: string | null;
+          created_by_staff_user_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          person_id: string;
+          assignee_staff_user_id?: string | null;
+          queue_scope?: Database["public"]["Enums"]["task_queue_scope"] | null;
+          queue_county_id?: string | null;
+          task_type: string;
+          due_at?: string | null;
+          priority?: Database["public"]["Enums"]["task_priority"];
+          status?: Database["public"]["Enums"]["task_status"];
+          completed_at?: string | null;
+          created_by_staff_user_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          person_id?: string;
+          assignee_staff_user_id?: string | null;
+          queue_scope?: Database["public"]["Enums"]["task_queue_scope"] | null;
+          queue_county_id?: string | null;
+          task_type?: string;
+          due_at?: string | null;
+          priority?: Database["public"]["Enums"]["task_priority"];
+          status?: Database["public"]["Enums"]["task_status"];
+          completed_at?: string | null;
+          created_by_staff_user_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      activities: {
+        Row: {
+          id: string;
+          person_id: string;
+          activity_type: string;
+          actor_staff_user_id: string | null;
+          occurred_at: string;
+          metadata: Json;
+        };
+        Insert: {
+          id?: string;
+          person_id: string;
+          activity_type: string;
+          actor_staff_user_id?: string | null;
+          occurred_at?: string;
+          metadata?: Json;
+        };
+        Update: {
+          id?: string;
+          person_id?: string;
+          activity_type?: string;
+          actor_staff_user_id?: string | null;
+          occurred_at?: string;
+          metadata?: Json;
+        };
+        Relationships: [];
+      };
+      sources: {
+        Row: {
+          id: string;
+          slug: string;
+          category: string;
+          name: string;
+          active: boolean;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          category: string;
+          name: string;
+          active?: boolean;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          category?: string;
+          name?: string;
+          active?: boolean;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      person_sources: {
+        Row: {
+          id: string;
+          person_id: string;
+          source_id: string;
+          occurred_at: string;
+          metadata: Json;
+        };
+        Insert: {
+          id?: string;
+          person_id: string;
+          source_id: string;
+          occurred_at?: string;
+          metadata?: Json;
+        };
+        Update: {
+          id?: string;
+          person_id?: string;
+          source_id?: string;
+          occurred_at?: string;
+          metadata?: Json;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -66,6 +273,10 @@ export type Database = {
     Enums: {
       staff_role: "admin" | "state_organizer" | "county_organizer" | "volunteer_staff";
       staff_status: "active" | "disabled";
+      engagement_stage: "new" | "follow_up_needed" | "contacted" | "engaged" | "inactive";
+      task_priority: "low" | "normal" | "high";
+      task_status: "open" | "completed" | "cancelled";
+      task_queue_scope: "statewide" | "county";
     };
     CompositeTypes: { [_ in never]: never };
   };
