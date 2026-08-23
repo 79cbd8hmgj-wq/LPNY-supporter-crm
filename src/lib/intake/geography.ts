@@ -7,9 +7,16 @@ export type ZipGeography = {
   isNewYork: boolean;
 };
 
+export class InvalidZipError extends Error {
+  constructor() {
+    super("Invalid ZIP code");
+    this.name = "InvalidZipError";
+  }
+}
+
 export function resolveZipGeography(zipCode: string): ZipGeography {
   const info = zipcodes.find(zipCode);
-  if (!info.isValid) throw new Error("Invalid ZIP code");
+  if (!info.isValid) throw new InvalidZipError();
 
   const isNewYork = info.stateCode === "NY";
   return {
