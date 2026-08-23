@@ -165,16 +165,34 @@ export type Database = {
         Update: { id?: string; slug?: string; name?: string; active?: boolean };
         Relationships: [];
       };
+      person_relationships: {
+        Row: { person_id: string; relationship_type_id: string; created_at: string };
+        Insert: { person_id: string; relationship_type_id: string; created_at?: string };
+        Update: { person_id?: string; relationship_type_id?: string; created_at?: string };
+        Relationships: [];
+      };
       interests: {
         Row: { id: string; slug: string; name: string; active: boolean };
         Insert: { id?: string; slug: string; name: string; active?: boolean };
         Update: { id?: string; slug?: string; name?: string; active?: boolean };
         Relationships: [];
       };
+      person_interests: {
+        Row: { person_id: string; interest_id: string; created_at: string };
+        Insert: { person_id: string; interest_id: string; created_at?: string };
+        Update: { person_id?: string; interest_id?: string; created_at?: string };
+        Relationships: [];
+      };
       tags: {
         Row: { id: string; name: string; active: boolean; created_by_staff_user_id: string | null; created_at: string };
         Insert: { id?: string; name: string; active?: boolean; created_by_staff_user_id?: string | null; created_at?: string };
         Update: { id?: string; name?: string; active?: boolean; created_by_staff_user_id?: string | null; created_at?: string };
+        Relationships: [];
+      };
+      person_tags: {
+        Row: { person_id: string; tag_id: string; created_at: string };
+        Insert: { person_id: string; tag_id: string; created_at?: string };
+        Update: { person_id?: string; tag_id?: string; created_at?: string };
         Relationships: [];
       };
       sources: {
@@ -187,6 +205,45 @@ export type Database = {
         Row: { id: string; person_id: string; source_id: string; occurred_at: string; metadata: Json };
         Insert: { id?: string; person_id: string; source_id: string; occurred_at?: string; metadata?: Json };
         Update: { id?: string; person_id?: string; source_id?: string; occurred_at?: string; metadata?: Json };
+        Relationships: [];
+      };
+      consent_events: {
+        Row: {
+          id: string;
+          person_id: string;
+          channel: Database["public"]["Enums"]["consent_channel"];
+          state: Database["public"]["Enums"]["consent_state"];
+          effective_at: string;
+          source_id: string | null;
+          actor_staff_user_id: string | null;
+          metadata: Json;
+        };
+        Insert: {
+          id?: string;
+          person_id: string;
+          channel: Database["public"]["Enums"]["consent_channel"];
+          state: Database["public"]["Enums"]["consent_state"];
+          effective_at?: string;
+          source_id?: string | null;
+          actor_staff_user_id?: string | null;
+          metadata?: Json;
+        };
+        Update: {
+          id?: string;
+          person_id?: string;
+          channel?: Database["public"]["Enums"]["consent_channel"];
+          state?: Database["public"]["Enums"]["consent_state"];
+          effective_at?: string;
+          source_id?: string | null;
+          actor_staff_user_id?: string | null;
+          metadata?: Json;
+        };
+        Relationships: [];
+      };
+      internal_notes: {
+        Row: { id: string; person_id: string; author_staff_user_id: string; body: string; created_at: string; edited_at: string | null };
+        Insert: { id?: string; person_id: string; author_staff_user_id: string; body: string; created_at?: string; edited_at?: string | null };
+        Update: { id?: string; person_id?: string; author_staff_user_id?: string; body?: string; created_at?: string; edited_at?: string | null };
         Relationships: [];
       };
       saved_views: {
@@ -283,6 +340,8 @@ export type Database = {
       task_priority: "low" | "normal" | "high";
       task_status: "open" | "completed" | "cancelled";
       task_queue_scope: "statewide" | "county";
+      consent_channel: "email" | "sms" | "phone";
+      consent_state: "opted_in" | "opted_out";
     };
     CompositeTypes: { [_ in never]: never };
   };
