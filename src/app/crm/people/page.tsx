@@ -6,7 +6,9 @@ import {
   serializePeopleFilters,
   type PeopleFilterState,
 } from "@/lib/crm/people-filters";
+import { loadSavedPeopleViews } from "@/lib/crm/saved-views";
 import { PeopleFilters } from "./people-filters";
+import { SavedViews } from "./saved-views";
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -54,9 +56,13 @@ export default async function PeopleDirectoryPage({
 }) {
   const rawParams = await searchParams;
   const filters = parsePeopleFilters(toUrlSearchParams(rawParams));
-  const [directory, options] = await Promise.all([
+  const savedViewStatus = typeof rawParams.savedViewStatus === "string"
+    ? rawParams.savedViewStatus
+    : null;
+  const [directory, options, savedViews] = await Promise.all([
     loadPeopleDirectory(filters),
     loadPeopleDirectoryOptions(),
+    loadSavedPeopleViews(),
   ]);
 
   const firstResult = directory.totalCount === 0
@@ -80,6 +86,7 @@ export default async function PeopleDirectoryPage({
       </header>
 
       <PeopleFilters filters={filters} options={options} />
+      <SavedViews filters={filters} views={savedViews} status={savedViewStatus} />
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
