@@ -32,7 +32,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm ci 2>&1 | tee ci-install.log
+          npm install --package-lock-only 2>&1 | tee ci-install.log
+          npm ci 2>&1 | tee -a ci-install.log
 
       - name: Verify application
         id: app
