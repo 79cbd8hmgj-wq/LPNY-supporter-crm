@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(11);
 
 select has_function('public', 'search_people_directory', 'people directory search function exists');
 
