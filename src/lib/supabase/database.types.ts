@@ -189,6 +189,33 @@ export type Database = {
         Update: { id?: string; person_id?: string; source_id?: string; occurred_at?: string; metadata?: Json };
         Relationships: [];
       };
+      saved_views: {
+        Row: {
+          id: string;
+          staff_user_id: string;
+          name: string;
+          filters: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          staff_user_id: string;
+          name: string;
+          filters?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          staff_user_id?: string;
+          name?: string;
+          filters?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
