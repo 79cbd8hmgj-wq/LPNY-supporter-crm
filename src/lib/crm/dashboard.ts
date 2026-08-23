@@ -1,4 +1,3 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { getNewYorkDayRange } from "./dashboard-time";
 
@@ -153,6 +152,7 @@ function assertQuery<T>(data: T | null, error: { message: string } | null, label
 }
 
 export async function loadDashboardData(now: Date = new Date()): Promise<DashboardData> {
+  const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   const supabase = await createServerSupabaseClient();
   const dayRange = getNewYorkDayRange(now);
 
