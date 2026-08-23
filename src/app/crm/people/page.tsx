@@ -111,8 +111,10 @@ export default async function PeopleDirectoryPage({
               <article key={person.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto] sm:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate font-semibold text-slate-950">
-                      {person.first_name} {person.last_name}
+                    <h3 className="min-w-0 truncate font-semibold text-slate-950">
+                      <Link className="hover:underline" href={`/crm/people/${person.id}`}>
+                        {person.first_name} {person.last_name}
+                      </Link>
                     </h3>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                       {stageLabels[person.engagement_stage]}
