@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { requireStaffUser } from "@/lib/auth/require-staff";
 
@@ -5,17 +6,26 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
   const staff = await requireStaffUser();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <strong>LPNY Supporter CRM</strong>
-          <div className="text-right text-sm">
-            <div className="font-medium">{staff.displayName}</div>
-            <div className="text-slate-500">{staff.role.replaceAll("_", " ")}</div>
+    <div className="min-h-screen bg-slate-50 text-slate-950">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+          <div className="min-w-0">
+            <Link href="/crm" className="font-semibold tracking-tight text-slate-950">
+              LPNY Supporter CRM
+            </Link>
+            <nav className="mt-1 flex items-center gap-3 text-sm">
+              <Link href="/crm" className="font-medium text-slate-700 hover:text-slate-950">
+                Dashboard
+              </Link>
+            </nav>
+          </div>
+          <div className="shrink-0 text-right text-sm">
+            <div className="max-w-44 truncate font-medium text-slate-900">{staff.displayName}</div>
+            <div className="capitalize text-slate-500">{staff.role.replaceAll("_", " ")}</div>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl p-4">{children}</main>
+      <main className="mx-auto max-w-7xl p-4 sm:p-6">{children}</main>
     </div>
   );
 }
