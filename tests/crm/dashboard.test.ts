@@ -38,8 +38,8 @@ describe("aggregateDashboardCounts", () => {
       { label: "Unresolved", count: 1 },
     ]);
     expect(result.bySource).toEqual([
-      { label: "Get Involved Form", count: 2 },
       { label: "2026 State Convention", count: 2 },
+      { label: "Get Involved Form", count: 2 },
     ]);
   });
 
