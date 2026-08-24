@@ -32,9 +32,8 @@ export async function loadPersonActionOptions(
   role: StaffRole,
 ): Promise<PersonActionOptions> {
   const supabase = await createServerSupabaseClient();
-  const [personResult, relationshipsResult, interestsResult, tagsResult, relationshipLinks, interestLinks, tagLinks] =
+  const [relationshipsResult, interestsResult, tagsResult, relationshipLinks, interestLinks, tagLinks] =
     await Promise.all([
-      supabase.from("people").select("county_id").eq("id", personId).maybeSingle(),
       supabase.from("relationship_types").select("id, slug, name").eq("active", true).order("name"),
       supabase.from("interests").select("id, slug, name").eq("active", true).order("name"),
       supabase.from("tags").select("id, name").eq("active", true).order("name"),
@@ -44,7 +43,6 @@ export async function loadPersonActionOptions(
     ]);
 
   const results = [
-    personResult,
     relationshipsResult,
     interestsResult,
     tagsResult,
@@ -73,22 +71,11 @@ export async function loadPersonActionOptions(
       throw new Error("Unable to load organizer assignments.");
     }
 
-    let countyOrganizerIds = new Set<string>();
-    const countyId = personResult.data?.county_id ?? null;
-    if (countyId) {
-      const countyAssignments = await supabase
-        .from("staff_counties")
-        .select("staff_user_id")
-        .eq("county_id", countyId);
-      if (countyAssignments.error) {
-        throw new Error("Unable to load organizer assignments.");
-      }
-      countyOrganizerIds = new Set((countyAssignments.data ?? []).map((row) => row.staff_user_id));
-    }
-
-    organizers = (staffResult.data ?? [])
-      .filter((staff) => staff.role !== "county_organizer" || countyOrganizerIds.has(staff.id))
-      .map((staff) => ({ id: staff.id, name: staff.display_name, role: staff.role }));
+    organizers = (staffResult.data ?? []).map((staff) => ({
+      id: staff.id,
+      name: staff.display_name,
+      role: staff.role,
+    }));
   }
 
   return {
