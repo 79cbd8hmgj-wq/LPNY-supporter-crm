@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireStaffUser } from "@/lib/auth/require-staff";
+import { loadPersonActionOptions } from "@/lib/crm/person-action-options";
 import { loadPersonProfile } from "@/lib/crm/person-profile";
+import { FollowUpActions } from "./follow-up-actions";
 import {
   ProfileActivity,
   ProfileConsent,
@@ -30,12 +33,22 @@ function formatDateTime(value: string | null) {
   return value ? dateTimeFormatter.format(new Date(value)) : "Never";
 }
 
+function singleSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function PersonProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ personId: string }>;
+  searchParams: Promise<{ actionStatus?: string | string[] }>;
 }) {
-  const { personId } = await params;
+  const [{ personId }, query, staff] = await Promise.all([
+    params,
+    searchParams,
+    requireStaffUser(),
+  ]);
 
   if (!UUID_PATTERN.test(personId)) {
     notFound();
@@ -45,6 +58,9 @@ export default async function PersonProfilePage({
   if (!profile) {
     notFound();
   }
+
+  const actionOptions = await loadPersonActionOptions(personId, staff.role);
+  const actionStatus = singleSearchParam(query.actionStatus);
 
   return (
     <div className="space-y-5">
@@ -85,6 +101,12 @@ export default async function PersonProfilePage({
       </header>
 
       <ProfileOverview profile={profile} />
+      <FollowUpActions
+        profile={profile}
+        options={actionOptions}
+        role={staff.role}
+        actionStatus={actionStatus}
+      />
 
       <div className="grid gap-5 xl:grid-cols-2">
         <ProfileActivity profile={profile} />
