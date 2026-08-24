@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(27);
 
 select has_type('public', 'staff_role', 'staff_role enum exists');
 select has_table('public', 'staff_users', 'staff_users exists');
@@ -17,6 +17,10 @@ select has_table('public', 'tasks', 'tasks exists');
 select has_table('public', 'consent_events', 'consent_events exists');
 select has_table('public', 'staff_person_assignments', 'staff_person_assignments exists');
 select has_table('public', 'duplicate_candidates', 'duplicate_candidates exists');
+select ok(
+  has_table_privilege('service_role', 'public.people', 'SELECT'),
+  'service role can select CRM people for trusted server-side workflows'
+);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,

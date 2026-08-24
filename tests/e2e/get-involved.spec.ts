@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { expect, test } from "@playwright/test";
 
 test("public supporter can submit the short get-involved form", async ({ page }, testInfo) => {
   const email = `intake-${testInfo.project.name}-${Date.now()}@example.test`;
@@ -12,20 +12,45 @@ test("public supporter can submit the short get-involved form", async ({ page },
   await page.getByLabel("ZIP code").fill("10001");
   await page.getByLabel("Events").check();
   await page.getByLabel("Yes, I want to receive LPNY email updates.").check();
-  await page.getByRole("button", { name: "Get involved" }).click();
+  await expect(page.locator('input[name="website"]')).toHaveValue("");
 
-  await expect(page.getByRole("heading", { name: "Thanks for getting involved." })).toBeVisible();
+  const submissionPromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/intake/get-involved") && response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Get involved" }).click();
+  const submission = await submissionPromise;
+  const submissionBody = await submission.text();
+
+  expect(
+    submission.status(),
+    `Intake API returned ${submission.status()}: ${submissionBody}`,
+  ).toBe(200);
+  expect(submissionBody).toContain('"ok":true');
+  await expect(page.getByRole("heading", { name: "Thanks for getting involved." })).toBeVisible({
+    timeout: 10_000,
+  });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   expect(url).toBeTruthy();
   expect(serviceRoleKey).toBeTruthy();
-  const admin = createClient(url!, serviceRoleKey!, { auth: { persistSession: false, autoRefreshToken: false } });
+  const admin = createClient(url!, serviceRoleKey!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   await expect.poll(async () => {
-    const { data } = await admin.from("people").select("normalized_email").eq("normalized_email", email).maybeSingle();
+    const { data, error } = await admin
+      .from("people")
+      .select("normalized_email")
+      .eq("normalized_email", email)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Intake verification select failed: ${error.code ?? "unknown"} ${error.message}`);
+    }
+
     return data?.normalized_email ?? null;
-  }).toBe(email);
+  }, { timeout: 10_000 }).toBe(email);
 });
 
 test("form explains that an email or phone number is required", async ({ page }) => {
