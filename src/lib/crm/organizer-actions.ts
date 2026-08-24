@@ -3,8 +3,11 @@ import type { Database } from "@/lib/supabase/database.types";
 const NEW_YORK_TIME_ZONE = "America/New_York";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LOCAL_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+const TAXONOMY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type TaskPriority = Database["public"]["Enums"]["task_priority"];
+type EngagementStage = Database["public"]["Enums"]["engagement_stage"];
+type ContactOutcome = "contacted" | "unable_to_reach";
 
 type WallClock = {
   year: number;
@@ -97,6 +100,12 @@ function parseWallClock(value: string): WallClock | null {
   return wallClock;
 }
 
+function parseBoolean(value: string) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
 export function parseNewYorkLocalDateTime(value: string) {
   const wallClock = parseWallClock(value);
   if (!wallClock) return null;
@@ -137,11 +146,7 @@ export function validateFollowUpInput(input: {
     return null;
   }
 
-  return {
-    personId: input.personId,
-    dueAt,
-    priority,
-  };
+  return { personId: input.personId, dueAt, priority };
 }
 
 export function validateNoteInput(input: {
@@ -154,4 +159,106 @@ export function validateNoteInput(input: {
   }
 
   return { personId: input.personId, body };
+}
+
+export function validateContactOutcomeInput(input: {
+  personId: string;
+  outcome: string;
+  followUpDueAt: string;
+}): { personId: string; outcome: ContactOutcome; followUpDueAt: string | null } | null {
+  if (!isUuid(input.personId) || (input.outcome !== "contacted" && input.outcome !== "unable_to_reach")) {
+    return null;
+  }
+
+  const followUpDueAt = input.followUpDueAt
+    ? parseNewYorkLocalDateTime(input.followUpDueAt)
+    : null;
+
+  if (input.followUpDueAt && !followUpDueAt) return null;
+
+  return {
+    personId: input.personId,
+    outcome: input.outcome,
+    followUpDueAt,
+  };
+}
+
+export function validateStageInput(input: {
+  personId: string;
+  stage: string;
+}): { personId: string; stage: EngagementStage } | null {
+  const stage = input.stage as EngagementStage;
+  if (
+    !isUuid(input.personId)
+    || !(["new", "follow_up_needed", "contacted", "engaged", "inactive"] as const).includes(stage)
+  ) {
+    return null;
+  }
+
+  return { personId: input.personId, stage };
+}
+
+export function validateTaxonomyToggleInput(input: {
+  personId: string;
+  slug: string;
+  enabled: string;
+}): { personId: string; slug: string; enabled: boolean } | null {
+  const slug = input.slug.trim();
+  const enabled = parseBoolean(input.enabled);
+  if (
+    !isUuid(input.personId)
+    || slug.length === 0
+    || slug.length > 80
+    || !TAXONOMY_SLUG_PATTERN.test(slug)
+    || enabled === null
+  ) {
+    return null;
+  }
+
+  return { personId: input.personId, slug, enabled };
+}
+
+export function validateTagToggleInput(input: {
+  personId: string;
+  tagId: string;
+  enabled: string;
+}): { personId: string; tagId: string; enabled: boolean } | null {
+  const enabled = parseBoolean(input.enabled);
+  if (!isUuid(input.personId) || !isUuid(input.tagId) || enabled === null) {
+    return null;
+  }
+  return { personId: input.personId, tagId: input.tagId, enabled };
+}
+
+export function validateReassignmentInput(input: {
+  personId: string;
+  staffUserId: string;
+}): { personId: string; staffUserId: string } | null {
+  if (!isUuid(input.personId) || !isUuid(input.staffUserId)) return null;
+  return { personId: input.personId, staffUserId: input.staffUserId };
+}
+
+export function validateDoNotContactInput(input: {
+  personId: string;
+  enabled: string;
+}): { personId: string; enabled: boolean } | null {
+  const enabled = parseBoolean(input.enabled);
+  if (!isUuid(input.personId) || enabled === null) return null;
+  return { personId: input.personId, enabled };
+}
+
+export function validateTaskCompletionInput(input: {
+  personId: string;
+  taskId: string;
+}): { personId: string; taskId: string } | null {
+  if (!isUuid(input.personId) || !isUuid(input.taskId)) return null;
+  return { personId: input.personId, taskId: input.taskId };
+}
+
+export function validateArchiveInput(input: {
+  personId: string;
+  confirmation: string;
+}): { personId: string } | null {
+  if (!isUuid(input.personId) || input.confirmation !== "ARCHIVE") return null;
+  return { personId: input.personId };
 }
