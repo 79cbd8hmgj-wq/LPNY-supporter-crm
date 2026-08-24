@@ -36,7 +36,7 @@ function profileUrl(personId: string, status: string) {
   return `/crm/people/${personId}?actionStatus=${encodeURIComponent(status)}`;
 }
 
-function invalidAction(personId: string) {
+function invalidAction(personId: string): never {
   redirect(isUuid(personId) ? profileUrl(personId, "invalid") : "/crm/people");
 }
 
