@@ -1,6 +1,6 @@
 begin;
 
-select plan(24);
+select plan(35);
 
 select has_function('public', 'record_contact_outcome', array['uuid', 'text', 'timestamp with time zone'], 'contact outcome function exists');
 select has_function('public', 'create_follow_up_task', array['uuid', 'timestamp with time zone', 'task_priority'], 'follow-up task function exists');
