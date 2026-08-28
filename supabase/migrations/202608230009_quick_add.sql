@@ -78,7 +78,7 @@ security invoker
 set search_path = ''
 as $$
 declare
-  v_person_id uuid;
+  v_person_id uuid := gen_random_uuid();
   v_county_id uuid;
   v_source_id uuid;
   v_supporter_relationship_id uuid;
@@ -118,6 +118,7 @@ begin
   end if;
 
   insert into public.people (
+    id,
     first_name,
     last_name,
     email,
@@ -129,6 +130,7 @@ begin
     municipality,
     engagement_stage
   ) values (
+    v_person_id,
     p_first_name,
     p_last_name,
     nullif(p_email, ''),
@@ -139,8 +141,7 @@ begin
     v_county_id,
     nullif(p_municipality, ''),
     'follow_up_needed'
-  )
-  returning id into v_person_id;
+  );
 
   insert into public.person_relationships (person_id, relationship_type_id)
   values (v_person_id, v_supporter_relationship_id)
