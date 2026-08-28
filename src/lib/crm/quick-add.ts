@@ -31,6 +31,26 @@ export type QuickAddCandidateComparable = {
 
 export type QuickAddMatchReason = "email" | "phone" | "name_zip";
 
+export type QuickAddVisibleCandidate = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  zipCode: string | null;
+  countyName: string | null;
+  matchReasons: QuickAddMatchReason[];
+};
+
+export type QuickAddActionState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | {
+      status: "duplicate";
+      message: string;
+      candidates: QuickAddVisibleCandidate[];
+      canCreateAnyway: boolean;
+    };
+
 function validPhone(value: string) {
   const digits = value.replace(/\D/g, "");
   return digits.length >= 7 && digits.length <= 15;

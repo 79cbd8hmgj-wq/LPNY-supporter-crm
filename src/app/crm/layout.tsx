@@ -13,13 +13,18 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
             <Link href="/crm" className="font-semibold tracking-tight text-slate-950">
               LPNY Supporter CRM
             </Link>
-            <nav className="mt-1 flex items-center gap-3 text-sm">
+            <nav className="mt-1 flex flex-wrap items-center gap-3 text-sm">
               <Link href="/crm" className="font-medium text-slate-700 hover:text-slate-950">
                 Dashboard
               </Link>
               <Link href="/crm/people" className="font-medium text-slate-700 hover:text-slate-950">
                 People
               </Link>
+              {staff.role !== "volunteer_staff" ? (
+                <Link href="/crm/quick-add" className="font-medium text-slate-700 hover:text-slate-950">
+                  Quick Add
+                </Link>
+              ) : null}
             </nav>
           </div>
           <div className="shrink-0 text-right text-sm">
