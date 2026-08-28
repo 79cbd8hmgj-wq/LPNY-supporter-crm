@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireStaffUser } from "@/lib/auth/require-staff";
 import { loadPeopleDirectory } from "@/lib/crm/people-directory";
 import { loadPeopleDirectoryOptions } from "@/lib/crm/people-directory-options";
 import {
@@ -55,6 +56,7 @@ export default async function PeopleDirectoryPage({
   searchParams: Promise<RawSearchParams>;
 }) {
   const rawParams = await searchParams;
+  await requireStaffUser();
   const filters = parsePeopleFilters(toUrlSearchParams(rawParams));
   const savedViewStatus = typeof rawParams.savedViewStatus === "string"
     ? rawParams.savedViewStatus

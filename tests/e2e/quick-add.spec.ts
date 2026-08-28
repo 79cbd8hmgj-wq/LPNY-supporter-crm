@@ -34,14 +34,16 @@ function totp(secret: string, timestamp = Date.now()) {
 
 function requireSupabaseEnvironment() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   expect(url).toBeTruthy();
+  expect(anonKey).toBeTruthy();
   expect(serviceRoleKey).toBeTruthy();
-  return { url: url!, serviceRoleKey: serviceRoleKey! };
+  return { url: url!, anonKey: anonKey!, serviceRoleKey: serviceRoleKey! };
 }
 
 test("organizer can Quick Add a supporter and sees duplicate warnings", async ({ page }, testInfo) => {
-  const { url, serviceRoleKey } = requireSupabaseEnvironment();
+  const { url, anonKey, serviceRoleKey } = requireSupabaseEnvironment();
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -59,6 +61,19 @@ test("organizer can Quick Add a supporter and sees duplicate warnings", async ({
   });
   expect(authError).toBeNull();
   expect(createdAuth.user).toBeTruthy();
+
+  const authProbe = createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error: probeError } = await authProbe.auth.signInWithPassword({
+    email: staffEmail,
+    password: staffPassword,
+  });
+  expect(
+    probeError,
+    `Direct password-auth probe failed: ${probeError?.status ?? "unknown"} ${probeError?.code ?? "unknown"} ${probeError?.message ?? "unknown"}`,
+  ).toBeNull();
+  await authProbe.auth.signOut();
 
   const { error: staffError } = await admin.from("staff_users").insert({
     auth_user_id: createdAuth.user!.id,

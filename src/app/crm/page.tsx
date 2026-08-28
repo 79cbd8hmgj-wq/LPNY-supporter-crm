@@ -1,7 +1,9 @@
+import { requireStaffUser } from "@/lib/auth/require-staff";
 import { DashboardSections } from "./dashboard-sections";
 import { loadDashboardData } from "@/lib/crm/dashboard";
 
 export default async function CrmHomePage() {
+  await requireStaffUser();
   const dashboard = await loadDashboardData();
 
   return (
