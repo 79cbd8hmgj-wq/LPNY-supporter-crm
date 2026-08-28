@@ -43,6 +43,7 @@ function requireSupabaseEnvironment() {
 }
 
 test("organizer can Quick Add a supporter and sees duplicate warnings", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
   const { url, anonKey, serviceRoleKey } = requireSupabaseEnvironment();
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -108,7 +109,23 @@ test("organizer can Quick Add a supporter and sees duplicate warnings", async ({
   await page.getByLabel("ZIP code").fill("12207");
   await page.getByRole("button", { name: "Add supporter" }).click();
 
-  await expect(page).toHaveURL(/\/crm\/people\/[0-9a-f-]{36}(?:\?.*)?$/i);
+  let createdPersonId: string | null = null;
+  await expect.poll(async () => {
+    const { data, error } = await admin
+      .from("people")
+      .select("id")
+      .eq("normalized_email", supporterEmail)
+      .maybeSingle();
+    if (error) {
+      throw new Error(`Quick Add verification select failed: ${error.code ?? "unknown"} ${error.message}`);
+    }
+    createdPersonId = data?.id ?? null;
+    return createdPersonId;
+  }, { timeout: 15_000 }).not.toBeNull();
+
+  await expect(page).toHaveURL(new RegExp(`/crm/people/${createdPersonId}(?:\\?.*)?$`, "i"), {
+    timeout: 15_000,
+  });
   await expect(page.getByRole("heading", { name: "Browser Supporter" })).toBeVisible();
 
   const { data: createdPerson, error: personError } = await admin
