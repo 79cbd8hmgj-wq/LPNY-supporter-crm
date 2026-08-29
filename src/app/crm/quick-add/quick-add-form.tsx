@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState, useTransition } from "react";
+import { type FormEvent, type ReactNode, useState, useSyncExternalStore, useTransition } from "react";
 import type {
   QuickAddActionState,
   QuickAddMatchReason,
@@ -10,6 +10,7 @@ import { quickAddAction } from "./actions";
 
 const initialState: QuickAddActionState = { status: "idle" };
 const inputClass = "mt-1 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
+const subscribeToHydration = () => () => {};
 
 const reasonLabels: Record<QuickAddMatchReason, string> = {
   email: "Same email",
@@ -17,7 +18,12 @@ const reasonLabels: Record<QuickAddMatchReason, string> = {
   name_zip: "Same name + ZIP",
 };
 
+function useHydrated() {
+  return useSyncExternalStore(subscribeToHydration, () => true, () => false);
+}
+
 export function QuickAddForm() {
+  const hydrated = useHydrated();
   const [state, setState] = useState<QuickAddActionState>(initialState);
   const [pending, startTransition] = useTransition();
 
@@ -36,26 +42,30 @@ export function QuickAddForm() {
   }
 
   return (
-    <form className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" onSubmit={submit}>
+    <form
+      className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+      onSubmit={submit}
+      aria-busy={!hydrated || pending}
+    >
       <div className="grid gap-5 sm:grid-cols-2">
         <Field id="firstName" label="First name">
-          <input className={inputClass} id="firstName" name="firstName" autoComplete="given-name" required />
+          <input className={inputClass} id="firstName" name="firstName" autoComplete="given-name" required disabled={!hydrated} />
         </Field>
         <Field id="lastName" label="Last name">
-          <input className={inputClass} id="lastName" name="lastName" autoComplete="family-name" required />
+          <input className={inputClass} id="lastName" name="lastName" autoComplete="family-name" required disabled={!hydrated} />
         </Field>
       </div>
 
       <Field id="email" label="Email" hint="Email or phone is required">
-        <input className={inputClass} id="email" name="email" type="email" autoComplete="email" inputMode="email" />
+        <input className={inputClass} id="email" name="email" type="email" autoComplete="email" inputMode="email" disabled={!hydrated} />
       </Field>
 
       <Field id="phone" label="Phone" hint="Email or phone is required">
-        <input className={inputClass} id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" />
+        <input className={inputClass} id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" disabled={!hydrated} />
       </Field>
 
       <Field id="zipCode" label="ZIP code" hint="Used to route the initial follow-up queue">
-        <input className={inputClass} id="zipCode" name="zipCode" autoComplete="postal-code" inputMode="numeric" maxLength={5} pattern="[0-9]{5}" required />
+        <input className={inputClass} id="zipCode" name="zipCode" autoComplete="postal-code" inputMode="numeric" maxLength={5} pattern="[0-9]{5}" required disabled={!hydrated} />
       </Field>
 
       {state.status === "error" ? (
@@ -92,7 +102,7 @@ export function QuickAddForm() {
           {state.canCreateAnyway ? (
             <button
               className="mt-4 min-h-12 w-full rounded-lg border border-amber-700 px-4 py-2 font-semibold text-amber-950 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-              disabled={pending}
+              disabled={!hydrated || pending}
               name="intent"
               type="submit"
               value="create-anyway"
@@ -105,7 +115,7 @@ export function QuickAddForm() {
 
       <button
         className="min-h-12 w-full rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-        disabled={pending}
+        disabled={!hydrated || pending}
         name="intent"
         type="submit"
         value="check"
