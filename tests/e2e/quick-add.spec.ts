@@ -48,6 +48,24 @@ test("organizer can Quick Add a supporter and sees duplicate warnings", async ({
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const browserEvents: string[] = [];
+
+  page.on("console", (message) => {
+    browserEvents.push(`console:${message.type()}:${message.text()}`);
+  });
+  page.on("pageerror", (error) => {
+    browserEvents.push(`pageerror:${error.message}`);
+  });
+  page.on("requestfailed", (request) => {
+    browserEvents.push(
+      `requestfailed:${request.method()} ${request.url()} ${request.failure()?.errorText ?? "unknown"}`,
+    );
+  });
+  page.on("response", (response) => {
+    if (response.request().method() === "POST") {
+      browserEvents.push(`response:${response.status()} POST ${response.url()}`);
+    }
+  });
 
   const suffix = `${testInfo.project.name}-${Date.now()}-${randomUUID().slice(0, 8)}`;
   const staffEmail = `quick-add-staff-${suffix}@example.test`;
@@ -110,18 +128,38 @@ test("organizer can Quick Add a supporter and sees duplicate warnings", async ({
   await page.getByRole("button", { name: "Add supporter" }).click();
 
   let createdPersonId: string | null = null;
-  await expect.poll(async () => {
-    const { data, error } = await admin
-      .from("people")
-      .select("id")
-      .eq("normalized_email", supporterEmail)
-      .maybeSingle();
-    if (error) {
-      throw new Error(`Quick Add verification select failed: ${error.code ?? "unknown"} ${error.message}`);
-    }
-    createdPersonId = data?.id ?? null;
-    return createdPersonId;
-  }, { timeout: 15_000 }).not.toBeNull();
+  try {
+    await expect.poll(async () => {
+      const { data, error } = await admin
+        .from("people")
+        .select("id")
+        .eq("normalized_email", supporterEmail)
+        .maybeSingle();
+      if (error) {
+        throw new Error(`Quick Add verification select failed: ${error.code ?? "unknown"} ${error.message}`);
+      }
+      createdPersonId = data?.id ?? null;
+      return createdPersonId;
+    }, { timeout: 15_000 }).not.toBeNull();
+  } catch (error) {
+    const alerts = await page.getByRole("alert").allTextContents();
+    const duplicateHeadings = await page.getByRole("heading", { name: "Possible existing contact" }).count();
+    const addButton = page.getByRole("button", { name: /Add supporter|Checking…/ });
+    const addButtonText = (await addButton.count()) > 0 ? await addButton.first().textContent() : null;
+    const body = (await page.locator("body").innerText()).slice(0, 3000);
+    throw new Error(
+      [
+        `Quick Add did not create a person in ${testInfo.project.name}.`,
+        `URL: ${page.url()}`,
+        `Alerts: ${JSON.stringify(alerts)}`,
+        `Possible-existing-contact headings: ${duplicateHeadings}`,
+        `Submit button text: ${JSON.stringify(addButtonText)}`,
+        `Browser events: ${JSON.stringify(browserEvents.slice(-30))}`,
+        `Body excerpt: ${JSON.stringify(body)}`,
+        `Original poll error: ${error instanceof Error ? error.message : String(error)}`,
+      ].join("\n"),
+    );
+  }
 
   await expect(page).toHaveURL(new RegExp(`/crm/people/${createdPersonId}(?:\\?.*)?$`, "i"), {
     timeout: 15_000,
