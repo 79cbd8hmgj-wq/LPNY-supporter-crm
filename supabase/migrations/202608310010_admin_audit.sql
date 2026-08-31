@@ -11,6 +11,23 @@ create table public.admin_audit_events (
 create index admin_audit_events_occurred_at_idx
   on public.admin_audit_events (occurred_at desc);
 
+alter table public.admin_audit_events enable row level security;
+
+-- Supabase grants authenticated broad public-schema table privileges by default.
+-- Audit events are append-only from the application's perspective: staff may only
+-- reach SELECT through RLS, while writes happen inside trusted database routines.
+revoke all on table public.admin_audit_events from anon;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.admin_audit_events from authenticated;
+grant select on table public.admin_audit_events to authenticated, service_role;
+grant insert on table public.admin_audit_events to service_role;
+
+create policy admin_audit_events_admin_read
+on public.admin_audit_events
+for select
+  to authenticated
+using (private.current_staff_role() = 'admin'::public.staff_role);
+
 create or replace function private.append_admin_audit(
   action_type text,
   target_type text,
