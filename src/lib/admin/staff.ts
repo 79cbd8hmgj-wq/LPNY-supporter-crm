@@ -69,3 +69,24 @@ export const staffAccessUpdateSchema = z
 
 export type StaffInviteInput = z.infer<typeof staffInviteSchema>;
 export type StaffAccessUpdateInput = z.infer<typeof staffAccessUpdateSchema>;
+export type StaffRole = z.infer<typeof staffRoleSchema>;
+export type StaffStatus = z.infer<typeof staffStatusSchema>;
+
+export type StaffActionResult = {
+  status: "success" | "error";
+  message: string;
+};
+
+export type StaffCountyOption = {
+  id: string;
+  name: string;
+};
+
+export type StaffManagementRecord = {
+  id: string;
+  displayName: string;
+  role: StaffRole;
+  status: StaffStatus;
+  invitedAt: string | null;
+  countyIds: string[];
+};
