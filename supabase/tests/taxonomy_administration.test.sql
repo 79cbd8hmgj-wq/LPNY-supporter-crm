@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(23);
 
 select ok(
   to_regprocedure('public.manage_interest(uuid,text,text,boolean)') is not null,
