@@ -93,7 +93,7 @@ test("organizer can work a queued supporter from dashboard through completed fol
 
   await page.getByRole("link", { name: "People", exact: true }).click();
   await page.getByLabel("Name, email, phone, ZIP, municipality").fill(supporterEmail);
-  await page.getByLabel("County").selectOption({ label: "Albany" });
+  await page.getByLabel("County", { exact: true }).selectOption({ label: "Albany" });
   await page.getByLabel("Engagement stage").selectOption("new");
   await page.getByText("More filters", { exact: true }).click();
   await page.getByLabel("Has open task").selectOption("yes");
