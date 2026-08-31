@@ -4,18 +4,31 @@ Standalone supporter and activist CRM for the Libertarian Party of New York.
 
 The v1 architecture and implementation roadmap are documented under `docs/superpowers/`. The application uses Next.js for the responsive web UI and Supabase for PostgreSQL, authentication, MFA, and Row-Level Security.
 
-## Implemented foundation
+## Implemented v1 workflow
 
-- Next.js + TypeScript application foundation
+- Next.js + TypeScript responsive application foundation
 - Supabase local development configuration
 - canonical New York county and staff-role data model
 - supporter/workflow schema for people, relationships, interests, tags, sources, activities, notes, tasks, consent, assignments, and duplicate candidates
 - database-enforced Admin / State Organizer / County Organizer / Volunteer-Staff access boundaries
-- invite-only staff login with TOTP MFA
-- protected `/crm` shell
+- invite-only staff email/password login with TOTP MFA
+- protected organizer dashboard with scoped queue previews, recent activity, and stage/county/source counts
+- multi-filter People directory with private saved views
+- supporter profiles with activity, task, source, consent, note, relationship, interest, and tag history
+- role-aware organizer actions for contact outcomes, follow-ups, task completion, notes, stage changes, taxonomy, reassignment, do-not-contact, and archival
+- phone-first Quick Add with RLS-visible duplicate warnings, Organizer Entry attribution, and initial follow-up routing
 - public `/get-involved` supporter intake flow with server-isolated privileged writes
 - ZIP-based New York county routing, duplicate-safe intake, consent/source/activity history, and initial follow-up queue creation
-- unit, database-policy, and browser-level tests
+- unit, database-policy, and Chromium/WebKit browser-level tests
+
+## Organizer routes
+
+- `/crm` — scoped organizer dashboard and work queues
+- `/crm/people` — searchable/filterable People directory and private saved views
+- `/crm/people/[personId]` — supporter profile, history, and organizer actions
+- `/crm/quick-add` — fast organizer entry for a supporter encountered by phone or in person
+
+All CRM routes require an active staff record and TOTP-authenticated session. Database Row-Level Security remains the final authorization boundary for supporter data.
 
 ## Local development
 
@@ -58,6 +71,8 @@ npx playwright install chromium webkit
 npm run test:e2e
 ```
 
+The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, and the integrated organizer workflow from dashboard queue through completed follow-up history.
+
 ## Environment safety
 
 Production supporter records, production database dumps, production access tokens, and production service-role keys must **never** be used in local or staging environments. Development and automated tests use lookup seeds and synthetic fixtures only.
@@ -71,3 +86,4 @@ The browser receives only the public Supabase URL and anon/publishable credentia
 - `docs/superpowers/plans/2026-08-23-supporter-crm-v1-roadmap.md` — staged v1 implementation roadmap
 - `docs/superpowers/plans/2026-08-23-foundation-auth-data-model.md` — foundation implementation plan
 - `docs/superpowers/plans/2026-08-23-supporter-intake.md` — supporter intake implementation plan
+- `docs/superpowers/plans/2026-08-23-organizer-workflow.md` — organizer dashboard, People directory, profiles, actions, Quick Add, and acceptance plan

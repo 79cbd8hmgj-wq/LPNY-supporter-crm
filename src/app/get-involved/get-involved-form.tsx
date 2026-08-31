@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { readGetInvolvedForm } from "@/lib/intake/browser-form";
 
 const interests = [
@@ -42,8 +42,14 @@ const initialState: FormState = {
 };
 
 const inputClass = "mt-1 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
+const subscribeToHydration = () => () => {};
+
+function useHydrated() {
+  return useSyncExternalStore(subscribeToHydration, () => true, () => false);
+}
 
 export function GetInvolvedForm() {
+  const hydrated = useHydrated();
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -107,30 +113,30 @@ export function GetInvolvedForm() {
   }
 
   return (
-    <form className="mt-8 space-y-7 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" onSubmit={submit} noValidate>
+    <form className="mt-8 space-y-7 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" onSubmit={submit} noValidate aria-busy={!hydrated}>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="First name" error={errors.firstName?.[0]}>
-          <input className={inputClass} id="firstName" name="firstName" autoComplete="given-name" value={form.firstName} onChange={(event) => setValue("firstName", event.target.value)} />
+          <input className={inputClass} id="firstName" name="firstName" autoComplete="given-name" value={form.firstName} disabled={!hydrated} onChange={(event) => setValue("firstName", event.target.value)} />
         </Field>
         <Field label="Last name" error={errors.lastName?.[0]}>
-          <input className={inputClass} id="lastName" name="lastName" autoComplete="family-name" value={form.lastName} onChange={(event) => setValue("lastName", event.target.value)} />
+          <input className={inputClass} id="lastName" name="lastName" autoComplete="family-name" value={form.lastName} disabled={!hydrated} onChange={(event) => setValue("lastName", event.target.value)} />
         </Field>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Email" hint="Email or phone is required" error={errors.email?.[0]}>
-          <input className={inputClass} id="email" name="email" type="email" autoComplete="email" inputMode="email" value={form.email} onChange={(event) => setValue("email", event.target.value)} />
+          <input className={inputClass} id="email" name="email" type="email" autoComplete="email" inputMode="email" value={form.email} disabled={!hydrated} onChange={(event) => setValue("email", event.target.value)} />
         </Field>
         <Field label="Phone" hint="Email or phone is required" error={errors.phone?.[0]}>
-          <input className={inputClass} id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" value={form.phone} onChange={(event) => setValue("phone", event.target.value)} />
+          <input className={inputClass} id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" value={form.phone} disabled={!hydrated} onChange={(event) => setValue("phone", event.target.value)} />
         </Field>
       </div>
 
       <Field label="ZIP code" hint="Used to connect you with the right organizing area" error={errors.zipCode?.[0]}>
-        <input className={`${inputClass} sm:max-w-48`} id="zipCode" name="zipCode" autoComplete="postal-code" inputMode="numeric" maxLength={5} value={form.zipCode} onChange={(event) => setValue("zipCode", event.target.value.replace(/\D/g, "").slice(0, 5))} />
+        <input className={`${inputClass} sm:max-w-48`} id="zipCode" name="zipCode" autoComplete="postal-code" inputMode="numeric" maxLength={5} value={form.zipCode} disabled={!hydrated} onChange={(event) => setValue("zipCode", event.target.value.replace(/\D/g, "").slice(0, 5))} />
       </Field>
 
-      <fieldset>
+      <fieldset disabled={!hydrated}>
         <legend className="font-medium text-slate-900">What are you interested in?</legend>
         <p className="mt-1 text-sm text-slate-500">Choose any that apply. You can change these later.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -144,7 +150,7 @@ export function GetInvolvedForm() {
       </fieldset>
 
       {(form.email.trim() || form.phone.trim()) && (
-        <fieldset className="space-y-3">
+        <fieldset className="space-y-3" disabled={!hydrated}>
           <legend className="font-medium text-slate-900">Contact preferences</legend>
           {form.email.trim() && (
             <label className="flex cursor-pointer items-start gap-3">
@@ -163,12 +169,12 @@ export function GetInvolvedForm() {
 
       <div className="absolute -left-[10000px]" aria-hidden="true">
         <label htmlFor="website">Website</label>
-        <input id="website" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={(event) => setValue("website", event.target.value)} />
+        <input id="website" name="website" tabIndex={-1} autoComplete="off" value={form.website} disabled={!hydrated} onChange={(event) => setValue("website", event.target.value)} />
       </div>
 
       {serverError && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">We could not submit the form. Please try again.</p>}
 
-      <button className="min-h-12 w-full rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" type="submit" disabled={submitting}>
+      <button className="min-h-12 w-full rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" type="submit" disabled={!hydrated || submitting}>
         {submitting ? "Submitting…" : "Get involved"}
       </button>
     </form>
