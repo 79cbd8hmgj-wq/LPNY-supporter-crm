@@ -20,14 +20,14 @@ const existingPeople: ImportMatchPerson[] = [
     firstName: "Jane",
     lastName: "Doe",
     normalizedEmail: "jane@example.com",
-    normalizedPhone: "15185550101",
+    normalizedPhone: "5185550101",
   },
   {
     id: "20000000-0000-4000-8000-000000001002",
     firstName: "Janet",
     lastName: "Doe",
     normalizedEmail: "janet@example.com",
-    normalizedPhone: "15185550102",
+    normalizedPhone: "5185550102",
   },
 ];
 
