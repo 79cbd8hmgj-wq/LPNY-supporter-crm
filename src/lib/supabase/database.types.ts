@@ -48,6 +48,12 @@ export type Database = {
         };
         Relationships: [];
       };
+      staff_counties: {
+        Row: { staff_user_id: string; county_id: string; created_at: string };
+        Insert: { staff_user_id: string; county_id: string; created_at?: string };
+        Update: { staff_user_id?: string; county_id?: string; created_at?: string };
+        Relationships: [];
+      };
       admin_audit_events: {
         Row: {
           id: string;
@@ -306,6 +312,24 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      admin_register_staff_user: {
+        Args: {
+          p_auth_user_id: string;
+          p_display_name: string;
+          p_role: Database["public"]["Enums"]["staff_role"];
+          p_county_ids?: string[];
+        };
+        Returns: string;
+      };
+      admin_update_staff_access: {
+        Args: {
+          p_staff_user_id: string;
+          p_role: Database["public"]["Enums"]["staff_role"];
+          p_status: Database["public"]["Enums"]["staff_status"];
+          p_county_ids?: string[];
+        };
+        Returns: undefined;
+      };
       process_get_involved_intake: {
         Args: {
           p_first_name: string;

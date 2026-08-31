@@ -5,23 +5,11 @@ import type {
   StaffManagementRecord,
 } from "./staff";
 
-type AssignmentResult = {
-  data: Array<{ staff_user_id: string; county_id: string }> | null;
-  error: { message: string } | null;
-};
-
-type StaffCountiesClient = {
-  from(table: "staff_counties"): {
-    select(columns: "staff_user_id, county_id"): PromiseLike<AssignmentResult>;
-  };
-};
-
 export async function loadStaffAdministrationData(): Promise<{
   staff: StaffManagementRecord[];
   counties: StaffCountyOption[];
 }> {
   const supabase = await createServerSupabaseClient();
-  const staffCountiesClient = supabase as unknown as StaffCountiesClient;
   const [staffResult, countyResult, assignmentResult] = await Promise.all([
     supabase
       .from("staff_users")
@@ -31,7 +19,7 @@ export async function loadStaffAdministrationData(): Promise<{
       .from("counties")
       .select("id, name")
       .order("name", { ascending: true }),
-    staffCountiesClient
+    supabase
       .from("staff_counties")
       .select("staff_user_id, county_id"),
   ]);

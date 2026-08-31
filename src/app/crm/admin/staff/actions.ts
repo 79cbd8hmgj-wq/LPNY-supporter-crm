@@ -12,15 +12,6 @@ import {
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-type RpcResult = {
-  data: unknown;
-  error: { message: string; code?: string } | null;
-};
-
-type StaffAdminRpcClient = {
-  rpc(name: "admin_register_staff_user" | "admin_update_staff_access", args: Record<string, unknown>): PromiseLike<RpcResult>;
-};
-
 export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffActionResult> {
   await requireStaffRole(["admin"]);
   const parsed = staffInviteSchema.safeParse(input);
@@ -41,8 +32,7 @@ export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffA
   }
 
   const supabase = await createServerSupabaseClient();
-  const rpcClient = supabase as unknown as StaffAdminRpcClient;
-  const registration = await rpcClient.rpc("admin_register_staff_user", {
+  const registration = await supabase.rpc("admin_register_staff_user", {
     p_auth_user_id: invitation.data.user.id,
     p_display_name: parsed.data.displayName,
     p_role: parsed.data.role,
@@ -74,8 +64,7 @@ export async function updateStaffAccess(input: StaffAccessUpdateInput): Promise<
   }
 
   const supabase = await createServerSupabaseClient();
-  const rpcClient = supabase as unknown as StaffAdminRpcClient;
-  const result = await rpcClient.rpc("admin_update_staff_access", {
+  const result = await supabase.rpc("admin_update_staff_access", {
     p_staff_user_id: parsed.data.staffUserId,
     p_role: parsed.data.role,
     p_status: parsed.data.status,
