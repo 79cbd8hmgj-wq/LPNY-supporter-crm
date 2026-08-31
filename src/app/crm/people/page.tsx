@@ -93,12 +93,12 @@ export default async function PeopleDirectoryPage({
             {directory.totalCount.toLocaleString()} {directory.totalCount === 1 ? "person" : "people"}
           </div>
           {staff.role === "admin" ? (
-            <Link
+            <a
               href={exportHref(filters)}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
             >
               Export CSV
-            </Link>
+            </a>
           ) : null}
         </div>
       </header>

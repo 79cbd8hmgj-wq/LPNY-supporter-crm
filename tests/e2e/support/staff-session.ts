@@ -2,6 +2,8 @@ import { createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { expect, type Page, type TestInfo } from "@playwright/test";
 
+export type BrowserStaffRole = "admin" | "state_organizer" | "county_organizer" | "volunteer_staff";
+
 function decodeBase32(secret: string) {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   const normalized = secret.toUpperCase().replace(/[^A-Z2-7]/g, "");
@@ -42,7 +44,12 @@ export function requireSupabaseEnvironment() {
   return { url: url!, anonKey: anonKey!, serviceRoleKey: serviceRoleKey! };
 }
 
-export async function provisionAdminStaff(testInfo: TestInfo, prefix: string) {
+export async function provisionStaff(
+  testInfo: TestInfo,
+  prefix: string,
+  role: BrowserStaffRole,
+  displayName?: string,
+) {
   const { url, anonKey, serviceRoleKey } = requireSupabaseEnvironment();
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -50,6 +57,7 @@ export async function provisionAdminStaff(testInfo: TestInfo, prefix: string) {
   const suffix = `${testInfo.project.name}-${Date.now()}-${randomUUID().slice(0, 8)}`;
   const email = `${prefix}-${suffix}@example.test`;
   const password = `Staff-${randomUUID()}-Aa1!`;
+  const resolvedDisplayName = displayName ?? `${prefix} ${role.replaceAll("_", " ")} ${suffix.slice(-8)}`;
 
   const { data: createdAuth, error: authError } = await admin.auth.admin.createUser({
     email,
@@ -73,8 +81,8 @@ export async function provisionAdminStaff(testInfo: TestInfo, prefix: string) {
     .from("staff_users")
     .insert({
       auth_user_id: createdAuth.user!.id,
-      display_name: `Browser Admin ${testInfo.project.name}`,
-      role: "admin",
+      display_name: resolvedDisplayName,
+      role,
       status: "active",
     })
     .select("id")
@@ -82,7 +90,39 @@ export async function provisionAdminStaff(testInfo: TestInfo, prefix: string) {
   expect(staffError).toBeNull();
   expect(staff?.id).toBeTruthy();
 
-  return { admin, email, password, staffUserId: staff!.id, suffix };
+  if (role === "county_organizer") {
+    const { data: county, error: countyError } = await admin
+      .from("counties")
+      .select("id")
+      .eq("name", "Albany")
+      .single();
+    expect(countyError).toBeNull();
+    expect(county?.id).toBeTruthy();
+
+    const { error: assignmentError } = await admin
+      .from("staff_counties")
+      .insert({ staff_user_id: staff!.id, county_id: county!.id });
+    expect(assignmentError).toBeNull();
+  }
+
+  return {
+    admin,
+    email,
+    password,
+    staffUserId: staff!.id,
+    suffix,
+    displayName: resolvedDisplayName,
+    role,
+  };
+}
+
+export async function provisionAdminStaff(testInfo: TestInfo, prefix: string) {
+  return provisionStaff(
+    testInfo,
+    prefix,
+    "admin",
+    `Browser Admin ${testInfo.project.name}`,
+  );
 }
 
 export async function loginWithMfa(page: Page, email: string, password: string) {

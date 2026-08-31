@@ -19,16 +19,33 @@ The v1 architecture and implementation roadmap are documented under `docs/superp
 - phone-first Quick Add with RLS-visible duplicate warnings, Organizer Entry attribution, and initial follow-up routing
 - public `/get-involved` supporter intake flow with server-isolated privileged writes
 - ZIP-based New York county routing, duplicate-safe intake, consent/source/activity history, and initial follow-up queue creation
+- Admin staff access management with audited role, status, and county-assignment changes
+- Admin/State Organizer taxonomy management and duplicate review with transactional merge/history preservation
+- Admin-only guided CSV import with explicit column mapping, duplicate review, validation, and atomic application
+- Admin-only filtered CSV export using the People directory filter contract, stable RFC4180 serialization, spreadsheet-formula neutralization, and export auditing without contact values in audit metadata
+- Admin-only append-only audit viewer with safe metadata summaries
 - unit, database-policy, and Chromium/WebKit browser-level tests
 
 ## Organizer routes
 
 - `/crm` — scoped organizer dashboard and work queues
-- `/crm/people` — searchable/filterable People directory and private saved views
+- `/crm/people` — searchable/filterable People directory and private saved views; Admins can export the current filtered result set
 - `/crm/people/[personId]` — supporter profile, history, and organizer actions
 - `/crm/quick-add` — fast organizer entry for a supporter encountered by phone or in person
 
 All CRM routes require an active staff record and TOTP-authenticated session. Database Row-Level Security remains the final authorization boundary for supporter data.
+
+## Administration routes
+
+- `/crm/admin` — role-aware administration landing page
+- `/crm/admin/staff` — Admin-only staff invitation and access management
+- `/crm/admin/taxonomies` — Admin/State Organizer management for sources, tags, and interests
+- `/crm/admin/duplicates` — Admin/State Organizer duplicate review, keep-separate, and merge workflow
+- `/crm/admin/import` — Admin-only guided supporter CSV import
+- `/crm/admin/export?...people filters...` — Admin-only filtered supporter CSV download; normally reached through the People directory export control
+- `/crm/admin/audit` — Admin-only append-only administrative audit viewer
+
+CSV exports contain only the approved supporter-directory fields. Internal note bodies are never included. Export audit events store the row count and names of active filters, not search values or exported contact data.
 
 ## Local development
 
@@ -71,7 +88,7 @@ npx playwright install chromium webkit
 npm run test:e2e
 ```
 
-The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, and the integrated organizer workflow from dashboard queue through completed follow-up history.
+The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, the integrated organizer workflow from dashboard queue through completed follow-up history, and the administration data-operations loop through audited import/export and role-boundary verification.
 
 ## Environment safety
 
@@ -87,3 +104,4 @@ The browser receives only the public Supabase URL and anon/publishable credentia
 - `docs/superpowers/plans/2026-08-23-foundation-auth-data-model.md` — foundation implementation plan
 - `docs/superpowers/plans/2026-08-23-supporter-intake.md` — supporter intake implementation plan
 - `docs/superpowers/plans/2026-08-23-organizer-workflow.md` — organizer dashboard, People directory, profiles, actions, Quick Add, and acceptance plan
+- `docs/superpowers/plans/2026-08-31-administration-data-operations.md` — staff, taxonomy, duplicates, CSV import/export, audit, and administration acceptance plan
