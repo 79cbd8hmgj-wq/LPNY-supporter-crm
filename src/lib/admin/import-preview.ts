@@ -67,6 +67,32 @@ export type CsvImportPreview = {
   rows: CsvImportPreviewRow[];
 };
 
+export type CsvImportDecisionSelection = {
+  rowNumber: number;
+  decision: CsvImportDecision;
+  existingPersonId: string | null;
+};
+
+export type CsvImportApplyRow = {
+  row_number: number;
+  decision: CsvImportDecision;
+  existing_person_id: string | null;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  normalized_email: string | null;
+  phone: string | null;
+  normalized_phone: string | null;
+  zip_code: string | null;
+  county_name: string | null;
+  municipality: string | null;
+  engagement_stage: CsvImportRowData["engagementStage"];
+  relationship: string | null;
+  interests: string[];
+  tags: string[];
+  source: string | null;
+};
+
 const emailSchema = z.string().email().max(254);
 const engagementStages = new Set<CsvImportRowData["engagementStage"]>([
   "new",
@@ -258,4 +284,102 @@ export function previewCsvImport(
     mapping,
     rows,
   };
+}
+
+function toApplyRow(
+  row: CsvImportPreviewRow,
+  decision: CsvImportDecision,
+  existingPersonId: string | null,
+): CsvImportApplyRow {
+  return {
+    row_number: row.rowNumber,
+    decision,
+    existing_person_id: decision === "update_existing" ? existingPersonId : null,
+    first_name: row.data.firstName,
+    last_name: row.data.lastName,
+    email: row.data.email,
+    normalized_email: row.data.normalizedEmail,
+    phone: row.data.phone,
+    normalized_phone: row.data.normalizedPhone,
+    zip_code: row.data.zipCode,
+    county_name: null,
+    municipality: row.data.municipality,
+    engagement_stage: row.data.engagementStage,
+    relationship: row.data.relationship,
+    interests: [...row.data.interests],
+    tags: [...row.data.tags],
+    source: row.data.source,
+  };
+}
+
+export function buildCsvImportApplyRows(
+  preview: CsvImportPreview,
+  selections: readonly CsvImportDecisionSelection[],
+): CsvImportApplyRow[] {
+  const previewRows = new Map(preview.rows.map((row) => [row.rowNumber, row]));
+  const selectionsByRow = new Map<number, CsvImportDecisionSelection>();
+
+  for (const selection of selections) {
+    if (!Number.isInteger(selection.rowNumber) || selection.rowNumber < 2) {
+      throw new Error("CSV decision row number is invalid");
+    }
+    if (selectionsByRow.has(selection.rowNumber)) {
+      throw new Error(`CSV row ${selection.rowNumber} has more than one decision`);
+    }
+    if (!previewRows.has(selection.rowNumber)) {
+      throw new Error(`CSV row ${selection.rowNumber} is no longer present in the fresh preview`);
+    }
+    selectionsByRow.set(selection.rowNumber, selection);
+  }
+
+  return preview.rows.map((row) => {
+    const selection = selectionsByRow.get(row.rowNumber) ?? {
+      rowNumber: row.rowNumber,
+      decision: row.decision,
+      existingPersonId: row.existingPersonId,
+    };
+
+    if (selection.decision === "skip") {
+      return toApplyRow(row, "skip", null);
+    }
+
+    if (row.classification === "invalid") {
+      throw new Error(`Invalid CSV row ${row.rowNumber} cannot be applied`);
+    }
+
+    if (row.classification === "exact_email_match") {
+      if (selection.decision === "create_new") {
+        throw new Error(`Exact-email CSV row ${row.rowNumber} cannot create a new supporter`);
+      }
+      if (!row.existingPersonId || selection.existingPersonId !== row.existingPersonId) {
+        throw new Error(`Exact-email CSV row ${row.rowNumber} update target does not match the fresh preview`);
+      }
+      return toApplyRow(row, "update_existing", row.existingPersonId);
+    }
+
+    if (row.classification === "ambiguous_phone_match") {
+      if (selection.decision === "create_new") {
+        if (selection.existingPersonId !== null) {
+          throw new Error(`CSV row ${row.rowNumber} create-new decision cannot include an existing supporter`);
+        }
+        return toApplyRow(row, "create_new", null);
+      }
+      if (!selection.existingPersonId || !row.candidatePersonIds.includes(selection.existingPersonId)) {
+        throw new Error(`CSV row ${row.rowNumber} update target is not a fresh preview candidate`);
+      }
+      return toApplyRow(row, "update_existing", selection.existingPersonId);
+    }
+
+    if (row.classification === "new") {
+      if (selection.decision === "update_existing") {
+        throw new Error(`New CSV row ${row.rowNumber} cannot update an existing supporter`);
+      }
+      if (selection.existingPersonId !== null) {
+        throw new Error(`CSV row ${row.rowNumber} create-new decision cannot include an existing supporter`);
+      }
+      return toApplyRow(row, "create_new", null);
+    }
+
+    throw new Error(`CSV row ${row.rowNumber} has an unsupported classification`);
+  });
 }
