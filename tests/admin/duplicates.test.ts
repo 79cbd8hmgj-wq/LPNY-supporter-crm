@@ -4,10 +4,10 @@ import {
   duplicateResolutionSchema,
 } from "@/lib/admin/duplicates";
 
-const candidateId = "50000000-0000-0000-0000-000000000901";
-const personAId = "20000000-0000-0000-0000-000000000901";
-const personBId = "20000000-0000-0000-0000-000000000902";
-const otherPersonId = "20000000-0000-0000-0000-000000000903";
+const candidateId = "50000000-0000-4000-8000-000000000901";
+const personAId = "20000000-0000-4000-8000-000000000901";
+const personBId = "20000000-0000-4000-8000-000000000902";
+const otherPersonId = "20000000-0000-4000-8000-000000000903";
 
 describe("duplicate resolution validation", () => {
   it("accepts keep-separate without a canonical person", () => {
