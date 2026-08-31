@@ -48,6 +48,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      admin_audit_events: {
+        Row: {
+          id: string;
+          actor_staff_user_id: string;
+          action_type: string;
+          target_type: string;
+          target_id: string | null;
+          metadata: Json;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_staff_user_id: string;
+          action_type: string;
+          target_type: string;
+          target_id?: string | null;
+          metadata?: Json;
+          occurred_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_staff_user_id?: string;
+          action_type?: string;
+          target_type?: string;
+          target_id?: string | null;
+          metadata?: Json;
+          occurred_at?: string;
+        };
+        Relationships: [];
+      };
       people: {
         Row: {
           id: string;

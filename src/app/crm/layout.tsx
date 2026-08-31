@@ -4,6 +4,7 @@ import { requireStaffUser } from "@/lib/auth/require-staff";
 
 export default async function CrmLayout({ children }: { children: ReactNode }) {
   const staff = await requireStaffUser();
+  const canUseAdministration = staff.role === "admin" || staff.role === "state_organizer";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -23,6 +24,11 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
               {staff.role !== "volunteer_staff" ? (
                 <Link href="/crm/quick-add" className="font-medium text-slate-700 hover:text-slate-950">
                   Quick Add
+                </Link>
+              ) : null}
+              {canUseAdministration ? (
+                <Link href="/crm/admin" className="font-medium text-slate-700 hover:text-slate-950">
+                  Administration
                 </Link>
               ) : null}
             </nav>
