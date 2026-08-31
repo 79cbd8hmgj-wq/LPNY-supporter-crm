@@ -65,6 +65,7 @@ from public.relationship_types rt
 where rt.slug = 'supporter';
 
 create temporary table csv_import_result (result jsonb);
+grant insert on table csv_import_result to authenticated;
 
 select set_config(
   'request.jwt.claims',
@@ -274,7 +275,7 @@ select is(
   'CSV import appends one batch audit event'
 );
 select is(
-  (select metadata->>'imported_count' || ':' || metadata->>'updated_count' || ':' || metadata->>'skipped_count'
+  (select (metadata->>'imported_count') || ':' || (metadata->>'updated_count') || ':' || (metadata->>'skipped_count')
    from public.admin_audit_events
    where action_type = 'csv_import_applied'
    order by occurred_at desc
