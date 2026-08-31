@@ -110,7 +110,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
   await page.goto("/crm/admin/taxonomies");
   await page.getByLabel("New tag").fill(tagName);
   await page.getByRole("button", { name: "Add tag" }).click();
-  const tagInput = page.getByDisplayValue(tagName);
+  const tagInput = page.locator(`input[value="${tagName}"]`);
   await expect(tagInput).toBeVisible();
   const tagCard = page.getByRole("article").filter({ has: tagInput });
   await tagCard.getByLabel("Active in CRM selectors").uncheck();
@@ -219,7 +219,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
     "CSV Import Applied",
     "People CSV Exported",
   ]) {
-    await expect(page.getByRole("heading", { name: action })).toBeVisible();
+    await expect(page.getByRole("heading", { name: action }).first()).toBeVisible();
   }
   await expect(page.getByText(importEmail)).toHaveCount(0);
 });
