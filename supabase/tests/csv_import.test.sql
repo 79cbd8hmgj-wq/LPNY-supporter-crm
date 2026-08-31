@@ -283,14 +283,15 @@ select is(
   '1:1:1',
   'CSV audit metadata records only summary counts'
 );
-select ok(
-  not exists (
-    select 1
-    from public.admin_audit_events
-    where action_type = 'csv_import_applied'
-      and metadata::text ~* '(example\.com|518555|Original|Changed|New|Skipped)'
+select is(
+  (
+    select string_agg(metadata_key, ',' order by metadata_key)
+    from public.admin_audit_events audit
+    cross join lateral jsonb_object_keys(audit.metadata) as keys(metadata_key)
+    where audit.action_type = 'csv_import_applied'
   ),
-  'CSV audit metadata does not contain row contact data or names'
+  'batch_id,imported_count,row_count,skipped_count,updated_count',
+  'CSV audit metadata is limited to batch id and summary counts'
 );
 select ok(
   not exists (
