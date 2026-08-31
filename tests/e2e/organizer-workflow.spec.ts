@@ -86,9 +86,9 @@ test("organizer can work a queued supporter from dashboard through completed fol
   await loginWithMfa(page, email, password);
 
   await expect(page.getByRole("heading", { name: "CRM Dashboard" })).toBeVisible();
-  const newSupporters = page.getByRole("heading", { name: "New supporters" }).locator("xpath=ancestor::section");
+  const newSupporters = page.getByRole("heading", { name: "New supporters" }).locator("xpath=ancestor::section[1]");
   await expect(newSupporters.getByRole("link", { name: fullName })).toBeVisible();
-  const dueToday = page.getByRole("heading", { name: "Follow-up due today" }).locator("xpath=ancestor::section");
+  const dueToday = page.getByRole("heading", { name: "Follow-up due today" }).locator("xpath=ancestor::section[1]");
   await expect(dueToday.getByRole("link", { name: fullName })).toBeVisible();
 
   await page.getByRole("link", { name: "People", exact: true }).click();
@@ -113,22 +113,22 @@ test("organizer can work a queued supporter from dashboard through completed fol
 
   await page.getByRole("link", { name: fullName }).click();
   await expect(page.getByRole("heading", { name: fullName })).toBeVisible();
-  const sources = page.getByRole("heading", { name: "Sources" }).locator("xpath=ancestor::section");
+  const sources = page.getByRole("heading", { name: "Sources" }).locator("xpath=ancestor::section[1]");
   await expect(sources.getByText("Organizer Entry", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Complete" }).click();
   await expect(page.getByRole("status")).toContainText("Task completed.");
-  const tasks = page.getByRole("heading", { name: "Tasks" }).locator("xpath=ancestor::section");
+  const tasks = page.getByRole("heading", { name: "Tasks" }).locator("xpath=ancestor::section[1]");
   await expect(tasks.getByText("Initial Follow Up", { exact: true })).toBeVisible();
   await expect(tasks.getByText("Completed", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Mark contacted" }).click();
   await expect(page.getByRole("status")).toContainText("Contact outcome recorded.");
   await expect(page.locator("header").getByText("Contacted", { exact: true })).toBeVisible();
-  const activity = page.getByRole("heading", { name: "Activity" }).locator("xpath=ancestor::section");
+  const activity = page.getByRole("heading", { name: "Activity" }).locator("xpath=ancestor::section[1]");
   await expect(activity.getByText("Contacted", { exact: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Dashboard", exact: true }).click();
-  const recentlyContacted = page.getByRole("heading", { name: "Recently contacted" }).locator("xpath=ancestor::section");
+  const recentlyContacted = page.getByRole("heading", { name: "Recently contacted" }).locator("xpath=ancestor::section[1]");
   await expect(recentlyContacted.getByRole("link", { name: fullName })).toBeVisible();
 });
