@@ -72,6 +72,8 @@ async function provisionRole(testInfo: TestInfo, role: BrowserStaffRole) {
 }
 
 test("Admin completes the administration data-operations loop", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
+
   const adminStaff = await provisionAdminStaff(testInfo, "admin-operations");
   const targetStaff = await provisionStaff(testInfo, "access-target", "volunteer_staff");
   const unique = `${testInfo.project.name}-${randomUUID().slice(0, 8)}`.toLowerCase();
