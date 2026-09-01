@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type {
   InterestAdminRecord,
@@ -11,6 +11,11 @@ import type {
 import { saveInterest, saveSource, saveTag } from "./actions";
 
 const inputClass = "mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
+const subscribeToHydration = () => () => {};
+
+function useHydrated() {
+  return useSyncExternalStore(subscribeToHydration, () => true, () => false);
+}
 
 function ResultMessage({ result }: { result: TaxonomyActionResult | null }) {
   if (!result) return null;
@@ -274,8 +279,10 @@ export function TaxonomyManagement({
   tags: TagAdminRecord[];
   sources: SourceAdminRecord[];
 }) {
+  const hydrated = useHydrated();
+
   return (
-    <div className="space-y-6">
+    <fieldset className="space-y-6 border-0 p-0" disabled={!hydrated} aria-busy={!hydrated}>
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <SectionHeader count={interests.length} description="Issue and activity interests used for supporter targeting and intake." title="Interests" />
         <InterestCreateForm />
@@ -303,6 +310,6 @@ export function TaxonomyManagement({
           {sources.map((record) => <SourceEditor key={record.id} record={record} />)}
         </div>
       </section>
-    </div>
+    </fieldset>
   );
 }
