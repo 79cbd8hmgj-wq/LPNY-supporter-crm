@@ -137,6 +137,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
       .single();
     return data?.active;
   }).toBe(false);
+  await expect(tagCard.getByText("Inactive", { exact: true })).toBeVisible();
 
   await page.goto("/crm/admin/duplicates");
   const keepCard = page.getByRole("article").filter({ hasText: keepReason });
