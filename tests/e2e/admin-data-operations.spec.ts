@@ -106,6 +106,8 @@ test("Admin completes the administration data-operations loop", async ({ page },
   await expect(staffCard).toBeVisible();
   await staffCard.getByLabel("Role").selectOption("state_organizer");
   await staffCard.getByRole("button", { name: "Save access" }).click();
+  await expect(staffCard.getByRole("status")).toHaveText("Staff access updated.");
+  await page.waitForLoadState("networkidle");
   await expectStaffRole(adminStaff.admin, targetStaff.staffUserId, "state_organizer");
 
   const tagName = `Acceptance ${unique}`;
