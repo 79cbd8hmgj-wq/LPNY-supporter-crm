@@ -110,7 +110,10 @@ test("Admin completes the administration data-operations loop", async ({ page },
 
   const tagName = `Acceptance ${unique}`;
   await page.goto("/crm/admin/taxonomies");
-  await page.getByLabel("New tag").fill(tagName);
+  const newTagInput = page.getByLabel("New tag");
+  await newTagInput.fill(tagName);
+  await expect(newTagInput).toHaveValue(tagName);
+  await newTagInput.blur();
   await page.getByRole("button", { name: "Add tag" }).click();
   await expect.poll(async () => {
     const { data } = await adminStaff.admin
