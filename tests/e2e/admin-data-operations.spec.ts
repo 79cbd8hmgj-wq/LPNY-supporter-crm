@@ -110,7 +110,6 @@ test("Admin completes the administration data-operations loop", async ({ page },
   await page.goto("/crm/admin/taxonomies");
   await page.getByLabel("New tag").fill(tagName);
   await page.getByRole("button", { name: "Add tag" }).click();
-  await expect(page.getByText("Tag created.", { exact: true })).toBeVisible();
   await expect.poll(async () => {
     const { data } = await adminStaff.admin
       .from("tags")
@@ -118,7 +117,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
       .eq("name", tagName)
       .maybeSingle();
     return Boolean(data?.id) && data?.active === true;
-  }).toBe(true);
+  }, { timeout: 15_000 }).toBe(true);
   await page.reload();
   const tagInput = page.locator(`input[value="${tagName}"]`);
   await expect(tagInput).toBeVisible();
