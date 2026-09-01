@@ -138,11 +138,11 @@ function InviteStaffForm({ counties }: { counties: StaffCountyOption[] }) {
 }
 
 function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord; counties: StaffCountyOption[] }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<StaffActionResult | null>(null);
   const [role, setRole] = useState<StaffRole>(record.role);
   const [status, setStatus] = useState<StaffStatus>(record.status);
+  const [savedStatus, setSavedStatus] = useState<StaffStatus>(record.status);
   const [countyIds, setCountyIds] = useState<Set<string>>(new Set(record.countyIds));
 
   function changeRole(nextRole: StaffRole) {
@@ -160,7 +160,7 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
   }
 
   function save() {
-    if (record.status === "active" && status === "disabled") {
+    if (savedStatus === "active" && status === "disabled") {
       const confirmed = window.confirm(`Disable CRM access for ${record.displayName}? They will no longer be able to enter the organizer workspace.`);
       if (!confirmed) return;
     }
@@ -174,7 +174,7 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
         countyIds: [...countyIds],
       });
       setResult(next);
-      if (next.status === "success") router.refresh();
+      if (next.status === "success") setSavedStatus(status);
     });
   }
 
@@ -185,8 +185,8 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
           <h3 className="font-semibold text-slate-950">{record.displayName}</h3>
           <p className="text-xs text-slate-500">{record.invitedAt ? `Invited ${new Date(record.invitedAt).toLocaleDateString()}` : "Staff record"}</p>
         </div>
-        <span className={`w-fit rounded-full px-2 py-1 text-xs font-medium ${record.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-          {record.status === "active" ? "Active" : "Disabled"}
+        <span className={`w-fit rounded-full px-2 py-1 text-xs font-medium ${savedStatus === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+          {savedStatus === "active" ? "Active" : "Disabled"}
         </span>
       </div>
 
