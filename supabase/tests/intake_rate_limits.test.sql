@@ -1,6 +1,6 @@
 begin;
 
-select plan(8);
+select plan(10);
 
 select ok(
   to_regclass('public.intake_rate_limits') is not null,
@@ -20,6 +20,16 @@ select ok(
 select ok(
   not has_table_privilege('authenticated', 'public.intake_rate_limits', 'SELECT'),
   'Authenticated staff cannot read rate-limit buckets directly'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.consume_intake_rate_limit(text,integer,integer)', 'EXECUTE'),
+  'Anonymous callers cannot execute the intake rate-limit RPC'
+);
+
+select ok(
+  not has_function_privilege('authenticated', 'public.consume_intake_rate_limit(text,integer,integer)', 'EXECUTE'),
+  'Authenticated staff cannot execute the intake rate-limit RPC'
 );
 
 select ok(
