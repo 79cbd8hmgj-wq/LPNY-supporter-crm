@@ -6,12 +6,13 @@ import {
 import { parsePeopleFilters } from "@/lib/crm/people-filters";
 
 describe("saved people views", () => {
-  test("stores canonical filter state without pagination", () => {
-    const filters = parsePeopleFilters(
+  test("stores canonical filter state and private search without pagination or URL markers", () => {
+    const structured = parsePeopleFilters(
       new URLSearchParams(
-        "q=Albany&stage=follow_up_needed&openTask=yes&inactiveDays=30&page=4",
+        "stage=follow_up_needed&openTask=yes&inactiveDays=30&page=4",
       ),
     );
+    const filters = { ...structured, query: "Albany" };
 
     expect(encodeSavedViewFilters(filters)).toEqual({
       q: "Albany",
