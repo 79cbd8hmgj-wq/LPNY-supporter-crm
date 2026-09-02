@@ -94,6 +94,8 @@ const STAGE_LABELS: Record<EngagementStage, string> = {
   inactive: "Inactive",
 };
 
+const REPORTING_QUERY_PAGE_SIZE = 500;
+
 function increment(map: Map<string, number>, key: string) {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
@@ -176,6 +178,25 @@ function assertQuery<T>(data: T | null, error: { message: string } | null, label
   }
 
   return data;
+}
+
+type PaginatedQueryResult<T> = {
+  data: T[] | null;
+  error: { message: string } | null;
+};
+
+export async function collectPaginatedRows<T>(
+  fetchPage: (from: number, to: number) => Promise<PaginatedQueryResult<T>>,
+  label: string,
+  pageSize: number = REPORTING_QUERY_PAGE_SIZE,
+): Promise<T[]> {
+  const rows: T[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const pageRows = assertQuery(
+      ...(await fetchPage(from, from + pageSize - 1)).let?.(() => []) as never,
+    );
+  }
 }
 
 export async function loadDashboardData(
