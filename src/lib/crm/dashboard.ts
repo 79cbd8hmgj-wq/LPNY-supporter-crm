@@ -190,12 +190,20 @@ export async function collectPaginatedRows<T>(
   label: string,
   pageSize: number = REPORTING_QUERY_PAGE_SIZE,
 ): Promise<T[]> {
+  if (!Number.isInteger(pageSize) || pageSize <= 0) {
+    throw new Error("Dashboard reporting page size must be a positive integer.");
+  }
+
   const rows: T[] = [];
 
   for (let from = 0; ; from += pageSize) {
-    const pageRows = assertQuery(
-      ...(await fetchPage(from, from + pageSize - 1)).let?.(() => []) as never,
-    );
+    const result = await fetchPage(from, from + pageSize - 1);
+    const pageRows = assertQuery(result.data, result.error, label);
+    rows.push(...pageRows);
+
+    if (pageRows.length < pageSize) {
+      return rows;
+    }
   }
 }
 
@@ -209,15 +217,15 @@ export async function loadDashboardData(
   const periodStart = reportingPeriodStart(period, now);
 
   const [
-    peopleForCountsResult,
+    peopleForCounts,
     countiesResult,
-    personSourcesResult,
-    sourcesResult,
-    personRelationshipsResult,
-    relationshipTypesResult,
-    personInterestsResult,
-    interestsResult,
-    tasksForReportingResult,
+    personSources,
+    sources,
+    personRelationships,
+    relationshipTypes,
+    personInterests,
+    interests,
+    tasksForReporting,
     newSupportersResult,
     dueTodayResult,
     overdueResult,
@@ -225,18 +233,82 @@ export async function loadDashboardData(
     unassignedResult,
     recentActivityResult,
   ] = await Promise.all([
-    supabase
-      .from("people")
-      .select("id, engagement_stage, county_id, assigned_staff_user_id, created_at")
-      .is("archived_at", null),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("people")
+          .select("id, engagement_stage, county_id, assigned_staff_user_id, created_at")
+          .is("archived_at", null)
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard contact counts",
+    ),
     supabase.from("counties").select("id, name").order("name"),
-    supabase.from("person_sources").select("person_id, source_id, occurred_at"),
-    supabase.from("sources").select("id, name"),
-    supabase.from("person_relationships").select("person_id, relationship_type_id"),
-    supabase.from("relationship_types").select("id, slug, name"),
-    supabase.from("person_interests").select("person_id, interest_id"),
-    supabase.from("interests").select("id, name"),
-    supabase.from("tasks").select("id, status, created_at, due_at"),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("person_sources")
+          .select("id, person_id, source_id, occurred_at")
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard source associations",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("sources")
+          .select("id, name")
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard sources",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("person_relationships")
+          .select("person_id, relationship_type_id")
+          .order("person_id", { ascending: true })
+          .order("relationship_type_id", { ascending: true })
+          .range(from, to),
+      "dashboard relationships",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("relationship_types")
+          .select("id, slug, name")
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard relationship types",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("person_interests")
+          .select("person_id, interest_id")
+          .order("person_id", { ascending: true })
+          .order("interest_id", { ascending: true })
+          .range(from, to),
+      "dashboard interests",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("interests")
+          .select("id, name")
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard interest types",
+    ),
+    collectPaginatedRows(
+      async (from, to) =>
+        await supabase
+          .from("tasks")
+          .select("id, status, created_at, due_at")
+          .order("id", { ascending: true })
+          .range(from, to),
+      "dashboard task reporting",
+    ),
     supabase
       .from("people")
       .select("id, first_name, last_name, email, phone, engagement_stage, county_id, created_at, last_activity_at")
@@ -280,27 +352,7 @@ export async function loadDashboardData(
       .limit(10),
   ]);
 
-  const peopleForCounts = assertQuery(peopleForCountsResult.data, peopleForCountsResult.error, "dashboard contact counts");
   const counties = assertQuery(countiesResult.data, countiesResult.error, "dashboard county counts");
-  const personSources = assertQuery(personSourcesResult.data, personSourcesResult.error, "dashboard source associations");
-  const sources = assertQuery(sourcesResult.data, sourcesResult.error, "dashboard sources");
-  const personRelationships = assertQuery(
-    personRelationshipsResult.data,
-    personRelationshipsResult.error,
-    "dashboard relationships",
-  );
-  const relationshipTypes = assertQuery(
-    relationshipTypesResult.data,
-    relationshipTypesResult.error,
-    "dashboard relationship types",
-  );
-  const personInterests = assertQuery(personInterestsResult.data, personInterestsResult.error, "dashboard interests");
-  const interests = assertQuery(interestsResult.data, interestsResult.error, "dashboard interest types");
-  const tasksForReporting = assertQuery(
-    tasksForReportingResult.data,
-    tasksForReportingResult.error,
-    "dashboard task reporting",
-  );
   const newSupporters = assertQuery(newSupportersResult.data, newSupportersResult.error, "new supporters");
   const dueToday = assertQuery(dueTodayResult.data, dueTodayResult.error, "tasks due today");
   const overdue = assertQuery(overdueResult.data, overdueResult.error, "overdue tasks");
