@@ -7,6 +7,8 @@ vi.mock("@/lib/intake/service", () => ({
 import { handleGetInvolvedRequest } from "@/app/api/intake/get-involved/route";
 import { InvalidZipError } from "@/lib/intake/geography";
 
+const allowRequest = async () => false;
+
 function request(body: unknown) {
   return new Request("http://localhost/api/intake/get-involved", {
     method: "POST",
@@ -37,22 +39,25 @@ describe("POST /api/intake/get-involved", () => {
     const response = await handleGetInvolvedRequest(
       request({ firstName: "Ada", lastName: "Lovelace", zipCode: "10001" }),
       processSubmission,
+      allowRequest,
     );
     expect(response.status).toBe(400);
     expect(processSubmission).not.toHaveBeenCalled();
   });
 
-  it("silently accepts honeypot submissions without a CRM write", async () => {
+  it("silently accepts honeypot submissions without a CRM write or rate-limit call", async () => {
     const processSubmission = vi.fn(async () => undefined);
+    const checkRateLimit = vi.fn(async () => false);
     const response = await handleGetInvolvedRequest(request({
       firstName: "Bot",
       lastName: "Trap",
       email: "bot@example.com",
       zipCode: "10001",
       website: "https://spam.invalid",
-    }), processSubmission);
+    }), processSubmission, checkRateLimit);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
+    expect(checkRateLimit).not.toHaveBeenCalled();
     expect(processSubmission).not.toHaveBeenCalled();
   });
 
@@ -62,7 +67,7 @@ describe("POST /api/intake/get-involved", () => {
       lastName: "Lovelace",
       email: "ada@example.com",
       zipCode: "10001",
-    }), async () => undefined);
+    }), async () => undefined, allowRequest);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
   });
@@ -75,7 +80,7 @@ describe("POST /api/intake/get-involved", () => {
       zipCode: "00000",
     }), async () => {
       throw new InvalidZipError();
-    });
+    }, allowRequest);
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ ok: false, errors: { zipCode: ["Enter a valid ZIP code"] } });
   });
@@ -89,7 +94,7 @@ describe("POST /api/intake/get-involved", () => {
       zipCode: "10001",
     }), async () => {
       throw new Error("private database detail");
-    });
+    }, allowRequest);
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ ok: false });
     expect(spy).toHaveBeenCalledWith("Get involved intake failed");
