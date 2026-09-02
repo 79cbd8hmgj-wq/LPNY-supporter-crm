@@ -22,6 +22,22 @@ function request(body: unknown) {
 }
 
 describe("POST /api/intake/get-involved", () => {
+  it("rejects oversized request bodies before validation, rate limiting, or CRM writes", async () => {
+    const processSubmission = vi.fn(async () => undefined);
+    const checkRateLimit = vi.fn(async () => false);
+    const response = await handleGetInvolvedRequest(request({
+      firstName: "A".repeat(20_000),
+      lastName: "Lovelace",
+      email: "ada@example.com",
+      zipCode: "10001",
+    }), processSubmission, checkRateLimit);
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ ok: false });
+    expect(checkRateLimit).not.toHaveBeenCalled();
+    expect(processSubmission).not.toHaveBeenCalled();
+  });
+
   it("returns 429 without processing when the intake rate limit is exceeded", async () => {
     const processSubmission = vi.fn(async () => undefined);
     const checkRateLimit = vi.fn(async () => true);
