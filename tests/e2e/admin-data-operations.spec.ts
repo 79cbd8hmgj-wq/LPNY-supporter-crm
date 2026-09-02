@@ -215,13 +215,14 @@ test("Admin completes the administration data-operations loop", async ({ page },
 
   await page.goto(`/crm/people?q=${encodeURIComponent(importEmail)}`);
   await expect(page.getByText(importEmail)).toBeVisible();
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Export CSV" }).click();
-  const download = await downloadPromise;
-  const stream = await download.createReadStream();
-  expect(stream).toBeTruthy();
-  let exportedCsv = "";
-  for await (const chunk of stream!) exportedCsv += chunk.toString();
+  const exportLink = page.getByRole("link", { name: "Export CSV" });
+  const exportHref = await exportLink.getAttribute("href");
+  expect(exportHref).toBeTruthy();
+  const exportResponse = await page.request.get(exportHref!);
+  expect(exportResponse.status()).toBe(200);
+  expect(exportResponse.headers()["content-disposition"]).toContain("attachment;");
+  expect(exportResponse.headers()["content-type"]).toContain("text/csv");
+  const exportedCsv = await exportResponse.text();
   expect(exportedCsv).toContain("person_id,first_name,last_name,email,phone,zip_code,county,municipality,engagement_stage,assigned_organizer,relationships,interests,tags,do_not_contact,created_at,last_activity_at");
   expect(exportedCsv).toContain(importEmail);
   expect(exportedCsv).not.toContain(secretNote);
