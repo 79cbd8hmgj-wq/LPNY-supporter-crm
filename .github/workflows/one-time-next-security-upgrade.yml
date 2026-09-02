@@ -38,4 +38,6 @@ jobs:
             exit 0
           fi
           git commit -m "chore: upgrade Next.js security patch"
+          git fetch origin feat/production-hardening-deployment
+          git rebase origin/feat/production-hardening-deployment
           git push origin HEAD:feat/production-hardening-deployment
