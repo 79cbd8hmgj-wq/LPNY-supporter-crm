@@ -1,7 +1,6 @@
 import { serializePeopleFilters, type PeopleFilterState } from "@/lib/crm/people-filters";
 import type { SavedPeopleView } from "@/lib/crm/saved-views";
 import {
-  applySavedViewAction,
   createSavedViewAction,
   deleteSavedViewAction,
   renameSavedViewAction,
@@ -82,7 +81,7 @@ export function SavedViews({
                   <div className="truncate text-sm font-semibold text-slate-900">{view.name}</div>
                   <div className="mt-1 text-xs text-slate-500">Private saved filter set</div>
                 </div>
-                <form action={applySavedViewAction}>
+                <form action="/crm/people/saved-view" method="post">
                   <input type="hidden" name="viewId" value={view.id} />
                   <button
                     className="shrink-0 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
