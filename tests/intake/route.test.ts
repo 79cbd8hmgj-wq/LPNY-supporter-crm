@@ -4,6 +4,10 @@ vi.mock("@/lib/intake/service", () => ({
   processGetInvolvedSubmission: vi.fn(),
 }));
 
+vi.mock("@/lib/intake/rate-limit", () => ({
+  isIntakeRateLimited: vi.fn(async () => false),
+}));
+
 import { handleGetInvolvedRequest } from "@/app/api/intake/get-involved/route";
 import { InvalidZipError } from "@/lib/intake/geography";
 
