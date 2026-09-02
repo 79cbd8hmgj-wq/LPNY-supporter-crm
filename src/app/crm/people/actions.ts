@@ -74,6 +74,7 @@ export async function applyPeopleFiltersAction(formData: FormData) {
   const filters = parsePeopleFilters(params);
   const query = await writePeopleSearchQuery(readString(formData, "q"));
   const target = serializePeopleFilters({ ...filters, query, page: 1 }).toString();
+  revalidatePath("/crm/people");
   redirect(target ? `/crm/people?${target}` : "/crm/people");
 }
 
@@ -135,6 +136,7 @@ export async function applySavedViewAction(formData: FormData) {
 
   await writePeopleSearchQuery(filters.query);
   const target = serializePeopleFilters({ ...filters, page: 1 }).toString();
+  revalidatePath("/crm/people");
   redirect(target ? `/crm/people?${target}` : "/crm/people");
 }
 
