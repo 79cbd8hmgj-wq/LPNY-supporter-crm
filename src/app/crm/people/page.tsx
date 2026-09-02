@@ -46,6 +46,12 @@ function pageHref(filters: PeopleFilterState, page: number) {
   return query ? `/crm/people?${query}` : "/crm/people";
 }
 
+function exportHref(filters: PeopleFilterState) {
+  const params = serializePeopleFilters({ ...filters, page: 1 });
+  const query = params.toString();
+  return query ? `/crm/admin/export?${query}` : "/crm/admin/export";
+}
+
 function formatDate(value: string | null) {
   return value ? dateFormatter.format(new Date(value)) : "Never";
 }
@@ -56,7 +62,7 @@ export default async function PeopleDirectoryPage({
   searchParams: Promise<RawSearchParams>;
 }) {
   const rawParams = await searchParams;
-  await requireStaffUser();
+  const staff = await requireStaffUser();
   const filters = parsePeopleFilters(toUrlSearchParams(rawParams));
   const savedViewStatus = typeof rawParams.savedViewStatus === "string"
     ? rawParams.savedViewStatus
@@ -82,8 +88,18 @@ export default async function PeopleDirectoryPage({
             Search and combine supporter, relationship, interest, source, assignment, task, and activity filters.
           </p>
         </div>
-        <div className="text-sm text-slate-500">
-          {directory.totalCount.toLocaleString()} {directory.totalCount === 1 ? "person" : "people"}
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <div className="text-sm text-slate-500">
+            {directory.totalCount.toLocaleString()} {directory.totalCount === 1 ? "person" : "people"}
+          </div>
+          {staff.role === "admin" ? (
+            <a
+              href={exportHref(filters)}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            >
+              Export CSV
+            </a>
+          ) : null}
         </div>
       </header>
 

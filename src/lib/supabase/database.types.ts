@@ -48,6 +48,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      staff_counties: {
+        Row: { staff_user_id: string; county_id: string; created_at: string };
+        Insert: { staff_user_id: string; county_id: string; created_at?: string };
+        Update: { staff_user_id?: string; county_id?: string; created_at?: string };
+        Relationships: [];
+      };
+      staff_person_assignments: {
+        Row: { staff_user_id: string; person_id: string; created_at: string };
+        Insert: { staff_user_id: string; person_id: string; created_at?: string };
+        Update: { staff_user_id?: string; person_id?: string; created_at?: string };
+        Relationships: [];
+      };
+      admin_audit_events: {
+        Row: {
+          id: string;
+          actor_staff_user_id: string;
+          action_type: string;
+          target_type: string;
+          target_id: string | null;
+          metadata: Json;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_staff_user_id: string;
+          action_type: string;
+          target_type: string;
+          target_id?: string | null;
+          metadata?: Json;
+          occurred_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_staff_user_id?: string;
+          action_type?: string;
+          target_type?: string;
+          target_id?: string | null;
+          metadata?: Json;
+          occurred_at?: string;
+        };
+        Relationships: [];
+      };
       people: {
         Row: {
           id: string;
@@ -64,6 +106,7 @@ export type Database = {
           assigned_staff_user_id: string | null;
           do_not_contact: boolean;
           archived_at: string | null;
+          merged_into_person_id: string | null;
           last_activity_at: string | null;
           created_at: string;
           updated_at: string;
@@ -83,6 +126,7 @@ export type Database = {
           assigned_staff_user_id?: string | null;
           do_not_contact?: boolean;
           archived_at?: string | null;
+          merged_into_person_id?: string | null;
           last_activity_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -102,6 +146,7 @@ export type Database = {
           assigned_staff_user_id?: string | null;
           do_not_contact?: boolean;
           archived_at?: string | null;
+          merged_into_person_id?: string | null;
           last_activity_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -246,6 +291,42 @@ export type Database = {
         Update: { id?: string; person_id?: string; author_staff_user_id?: string; body?: string; created_at?: string; edited_at?: string | null };
         Relationships: [];
       };
+      duplicate_candidates: {
+        Row: {
+          id: string;
+          person_a_id: string;
+          person_b_id: string;
+          reason: string;
+          confidence: number | null;
+          status: Database["public"]["Enums"]["duplicate_status"];
+          created_at: string;
+          reviewed_at: string | null;
+          reviewed_by_staff_user_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          person_a_id: string;
+          person_b_id: string;
+          reason: string;
+          confidence?: number | null;
+          status?: Database["public"]["Enums"]["duplicate_status"];
+          created_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_user_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          person_a_id?: string;
+          person_b_id?: string;
+          reason?: string;
+          confidence?: number | null;
+          status?: Database["public"]["Enums"]["duplicate_status"];
+          created_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_user_id?: string | null;
+        };
+        Relationships: [];
+      };
       saved_views: {
         Row: {
           id: string;
@@ -276,6 +357,59 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      admin_register_staff_user: {
+        Args: {
+          p_auth_user_id: string;
+          p_display_name: string;
+          p_role: Database["public"]["Enums"]["staff_role"];
+          p_county_ids?: string[];
+        };
+        Returns: string;
+      };
+      admin_update_staff_access: {
+        Args: {
+          p_staff_user_id: string;
+          p_role: Database["public"]["Enums"]["staff_role"];
+          p_status: Database["public"]["Enums"]["staff_status"];
+          p_county_ids?: string[];
+        };
+        Returns: undefined;
+      };
+      manage_interest: {
+        Args: {
+          p_interest_id: string | null;
+          p_name: string;
+          p_slug: string;
+          p_active: boolean;
+        };
+        Returns: string;
+      };
+      manage_tag: {
+        Args: {
+          p_tag_id: string | null;
+          p_name: string;
+          p_active: boolean;
+        };
+        Returns: string;
+      };
+      manage_source: {
+        Args: {
+          p_source_id: string | null;
+          p_name: string;
+          p_slug: string;
+          p_category: string;
+          p_active: boolean;
+        };
+        Returns: string;
+      };
+      resolve_duplicate_candidate: {
+        Args: {
+          p_candidate_id: string;
+          p_resolution: string;
+          p_primary_person_id?: string | null;
+        };
+        Returns: undefined;
+      };
       process_get_involved_intake: {
         Args: {
           p_first_name: string;
@@ -342,6 +476,7 @@ export type Database = {
       task_queue_scope: "statewide" | "county";
       consent_channel: "email" | "sms" | "phone";
       consent_state: "opted_in" | "opted_out";
+      duplicate_status: "open" | "merged" | "kept_separate";
     };
     CompositeTypes: { [_ in never]: never };
   };
