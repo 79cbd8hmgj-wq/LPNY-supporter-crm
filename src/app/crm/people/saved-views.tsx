@@ -43,6 +43,7 @@ export function SavedViews({
 
         <form action={createSavedViewAction} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
           <input type="hidden" name="filters" value={currentQuery} />
+          <input type="hidden" name="query" value={filters.query} />
           <input type="hidden" name="returnQuery" value={currentQuery} />
           <label className="sr-only" htmlFor="saved-view-name">Saved view name</label>
           <input
