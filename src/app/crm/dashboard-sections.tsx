@@ -45,6 +45,39 @@ function QueueCard({
   );
 }
 
+function MetricCard({
+  label,
+  value,
+  detail,
+  emphasis = "default",
+}: {
+  label: string;
+  value: string | number;
+  detail?: string;
+  emphasis?: "default" | "warning" | "danger";
+}) {
+  const classes =
+    emphasis === "danger"
+      ? "border-red-200 bg-red-50 text-red-950"
+      : emphasis === "warning"
+        ? "border-amber-200 bg-amber-50 text-amber-950"
+        : "border-slate-200 bg-white text-slate-950";
+  const labelClass =
+    emphasis === "danger"
+      ? "text-red-700"
+      : emphasis === "warning"
+        ? "text-amber-800"
+        : "text-slate-500";
+
+  return (
+    <div className={`rounded-xl border p-4 shadow-sm ${classes}`}>
+      <div className={`text-sm ${labelClass}`}>{label}</div>
+      <div className="mt-2 text-3xl font-semibold tabular-nums">{value}</div>
+      {detail ? <div className={`mt-1 text-xs ${labelClass}`}>{detail}</div> : null}
+    </div>
+  );
+}
+
 function EmptyState({ children }: { children: React.ReactNode }) {
   return <p className="py-4 text-sm text-slate-500">{children}</p>;
 }
@@ -142,34 +175,71 @@ function CountBreakdown({ rows }: { rows: Array<{ label: string; count: number }
   );
 }
 
+function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourcePerformance"] }) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-4 py-3">
+        <h2 className="font-semibold text-slate-900">Source performance</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Distinct supporters attributed during the selected period. Downstream percentages use signups as the denominator.
+        </p>
+      </div>
+      {rows.length === 0 ? (
+        <div className="px-4 pb-4"><EmptyState>No source activity in this period.</EmptyState></div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Source</th>
+                <th className="px-4 py-3 text-right font-medium">Signups</th>
+                <th className="px-4 py-3 text-right font-medium">Contacted</th>
+                <th className="px-4 py-3 text-right font-medium">Engaged</th>
+                <th className="px-4 py-3 text-right font-medium">Volunteers</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((row) => (
+                <tr key={row.sourceId}>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">{row.sourceName}</th>
+                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-slate-900">{row.signups}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="font-semibold tabular-nums text-slate-900">{row.contacted}</div>
+                    <div className="text-xs tabular-nums text-slate-500">{row.contactedRate}%</div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="font-semibold tabular-nums text-slate-900">{row.engaged}</div>
+                    <div className="text-xs tabular-nums text-slate-500">{row.engagedRate}%</div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="font-semibold tabular-nums text-slate-900">{row.volunteers}</div>
+                    <div className="text-xs tabular-nums text-slate-500">{row.volunteerRate}%</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function DashboardSections({ data }: { data: DashboardData }) {
+  const reporting = data.reporting;
+
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-sm text-slate-500">Active contacts in scope</div>
-          <div className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">
-            {data.counts.totalActiveContacts}
-          </div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-sm text-slate-500">New supporter preview</div>
-          <div className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">
-            {data.newSupporters.length}
-          </div>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-          <div className="text-sm text-amber-800">Due today preview</div>
-          <div className="mt-2 text-3xl font-semibold tabular-nums text-amber-950">
-            {data.dueToday.length}
-          </div>
-        </div>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
-          <div className="text-sm text-red-700">Overdue preview</div>
-          <div className="mt-2 text-3xl font-semibold tabular-nums text-red-950">
-            {data.overdue.length}
-          </div>
-        </div>
+      <section aria-label="Reporting metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <MetricCard label="Active contacts" value={reporting.totalActiveContacts} />
+        <MetricCard label="New contacts" value={reporting.newContactsInPeriod} />
+        <MetricCard
+          label="Follow-up completion"
+          value={`${reporting.followUpCompletionRate}%`}
+          detail={`${reporting.followUpCompletedTasks} of ${reporting.followUpEligibleTasks} completed`}
+        />
+        <MetricCard label="Overdue tasks" value={reporting.overdueTasks} emphasis="danger" />
+        <MetricCard label="Unassigned contacts" value={reporting.unassignedContacts} emphasis="warning" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
@@ -179,13 +249,13 @@ export function DashboardSections({ data }: { data: DashboardData }) {
         <QueueCard title="Follow-up due today" count={data.dueToday.length}>
           <TaskList tasks={data.dueToday} />
         </QueueCard>
-        <QueueCard title="Overdue tasks" count={data.overdue.length}>
+        <QueueCard title="Overdue task queue" count={data.overdue.length}>
           <TaskList tasks={data.overdue} />
         </QueueCard>
         <QueueCard title="Recently contacted" count={data.recentlyContacted.length}>
           <PeopleList people={data.recentlyContacted} />
         </QueueCard>
-        <QueueCard title="Unassigned contacts" count={data.unassignedContacts.length}>
+        <QueueCard title="Unassigned contact queue" count={data.unassignedContacts.length}>
           <PeopleList people={data.unassignedContacts} />
         </QueueCard>
         <QueueCard title="Recent activity" count={data.recentActivity.length}>
@@ -193,17 +263,25 @@ export function DashboardSections({ data }: { data: DashboardData }) {
         </QueueCard>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <QueueCard title="By engagement stage" count={data.counts.byStage.length}>
-          <CountBreakdown rows={data.counts.byStage} />
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <QueueCard title="By engagement stage" count={reporting.byStage.length}>
+          <CountBreakdown rows={reporting.byStage} />
         </QueueCard>
-        <QueueCard title="By county" count={data.counts.byCounty.length}>
-          <CountBreakdown rows={data.counts.byCounty} />
+        <QueueCard title="By county" count={reporting.byCounty.length}>
+          <CountBreakdown rows={reporting.byCounty} />
         </QueueCard>
-        <QueueCard title="By source" count={data.counts.bySource.length}>
-          <CountBreakdown rows={data.counts.bySource} />
+        <QueueCard title="By source" count={reporting.bySource.length}>
+          <CountBreakdown rows={reporting.bySource} />
+        </QueueCard>
+        <QueueCard title="By relationship" count={reporting.byRelationship.length}>
+          <CountBreakdown rows={reporting.byRelationship} />
+        </QueueCard>
+        <QueueCard title="By interest" count={reporting.byInterest.length}>
+          <CountBreakdown rows={reporting.byInterest} />
         </QueueCard>
       </section>
+
+      <SourcePerformance rows={reporting.sourcePerformance} />
     </div>
   );
 }
