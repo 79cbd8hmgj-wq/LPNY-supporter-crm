@@ -36,12 +36,6 @@ type ReportingSourceAssociation = {
   occurredAt: string;
 };
 
-type ReportingTaxonomyLink = {
-  personId: string;
-  relationshipTypeId?: string;
-  interestId?: string;
-};
-
 type ReportingTask = {
   id: string;
   status: TaskStatus;
