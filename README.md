@@ -12,7 +12,7 @@ The v1 architecture and implementation roadmap are documented under `docs/superp
 - supporter/workflow schema for people, relationships, interests, tags, sources, activities, notes, tasks, consent, assignments, and duplicate candidates
 - database-enforced Admin / State Organizer / County Organizer / Volunteer-Staff access boundaries
 - invite-only staff email/password login with TOTP MFA
-- protected organizer dashboard with scoped queue previews, recent activity, and stage/county/source counts
+- protected organizer dashboard with period-aware RLS-scoped reporting, actionable work queues, and source-performance conversion metrics
 - multi-filter People directory with private saved views
 - supporter profiles with activity, task, source, consent, note, relationship, interest, and tag history
 - role-aware organizer actions for contact outcomes, follow-ups, task completion, notes, stage changes, taxonomy, reassignment, do-not-contact, and archival
@@ -28,12 +28,18 @@ The v1 architecture and implementation roadmap are documented under `docs/superp
 
 ## Organizer routes
 
-- `/crm` — scoped organizer dashboard and work queues
+- `/crm` — scoped organizer dashboard, reporting, source performance, and work queues
 - `/crm/people` — searchable/filterable People directory and private saved views; Admins can export the current filtered result set
 - `/crm/people/[personId]` — supporter profile, history, and organizer actions
 - `/crm/quick-add` — fast organizer entry for a supporter encountered by phone or in person
 
 All CRM routes require an active staff record and TOTP-authenticated session. Database Row-Level Security remains the final authorization boundary for supporter data.
+
+### Dashboard reporting
+
+The CRM dashboard supports 7-day, 30-day, 90-day, and all-time reporting periods. Reporting includes active contacts, new contacts in the selected period, follow-up completion, full overdue and unassigned counts, and breakdowns by engagement stage, county, acquisition source, relationship, and interest.
+
+Source performance counts distinct supporters attributed to each source during the selected period and reports their current progression through Contacted, Engaged, and Volunteer outcomes. Repeated source-history rows for the same supporter/source pair do not inflate source counts. All reporting queries use the authenticated Supabase client, so Admin and State Organizer users receive statewide metrics while County Organizer and Volunteer/Staff users remain constrained by the same database RLS policies as the rest of the CRM.
 
 ## Administration routes
 
@@ -88,7 +94,7 @@ npx playwright install chromium webkit
 npm run test:e2e
 ```
 
-The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, the integrated organizer workflow from dashboard queue through completed follow-up history, and the administration data-operations loop through audited import/export and role-boundary verification.
+The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, the integrated organizer workflow from dashboard queue through completed follow-up history, County Organizer reporting scope and period selection, and the administration data-operations loop through audited import/export and role-boundary verification.
 
 ## Environment safety
 
@@ -105,3 +111,4 @@ The browser receives only the public Supabase URL and anon/publishable credentia
 - `docs/superpowers/plans/2026-08-23-supporter-intake.md` — supporter intake implementation plan
 - `docs/superpowers/plans/2026-08-23-organizer-workflow.md` — organizer dashboard, People directory, profiles, actions, Quick Add, and acceptance plan
 - `docs/superpowers/plans/2026-08-31-administration-data-operations.md` — staff, taxonomy, duplicates, CSV import/export, audit, and administration acceptance plan
+- `docs/superpowers/plans/2026-09-02-reporting-source-performance.md` — scoped reporting, period metrics, source conversion, and Phase 5 acceptance plan
