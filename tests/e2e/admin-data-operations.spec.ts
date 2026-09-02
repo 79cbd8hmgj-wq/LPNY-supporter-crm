@@ -214,8 +214,13 @@ test("Admin completes the administration data-operations loop", async ({ page },
   });
   expect(noteError).toBeNull();
 
-  await page.goto(`/crm/people?q=${encodeURIComponent(importEmail)}`);
+  await page.goto("/crm/people");
+  await page.getByLabel("Name, email, phone, ZIP, municipality").fill(importEmail);
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await expect(page.getByLabel("Name, email, phone, ZIP, municipality")).toHaveValue(importEmail);
   await expect(page.getByText(importEmail)).toBeVisible();
+  expect(page.url()).not.toContain(encodeURIComponent(importEmail));
+  expect(page.url()).not.toContain(importEmail);
   const exportLink = page.getByRole("link", { name: "Export CSV" });
   const exportHref = await exportLink.getAttribute("href");
   expect(exportHref).toBeTruthy();
@@ -226,6 +231,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
   const exportedCsv = await exportResponse.text();
   expect(exportedCsv).toContain("person_id,first_name,last_name,email,phone,zip_code,county,municipality,engagement_stage,assigned_organizer,relationships,interests,tags,do_not_contact,created_at,last_activity_at");
   expect(exportedCsv).toContain(importEmail);
+  expect(exportedCsv).not.toContain(keepA.email);
   expect(exportedCsv).not.toContain(secretNote);
 
   await page.goto("/crm/admin/audit");
