@@ -1,6 +1,6 @@
 begin;
 
-select plan(27);
+select plan(40);
 
 select has_type('public', 'staff_role', 'staff_role enum exists');
 select has_table('public', 'staff_users', 'staff_users exists');
@@ -20,6 +20,67 @@ select has_table('public', 'duplicate_candidates', 'duplicate_candidates exists'
 select ok(
   has_table_privilege('service_role', 'public.people', 'SELECT'),
   'service role can select CRM people for trusted server-side workflows'
+);
+
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.counties'::regclass),
+  'counties has RLS enabled in exposed public schema'
+);
+select ok(
+  has_table_privilege('anon', 'public.counties', 'SELECT'),
+  'anonymous public intake can read county lookup values'
+);
+select ok(
+  not has_table_privilege('anon', 'public.counties', 'INSERT'),
+  'anonymous callers cannot insert counties'
+);
+select ok(
+  not has_table_privilege('anon', 'public.counties', 'UPDATE'),
+  'anonymous callers cannot update counties'
+);
+select ok(
+  not has_table_privilege('anon', 'public.counties', 'DELETE'),
+  'anonymous callers cannot delete counties'
+);
+select ok(
+  has_table_privilege('authenticated', 'public.counties', 'SELECT'),
+  'authenticated staff can read county lookup values'
+);
+select ok(
+  not has_table_privilege('authenticated', 'public.counties', 'INSERT'),
+  'authenticated callers cannot insert counties directly'
+);
+select ok(
+  not has_table_privilege('authenticated', 'public.counties', 'UPDATE'),
+  'authenticated callers cannot update counties directly'
+);
+select ok(
+  not has_table_privilege('authenticated', 'public.counties', 'DELETE'),
+  'authenticated callers cannot delete counties directly'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.admin_register_staff_user(uuid,text,public.staff_role,uuid[])',
+    'EXECUTE'
+  ),
+  'anonymous callers cannot execute admin staff registration'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.admin_update_staff_access(uuid,public.staff_role,public.staff_status,uuid[])',
+    'EXECUTE'
+  ),
+  'anonymous callers cannot execute admin staff access updates'
+);
+select ok(
+  not has_function_privilege('anon', 'public.sync_person_last_activity()', 'EXECUTE'),
+  'anonymous callers cannot execute trigger-only activity sync helper'
+);
+select ok(
+  not has_function_privilege('authenticated', 'public.sync_person_last_activity()', 'EXECUTE'),
+  'authenticated callers cannot execute trigger-only activity sync helper'
 );
 
 insert into auth.users (
