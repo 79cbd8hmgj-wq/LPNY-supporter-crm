@@ -87,6 +87,7 @@ export async function clearPeopleFiltersAction() {
 export async function createSavedViewAction(formData: FormData) {
   const name = validName(readString(formData, "name"));
   const rawFilters = readString(formData, "filters");
+  const query = readString(formData, "query");
   const returnQuery = readString(formData, "returnQuery");
 
   if (!name) {
@@ -95,7 +96,6 @@ export async function createSavedViewAction(formData: FormData) {
 
   const staff = await requireStaffUser();
   const filters = canonicalFilters(rawFilters);
-  const query = await readPeopleSearchQuery(hasPrivateSearch(rawFilters));
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.from("saved_views").insert({
     staff_user_id: staff.staffUserId,
