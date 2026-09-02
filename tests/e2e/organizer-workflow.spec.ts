@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginWithMfa, provisionAdminStaff } from "./support/staff-session";
+import { loginWithMfa, provisionAdminStaff, provisionStaff } from "./support/staff-session";
 
 test("organizer can work a queued supporter from dashboard through completed follow-up", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
@@ -131,4 +131,107 @@ test("organizer can work a queued supporter from dashboard through completed fol
   await page.getByRole("link", { name: "Dashboard", exact: true }).click();
   const recentlyContacted = page.getByRole("heading", { name: "Recently contacted" }).locator("xpath=ancestor::section[1]");
   await expect(recentlyContacted.getByRole("link", { name: fullName })).toBeVisible();
+});
+
+test("county organizer reporting respects RLS scope and period selection", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
+  const { admin, email, password, staffUserId, suffix } = await provisionStaff(
+    testInfo,
+    "reporting-county",
+    "county_organizer",
+  );
+  const unique = suffix.slice(-8);
+  const inScopeSourceName = `Albany Reporting ${unique}`;
+  const outOfScopeSourceName = `Erie Reporting ${unique}`;
+
+  const { data: counties, error: countiesError } = await admin
+    .from("counties")
+    .select("id, name")
+    .in("name", ["Albany", "Erie"]);
+  expect(countiesError).toBeNull();
+  const albany = counties?.find((county) => county.name === "Albany");
+  const erie = counties?.find((county) => county.name === "Erie");
+  expect(albany?.id).toBeTruthy();
+  expect(erie?.id).toBeTruthy();
+
+  const { data: sources, error: sourcesError } = await admin
+    .from("sources")
+    .insert([
+      {
+        slug: `reporting-albany-${suffix}`,
+        category: "acceptance",
+        name: inScopeSourceName,
+      },
+      {
+        slug: `reporting-erie-${suffix}`,
+        category: "acceptance",
+        name: outOfScopeSourceName,
+      },
+    ])
+    .select("id, name");
+  expect(sourcesError).toBeNull();
+  const inScopeSource = sources?.find((source) => source.name === inScopeSourceName);
+  const outOfScopeSource = sources?.find((source) => source.name === outOfScopeSourceName);
+  expect(inScopeSource?.id).toBeTruthy();
+  expect(outOfScopeSource?.id).toBeTruthy();
+
+  const { data: people, error: peopleError } = await admin
+    .from("people")
+    .insert([
+      {
+        first_name: "Albany",
+        last_name: `Reporting${unique}`,
+        email: `reporting-albany-${suffix}@example.test`,
+        normalized_email: `reporting-albany-${suffix}@example.test`,
+        zip_code: "12207",
+        county_id: albany!.id,
+        municipality: "Albany",
+        engagement_stage: "engaged",
+        assigned_staff_user_id: staffUserId,
+      },
+      {
+        first_name: "Erie",
+        last_name: `Reporting${unique}`,
+        email: `reporting-erie-${suffix}@example.test`,
+        normalized_email: `reporting-erie-${suffix}@example.test`,
+        zip_code: "14202",
+        county_id: erie!.id,
+        municipality: "Buffalo",
+        engagement_stage: "engaged",
+      },
+    ])
+    .select("id, county_id");
+  expect(peopleError).toBeNull();
+  const inScopePerson = people?.find((person) => person.county_id === albany!.id);
+  const outOfScopePerson = people?.find((person) => person.county_id === erie!.id);
+  expect(inScopePerson?.id).toBeTruthy();
+  expect(outOfScopePerson?.id).toBeTruthy();
+
+  const { error: sourceLinksError } = await admin.from("person_sources").insert([
+    { person_id: inScopePerson!.id, source_id: inScopeSource!.id },
+    { person_id: outOfScopePerson!.id, source_id: outOfScopeSource!.id },
+  ]);
+  expect(sourceLinksError).toBeNull();
+
+  await loginWithMfa(page, email, password);
+
+  await expect(page.getByRole("heading", { name: "CRM Dashboard" })).toBeVisible();
+  await expect(page.getByText("Active contacts", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Source performance" })).toBeVisible();
+
+  const sourcePerformance = page
+    .getByRole("heading", { name: "Source performance" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(sourcePerformance.getByText(inScopeSourceName, { exact: true })).toBeVisible();
+  await expect(sourcePerformance.getByText(outOfScopeSourceName, { exact: true })).toHaveCount(0);
+
+  const countyBreakdown = page.getByRole("heading", { name: "By county" }).locator("xpath=ancestor::section[1]");
+  await expect(countyBreakdown.getByText("Albany", { exact: true })).toBeVisible();
+  await expect(countyBreakdown.getByText("Erie", { exact: true })).toHaveCount(0);
+
+  await page.getByRole("link", { name: "90 days" }).click();
+  await expect(page).toHaveURL(/\/crm\?period=90d$/);
+  await expect(page.getByRole("link", { name: "90 days" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: "New supporters" })).toBeVisible();
+  await expect(sourcePerformance.getByText(outOfScopeSourceName, { exact: true })).toHaveCount(0);
 });
