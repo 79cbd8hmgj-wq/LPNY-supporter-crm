@@ -10,12 +10,28 @@ import { InvalidZipError } from "@/lib/intake/geography";
 function request(body: unknown) {
   return new Request("http://localhost/api/intake/get-involved", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.42" },
     body: JSON.stringify(body),
   });
 }
 
 describe("POST /api/intake/get-involved", () => {
+  it("returns 429 without processing when the intake rate limit is exceeded", async () => {
+    const processSubmission = vi.fn(async () => undefined);
+    const checkRateLimit = vi.fn(async () => true);
+    const response = await handleGetInvolvedRequest(request({
+      firstName: "Ada",
+      lastName: "Lovelace",
+      email: "ada@example.com",
+      zipCode: "10001",
+    }), processSubmission, checkRateLimit);
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ ok: false });
+    expect(checkRateLimit).toHaveBeenCalledOnce();
+    expect(processSubmission).not.toHaveBeenCalled();
+  });
+
   it("returns safe field errors for invalid input", async () => {
     const processSubmission = vi.fn(async () => undefined);
     const response = await handleGetInvolvedRequest(
@@ -64,7 +80,7 @@ describe("POST /api/intake/get-involved", () => {
     expect(await response.json()).toEqual({ ok: false, errors: { zipCode: ["Enter a valid ZIP code"] } });
   });
 
-  it("does not expose database details on server failure", async () => {
+  it("does not expose or log database details on server failure", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const response = await handleGetInvolvedRequest(request({
       firstName: "Ada",
@@ -76,6 +92,8 @@ describe("POST /api/intake/get-involved", () => {
     });
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ ok: false });
+    expect(spy).toHaveBeenCalledWith("Get involved intake failed");
+    expect(spy.mock.calls.flat().join(" ")).not.toContain("private database detail");
     spy.mockRestore();
   });
 });
