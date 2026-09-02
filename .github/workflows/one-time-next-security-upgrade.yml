@@ -1,0 +1,41 @@
+name: One-time Next security upgrade
+
+on:
+  push:
+    branches:
+      - feat/production-hardening-deployment
+    paths:
+      - .github/workflows/one-time-next-security-upgrade.yml
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/production-hardening-deployment
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Update patched Next.js packages
+        run: npm install --save-exact next@16.3.3 eslint-config-next@16.3.3
+
+      - name: Commit lockfile update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: upgrade Next.js security patch"
+          git push origin HEAD:feat/production-hardening-deployment
