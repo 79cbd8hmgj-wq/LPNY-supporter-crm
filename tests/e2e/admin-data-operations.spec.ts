@@ -175,6 +175,7 @@ test("Admin completes the administration data-operations loop", async ({ page },
       .single();
     return Boolean(data?.archived_at) && data?.merged_into_person_id === mergeA.id;
   }).toBe(true);
+  await expect(mergeCard).toHaveCount(0);
 
   const importEmail = `browser-import-${unique}@example.test`;
   const csv = [
