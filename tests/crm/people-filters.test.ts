@@ -77,6 +77,16 @@ describe("people directory filters", () => {
     });
   });
 
+  test("never serializes free-text contact search into a URL", () => {
+    const parsed = parsePeopleFilters(
+      new URLSearchParams("q=ada%40example.com&stage=follow_up_needed&openTask=no&page=3"),
+    );
+
+    const serialized = serializePeopleFilters(parsed).toString();
+    expect(serialized).toBe("stage=follow_up_needed&openTask=no&page=3");
+    expect(serialized).not.toContain("ada%40example.com");
+  });
+
   test("round-trips stable URL state while omitting empty defaults", () => {
     const parsed = parsePeopleFilters(
       new URLSearchParams("q=Albany&stage=follow_up_needed&openTask=no&page=3"),
