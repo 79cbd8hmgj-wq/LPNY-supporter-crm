@@ -85,8 +85,11 @@ function parsePositiveInteger(value: string, maximum: number) {
     : null;
 }
 
+export function normalizePeopleSearchQuery(value: string) {
+  return value.trim().replace(/\s+/g, " ").slice(0, 200);
+}
+
 export function parsePeopleFilters(params: URLSearchParams): PeopleFilterState {
-  const query = trimmed(params, "q").slice(0, 200);
   const countyId = parseUuid(trimmed(params, "county"));
   const tagId = parseUuid(trimmed(params, "tag"));
   const organizerId = parseUuid(trimmed(params, "organizer"));
@@ -95,7 +98,7 @@ export function parsePeopleFilters(params: URLSearchParams): PeopleFilterState {
   const memberStatusCandidate = trimmed(params, "memberStatus") as MemberStatusFilter;
 
   return {
-    query,
+    query: "",
     countyId,
     zipCode: ZIP_PATTERN.test(zipCandidate) ? zipCandidate : null,
     engagementStage: ENGAGEMENT_STAGES.has(stageCandidate) ? stageCandidate : null,
@@ -117,7 +120,7 @@ export function parsePeopleFilters(params: URLSearchParams): PeopleFilterState {
 export function serializePeopleFilters(filters: PeopleFilterState) {
   const params = new URLSearchParams();
 
-  if (filters.query) params.set("q", filters.query);
+  if (filters.query) params.set("search", "1");
   if (filters.countyId) params.set("county", filters.countyId);
   if (filters.zipCode) params.set("zip", filters.zipCode);
   if (filters.engagementStage) params.set("stage", filters.engagementStage);
