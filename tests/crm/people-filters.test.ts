@@ -1,8 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { parsePeopleFilters, serializePeopleFilters } from "@/lib/crm/people-filters";
+import {
+  normalizePeopleSearchQuery,
+  parsePeopleFilters,
+  serializePeopleFilters,
+} from "@/lib/crm/people-filters";
 
 describe("people directory filters", () => {
-  test("parses a useful combined organizer search", () => {
+  test("parses useful structured organizer filters without accepting free-text PII from the URL", () => {
     const params = new URLSearchParams({
       q: "  Ada Lovelace  ",
       county: "11111111-1111-4111-8111-111111111111",
@@ -22,7 +26,7 @@ describe("people directory filters", () => {
     });
 
     expect(parsePeopleFilters(params)).toEqual({
-      query: "Ada Lovelace",
+      query: "",
       countyId: "11111111-1111-4111-8111-111111111111",
       zipCode: "12207",
       engagementStage: "engaged",
@@ -39,6 +43,11 @@ describe("people directory filters", () => {
       memberStatus: "member",
       page: 1,
     });
+  });
+
+  test("normalizes private free-text search before server-side storage", () => {
+    expect(normalizePeopleSearchQuery("  Ada   Lovelace  ")).toBe("Ada Lovelace");
+    expect(normalizePeopleSearchQuery("x".repeat(250))).toHaveLength(200);
   });
 
   test("drops malformed or unsupported values instead of turning them into broad queries", () => {
@@ -79,21 +88,24 @@ describe("people directory filters", () => {
 
   test("never serializes free-text contact search into a URL", () => {
     const parsed = parsePeopleFilters(
-      new URLSearchParams("q=ada%40example.com&stage=follow_up_needed&openTask=no&page=3"),
+      new URLSearchParams("stage=follow_up_needed&openTask=no&page=3"),
     );
 
-    const serialized = serializePeopleFilters(parsed).toString();
-    expect(serialized).toBe("stage=follow_up_needed&openTask=no&page=3");
+    const serialized = serializePeopleFilters({
+      ...parsed,
+      query: "ada@example.com",
+    }).toString();
+    expect(serialized).toBe("search=1&stage=follow_up_needed&openTask=no&page=3");
     expect(serialized).not.toContain("ada%40example.com");
   });
 
-  test("round-trips stable URL state while omitting empty defaults", () => {
+  test("round-trips stable structured URL state while omitting empty defaults", () => {
     const parsed = parsePeopleFilters(
-      new URLSearchParams("q=Albany&stage=follow_up_needed&openTask=no&page=3"),
+      new URLSearchParams("stage=follow_up_needed&openTask=no&page=3"),
     );
 
     expect(serializePeopleFilters(parsed).toString()).toBe(
-      "q=Albany&stage=follow_up_needed&openTask=no&page=3",
+      "stage=follow_up_needed&openTask=no&page=3",
     );
   });
 });
