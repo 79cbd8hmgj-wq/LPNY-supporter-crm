@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { PeopleFilterState } from "@/lib/crm/people-filters";
 import type { PeopleDirectoryOptions } from "@/lib/crm/people-directory-options";
 
@@ -41,7 +40,11 @@ export function PeopleFilters({
   options: PeopleDirectoryOptions;
 }) {
   return (
-    <form action="/crm/people" method="get" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <form
+      action="/crm/people/filters"
+      method="post"
+      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+    >
       <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_1fr_1fr_auto]">
         <label className="space-y-1 text-sm font-medium text-slate-700">
           <span>Name, email, phone, ZIP, municipality</span>
@@ -70,9 +73,14 @@ export function PeopleFilters({
           <button className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700" type="submit">
             Apply
           </button>
-          <Link className="min-h-11 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" href="/crm/people">
+          <button
+            className="min-h-11 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            type="submit"
+            name="intent"
+            value="clear"
+          >
             Clear
-          </Link>
+          </button>
         </div>
       </div>
 

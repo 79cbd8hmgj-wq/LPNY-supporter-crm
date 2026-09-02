@@ -5,6 +5,7 @@ import {
   serializePeopleExportCsv,
 } from "@/lib/admin/export";
 import { parsePeopleFilters } from "@/lib/crm/people-filters";
+import { readPeopleSearchQuery } from "@/lib/crm/people-search-state";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type ExportAuditRpcError = { code?: string; message?: string } | null;
@@ -36,8 +37,10 @@ export async function GET(request: Request) {
   await requireStaffRole(["admin"]);
 
   try {
-    const filters = parsePeopleFilters(new URL(request.url).searchParams);
-    const exportFilters = { ...filters, page: 1 };
+    const searchParams = new URL(request.url).searchParams;
+    const structuredFilters = parsePeopleFilters(searchParams);
+    const query = await readPeopleSearchQuery(searchParams.get("search") === "1");
+    const exportFilters = { ...structuredFilters, query, page: 1 };
     const rows = await buildPeopleExportRows(exportFilters);
     const supabase = await createServerSupabaseClient();
     const { error } = await asExportAuditRpcClient(supabase).rpc(

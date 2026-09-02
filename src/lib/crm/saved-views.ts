@@ -1,5 +1,6 @@
 import type { Json } from "@/lib/supabase/database.types";
 import {
+  normalizePeopleSearchQuery,
   parsePeopleFilters,
   serializePeopleFilters,
   type PeopleFilterState,
@@ -13,8 +14,11 @@ export type SavedPeopleView = {
 };
 
 export function encodeSavedViewFilters(filters: PeopleFilterState): Json {
-  const params = serializePeopleFilters({ ...filters, page: 1 });
-  return Object.fromEntries(params.entries());
+  const params = serializePeopleFilters({ ...filters, query: "", page: 1 });
+  return {
+    ...Object.fromEntries(params.entries()),
+    ...(filters.query ? { q: normalizePeopleSearchQuery(filters.query) } : {}),
+  };
 }
 
 export function decodeSavedViewFilters(value: Json): PeopleFilterState | null {
@@ -25,20 +29,13 @@ export function decodeSavedViewFilters(value: Json): PeopleFilterState | null {
   const params = new URLSearchParams();
 
   for (const [key, candidate] of Object.entries(value)) {
-    if (typeof candidate === "string") {
+    if (key !== "q" && typeof candidate === "string") {
       params.set(key, candidate);
     }
   }
 
-  return { ...parsePeopleFilters(params), page: 1 };
-}
-
-export function savedViewHref(value: Json) {
-  const filters = decodeSavedViewFilters(value);
-  if (!filters) return "/crm/people";
-
-  const query = serializePeopleFilters(filters).toString();
-  return query ? `/crm/people?${query}` : "/crm/people";
+  const query = typeof value.q === "string" ? normalizePeopleSearchQuery(value.q) : "";
+  return { ...parsePeopleFilters(params), query, page: 1 };
 }
 
 export async function loadSavedPeopleViews(): Promise<SavedPeopleView[]> {

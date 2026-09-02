@@ -19,11 +19,14 @@ The v1 architecture and implementation roadmap are documented under `docs/superp
 - phone-first Quick Add with RLS-visible duplicate warnings, Organizer Entry attribution, and initial follow-up routing
 - public `/get-involved` supporter intake flow with server-isolated privileged writes
 - ZIP-based New York county routing, duplicate-safe intake, consent/source/activity history, and initial follow-up queue creation
+- privacy-preserving database-backed public-intake rate limiting with HMAC client buckets and generic failure logging
 - Admin staff access management with audited role, status, and county-assignment changes
 - Admin/State Organizer taxonomy management and duplicate review with transactional merge/history preservation
 - Admin-only guided CSV import with explicit column mapping, duplicate review, validation, and atomic application
 - Admin-only filtered CSV export using the People directory filter contract, stable RFC4180 serialization, spreadsheet-formula neutralization, and export auditing without contact values in audit metadata
 - Admin-only append-only audit viewer with safe metadata summaries
+- application-wide defensive response headers
+- local and staging-targeted Chromium/WebKit browser testing with remote mutating E2E restricted to explicit Staging targets
 - unit, database-policy, and Chromium/WebKit browser-level tests
 
 ## Organizer routes
@@ -96,11 +99,29 @@ npm run test:e2e
 
 The browser suite covers public intake, protected CRM redirects, disabled public staff signup, staff login + MFA, Quick Add duplicate warnings, the integrated organizer workflow from dashboard queue through completed follow-up history, County Organizer reporting scope and period selection, and the administration data-operations loop through audited import/export and role-boundary verification.
 
+### Deployed Staging E2E
+
+The full browser suite is mutating and may target a remote deployment only when it is explicitly identified as Staging:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://<staging-host> \
+PLAYWRIGHT_TARGET_ENV=staging \
+npm run test:e2e
+```
+
+The test process must also receive the matching Staging Supabase URL, anon key, and service-role key. Do not run the full mutating E2E suite against Production.
+
 ## Environment safety
 
 Production supporter records, production database dumps, production access tokens, and production service-role keys must **never** be used in local or staging environments. Development and automated tests use lookup seeds and synthetic fixtures only.
 
 The browser receives only the public Supabase URL and anon/publishable credential. `SUPABASE_SERVICE_ROLE_KEY` is server-only and must never be exposed through a `NEXT_PUBLIC_*` environment variable or client component.
+
+Deployment isolation, Supabase Auth URL requirements, recovery, and launch gates are documented in:
+
+- `docs/deployment-environments.md`
+- `docs/backup-recovery.md`
+- `docs/production-launch-checklist.md`
 
 ## Documents
 
@@ -112,3 +133,6 @@ The browser receives only the public Supabase URL and anon/publishable credentia
 - `docs/superpowers/plans/2026-08-23-organizer-workflow.md` — organizer dashboard, People directory, profiles, actions, Quick Add, and acceptance plan
 - `docs/superpowers/plans/2026-08-31-administration-data-operations.md` — staff, taxonomy, duplicates, CSV import/export, audit, and administration acceptance plan
 - `docs/superpowers/plans/2026-09-02-reporting-source-performance.md` — scoped reporting, period metrics, source conversion, and Phase 5 acceptance plan
+- `docs/deployment-environments.md` — Local/Staging/Production deployment and secret-isolation contract
+- `docs/backup-recovery.md` — Production backup, rollback, restore, and recovery-drill runbook
+- `docs/production-launch-checklist.md` — final Phase 6 go/no-go checklist

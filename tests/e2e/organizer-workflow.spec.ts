@@ -98,18 +98,23 @@ test("organizer can work a queued supporter from dashboard through completed fol
   await page.getByText("More filters", { exact: true }).click();
   await page.getByLabel("Has open task").selectOption("yes");
   await page.getByLabel("Source").selectOption("organizer-entry");
-  await page.getByRole("button", { name: "Apply" }).click();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.getByRole("link", { name: fullName })).toBeVisible();
+  expect(page.url()).not.toContain(encodeURIComponent(supporterEmail));
+  expect(page.url()).not.toContain(supporterEmail);
 
   await page.getByPlaceholder("Name this view").fill(viewName);
   await page.getByRole("button", { name: "Save current view" }).click();
   await expect(page.getByRole("status")).toContainText("Saved the current people view.");
   await expect(page.getByText(viewName, { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Apply" }).click();
+  const savedViews = page.getByRole("heading", { name: "Saved views" }).locator("xpath=ancestor::section[1]");
+  await savedViews.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.getByLabel("Name, email, phone, ZIP, municipality")).toHaveValue(supporterEmail);
   await expect(page.getByLabel("Engagement stage")).toHaveValue("new");
   await expect(page.getByLabel("Has open task")).toHaveValue("yes");
   await expect(page.getByLabel("Source")).toHaveValue("organizer-entry");
+  expect(page.url()).not.toContain(encodeURIComponent(supporterEmail));
+  expect(page.url()).not.toContain(supporterEmail);
 
   await page.getByRole("link", { name: fullName }).click();
   await expect(page.getByRole("heading", { name: fullName })).toBeVisible();

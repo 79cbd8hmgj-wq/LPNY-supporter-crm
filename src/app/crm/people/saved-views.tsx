@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { serializePeopleFilters, type PeopleFilterState } from "@/lib/crm/people-filters";
-import { savedViewHref, type SavedPeopleView } from "@/lib/crm/saved-views";
+import type { SavedPeopleView } from "@/lib/crm/saved-views";
 import {
   createSavedViewAction,
   deleteSavedViewAction,
@@ -43,6 +42,7 @@ export function SavedViews({
 
         <form action={createSavedViewAction} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
           <input type="hidden" name="filters" value={currentQuery} />
+          <input type="hidden" name="query" value={filters.query} />
           <input type="hidden" name="returnQuery" value={currentQuery} />
           <label className="sr-only" htmlFor="saved-view-name">Saved view name</label>
           <input
@@ -81,12 +81,15 @@ export function SavedViews({
                   <div className="truncate text-sm font-semibold text-slate-900">{view.name}</div>
                   <div className="mt-1 text-xs text-slate-500">Private saved filter set</div>
                 </div>
-                <Link
-                  className="shrink-0 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  href={savedViewHref(view.filters)}
-                >
-                  Apply
-                </Link>
+                <form action="/crm/people/saved-view" method="post">
+                  <input type="hidden" name="viewId" value={view.id} />
+                  <button
+                    className="shrink-0 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    type="submit"
+                  >
+                    Apply
+                  </button>
+                </form>
               </div>
 
               <details className="mt-3 border-t border-slate-100 pt-2">

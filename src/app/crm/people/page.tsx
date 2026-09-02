@@ -7,6 +7,7 @@ import {
   serializePeopleFilters,
   type PeopleFilterState,
 } from "@/lib/crm/people-filters";
+import { readPeopleSearchQuery } from "@/lib/crm/people-search-state";
 import { loadSavedPeopleViews } from "@/lib/crm/saved-views";
 import { PeopleFilters } from "./people-filters";
 import { SavedViews } from "./saved-views";
@@ -63,7 +64,9 @@ export default async function PeopleDirectoryPage({
 }) {
   const rawParams = await searchParams;
   const staff = await requireStaffUser();
-  const filters = parsePeopleFilters(toUrlSearchParams(rawParams));
+  const structuredFilters = parsePeopleFilters(toUrlSearchParams(rawParams));
+  const query = await readPeopleSearchQuery(rawParams.search === "1");
+  const filters = { ...structuredFilters, query };
   const savedViewStatus = typeof rawParams.savedViewStatus === "string"
     ? rawParams.savedViewStatus
     : null;

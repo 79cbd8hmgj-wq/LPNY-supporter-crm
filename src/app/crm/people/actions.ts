@@ -7,6 +7,7 @@ import {
   parsePeopleFilters,
   serializePeopleFilters,
 } from "@/lib/crm/people-filters";
+import { readPeopleSearchQuery } from "@/lib/crm/people-search-state";
 import { encodeSavedViewFilters } from "@/lib/crm/saved-views";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -21,9 +22,14 @@ function canonicalFilters(raw: string) {
   return parsePeopleFilters(new URLSearchParams(raw.slice(0, 5000)));
 }
 
-function peopleUrl(rawQuery: string, status: string) {
+function hasPrivateSearch(raw: string) {
+  return new URLSearchParams(raw.slice(0, 5000)).get("search") === "1";
+}
+
+async function peopleUrl(rawQuery: string, status: string) {
   const filters = canonicalFilters(rawQuery);
-  const params = serializePeopleFilters({ ...filters, page: 1 });
+  const query = await readPeopleSearchQuery(hasPrivateSearch(rawQuery));
+  const params = serializePeopleFilters({ ...filters, query, page: 1 });
   params.set("savedViewStatus", status);
   return `/crm/people?${params.toString()}`;
 }
@@ -36,10 +42,11 @@ function validName(raw: string) {
 export async function createSavedViewAction(formData: FormData) {
   const name = validName(readString(formData, "name"));
   const rawFilters = readString(formData, "filters");
+  const query = readString(formData, "query");
   const returnQuery = readString(formData, "returnQuery");
 
   if (!name) {
-    redirect(peopleUrl(returnQuery, "invalid-name"));
+    redirect(await peopleUrl(returnQuery, "invalid-name"));
   }
 
   const staff = await requireStaffUser();
@@ -48,18 +55,18 @@ export async function createSavedViewAction(formData: FormData) {
   const { error } = await supabase.from("saved_views").insert({
     staff_user_id: staff.staffUserId,
     name,
-    filters: encodeSavedViewFilters(filters),
+    filters: encodeSavedViewFilters({ ...filters, query }),
   });
 
   if (error) {
     if (error.code === "23505") {
-      redirect(peopleUrl(returnQuery, "duplicate-name"));
+      redirect(await peopleUrl(returnQuery, "duplicate-name"));
     }
     throw new Error("Unable to save this people view.");
   }
 
   revalidatePath("/crm/people");
-  redirect(peopleUrl(returnQuery, "created"));
+  redirect(await peopleUrl(returnQuery, "created"));
 }
 
 export async function renameSavedViewAction(formData: FormData) {
@@ -68,7 +75,7 @@ export async function renameSavedViewAction(formData: FormData) {
   const returnQuery = readString(formData, "returnQuery");
 
   if (!UUID_PATTERN.test(viewId) || !name) {
-    redirect(peopleUrl(returnQuery, "invalid-name"));
+    redirect(await peopleUrl(returnQuery, "invalid-name"));
   }
 
   const staff = await requireStaffUser();
@@ -81,13 +88,13 @@ export async function renameSavedViewAction(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      redirect(peopleUrl(returnQuery, "duplicate-name"));
+      redirect(await peopleUrl(returnQuery, "duplicate-name"));
     }
     throw new Error("Unable to rename this saved view.");
   }
 
   revalidatePath("/crm/people");
-  redirect(peopleUrl(returnQuery, "renamed"));
+  redirect(await peopleUrl(returnQuery, "renamed"));
 }
 
 export async function deleteSavedViewAction(formData: FormData) {
@@ -95,7 +102,7 @@ export async function deleteSavedViewAction(formData: FormData) {
   const returnQuery = readString(formData, "returnQuery");
 
   if (!UUID_PATTERN.test(viewId)) {
-    redirect(peopleUrl(returnQuery, "invalid-view"));
+    redirect(await peopleUrl(returnQuery, "invalid-view"));
   }
 
   const staff = await requireStaffUser();
@@ -111,5 +118,5 @@ export async function deleteSavedViewAction(formData: FormData) {
   }
 
   revalidatePath("/crm/people");
-  redirect(peopleUrl(returnQuery, "deleted"));
+  redirect(await peopleUrl(returnQuery, "deleted"));
 }
