@@ -21,6 +21,9 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
               <Link href="/crm/people" className="font-medium text-lp-200 hover:text-white">
                 People
               </Link>
+              <Link href="/crm/work" className="font-medium text-lp-200 hover:text-white">
+                Events &amp; Tasks
+              </Link>
               {staff.role !== "volunteer_staff" ? (
                 <Link href="/crm/quick-add" className="font-medium text-lp-200 hover:text-white">
                   Quick Add
