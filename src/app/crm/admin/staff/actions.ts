@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin/staff";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getStaffInvitationErrorMessage } from "@/lib/admin/staff-invitation-error";
 
 export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffActionResult> {
   await requireStaffRole(["admin"]);
@@ -25,9 +26,14 @@ export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffA
   });
 
   if (invitation.error || !invitation.data.user) {
+    console.error("Supabase staff invitation failed", {
+      code: invitation.error?.code,
+      message: invitation.error?.message,
+      status: invitation.error?.status,
+    });
     return {
       status: "error",
-      message: "Unable to send this invitation. The email may already be registered or the mail service may be unavailable.",
+      message: getStaffInvitationErrorMessage(invitation.error),
     };
   }
 
