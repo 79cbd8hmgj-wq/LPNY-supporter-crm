@@ -41,7 +41,7 @@ const initialState: FormState = {
   website: "",
 };
 
-const inputClass = "mt-1 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
+const inputClass = "mt-1 min-h-12 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-base text-lp-950 outline-none transition focus:border-lp-700 focus:ring-2 focus:ring-lp-200";
 const subscribeToHydration = () => () => {};
 
 function useHydrated() {
@@ -103,9 +103,9 @@ export function GetInvolvedForm() {
 
   if (success) {
     return (
-      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" aria-live="polite">
+      <section className="mt-8 rounded-xl border border-lp-200 bg-white p-6 shadow-sm" aria-live="polite">
         <h2 className="text-xl font-semibold">Thanks for getting involved.</h2>
-        <p className="mt-2 leading-7 text-slate-600">
+        <p className="mt-2 leading-7 text-lp-600">
           We received your information. An organizer may follow up with you about ways to participate.
         </p>
       </section>
@@ -113,7 +113,7 @@ export function GetInvolvedForm() {
   }
 
   return (
-    <form className="mt-8 space-y-7 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" onSubmit={submit} noValidate aria-busy={!hydrated}>
+    <form className="mt-8 space-y-7 rounded-xl border border-lp-200 bg-white p-5 shadow-sm sm:p-7" onSubmit={submit} noValidate aria-busy={!hydrated}>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="First name" error={errors.firstName?.[0]}>
           <input className={inputClass} id="firstName" name="firstName" autoComplete="given-name" value={form.firstName} disabled={!hydrated} onChange={(event) => setValue("firstName", event.target.value)} />
@@ -137,11 +137,11 @@ export function GetInvolvedForm() {
       </Field>
 
       <fieldset disabled={!hydrated}>
-        <legend className="font-medium text-slate-900">What are you interested in?</legend>
-        <p className="mt-1 text-sm text-slate-500">Choose any that apply. You can change these later.</p>
+        <legend className="font-medium text-lp-900">What are you interested in?</legend>
+        <p className="mt-1 text-sm text-lp-500">Choose any that apply. You can change these later.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {interests.map(([slug, label]) => (
-            <label key={slug} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50">
+            <label key={slug} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border border-lp-200 px-3 py-2 hover:bg-lp-50">
               <input className="h-5 w-5" type="checkbox" name="interests" value={slug} checked={form.interests.includes(slug)} onChange={() => toggleInterest(slug)} />
               <span>{label}</span>
             </label>
@@ -151,7 +151,7 @@ export function GetInvolvedForm() {
 
       {(form.email.trim() || form.phone.trim()) && (
         <fieldset className="space-y-3" disabled={!hydrated}>
-          <legend className="font-medium text-slate-900">Contact preferences</legend>
+          <legend className="font-medium text-lp-900">Contact preferences</legend>
           {form.email.trim() && (
             <label className="flex cursor-pointer items-start gap-3">
               <input className="mt-1 h-5 w-5" type="checkbox" name="emailOptIn" checked={form.emailOptIn} onChange={(event) => setValue("emailOptIn", event.target.checked)} />
@@ -174,7 +174,7 @@ export function GetInvolvedForm() {
 
       {serverError && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">We could not submit the form. Please try again.</p>}
 
-      <button className="min-h-12 w-full rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" type="submit" disabled={!hydrated || submitting}>
+      <button className="min-h-12 w-full rounded-lg bg-lp-900 px-5 py-3 font-semibold text-white transition hover:bg-lp-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" type="submit" disabled={!hydrated || submitting}>
         {submitting ? "Submitting…" : "Get involved"}
       </button>
     </form>
@@ -185,9 +185,9 @@ function Field({ label, hint, error, children }: { label: string; hint?: string;
   const id = label === "First name" ? "firstName" : label === "Last name" ? "lastName" : label.toLowerCase().startsWith("zip") ? "zipCode" : label.toLowerCase();
   return (
     <div>
-      <label className="font-medium text-slate-900" htmlFor={id}>{label}</label>
+      <label className="font-medium text-lp-900" htmlFor={id}>{label}</label>
       {children}
-      {error ? <p className="mt-1 text-sm text-red-700" role="alert">{error}</p> : hint ? <p className="mt-1 text-sm text-slate-500">{hint}</p> : null}
+      {error ? <p className="mt-1 text-sm text-red-700" role="alert">{error}</p> : hint ? <p className="mt-1 text-sm text-lp-500">{hint}</p> : null}
     </div>
   );
 }

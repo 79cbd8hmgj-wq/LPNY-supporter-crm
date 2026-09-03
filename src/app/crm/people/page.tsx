@@ -85,20 +85,20 @@ export default async function PeopleDirectoryPage({
     <div className="space-y-5">
       <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Organizer workspace</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">People</h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="text-sm font-medium uppercase tracking-wide text-lp-500">Organizer workspace</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-lp-950">People</h1>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-lp-600">
             Search and combine supporter, relationship, interest, source, assignment, task, and activity filters.
           </p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-lp-500">
             {directory.totalCount.toLocaleString()} {directory.totalCount === 1 ? "person" : "people"}
           </div>
           {staff.role === "admin" ? (
             <a
               href={exportHref(filters)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+              className="rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm font-medium text-lp-700 shadow-sm hover:bg-lp-50"
             >
               Export CSV
             </a>
@@ -109,11 +109,11 @@ export default async function PeopleDirectoryPage({
       <PeopleFilters filters={filters} options={options} />
       <SavedViews filters={filters} views={savedViews} status={savedViewStatus} />
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+      <section className="overflow-hidden rounded-xl border border-lp-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-lp-200 px-4 py-3">
           <div>
-            <h2 className="font-semibold text-slate-950">Results</h2>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <h2 className="font-semibold text-lp-950">Results</h2>
+            <p className="mt-0.5 text-xs text-lp-500">
               {directory.totalCount === 0
                 ? "No matching people"
                 : `Showing ${firstResult.toLocaleString()}–${lastResult.toLocaleString()} of ${directory.totalCount.toLocaleString()}`}
@@ -123,21 +123,21 @@ export default async function PeopleDirectoryPage({
 
         {directory.people.length === 0 ? (
           <div className="px-4 py-12 text-center">
-            <p className="font-medium text-slate-800">No people match these filters.</p>
-            <p className="mt-1 text-sm text-slate-500">Remove one or more filters and try again.</p>
+            <p className="font-medium text-lp-800">No people match these filters.</p>
+            <p className="mt-1 text-sm text-lp-500">Remove one or more filters and try again.</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-lp-100">
             {directory.people.map((person) => (
               <article key={person.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto] sm:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="min-w-0 truncate font-semibold text-slate-950">
+                    <h3 className="min-w-0 truncate font-semibold text-lp-950">
                       <Link className="hover:underline" href={`/crm/people/${person.id}`}>
                         {person.first_name} {person.last_name}
                       </Link>
                     </h3>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                    <span className="rounded-full bg-lp-100 px-2 py-0.5 text-xs font-medium text-lp-700">
                       {stageLabels[person.engagement_stage]}
                     </span>
                     {person.has_open_task ? (
@@ -151,25 +151,25 @@ export default async function PeopleDirectoryPage({
                       </span>
                     ) : null}
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-600">
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-lp-600">
                     {person.email ? <span className="break-all">{person.email}</span> : null}
                     {person.phone ? <span>{person.phone}</span> : null}
                     {!person.email && !person.phone ? <span>No contact information</span> : null}
                   </div>
                 </div>
 
-                <div className="text-sm text-slate-600">
+                <div className="text-sm text-lp-600">
                   <div>
                     {person.municipality ? `${person.municipality}, ` : ""}
                     {person.county_name ? `${person.county_name} County` : "County unknown"}
                     {person.zip_code ? ` · ${person.zip_code}` : ""}
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-lp-500">
                     Last activity: {formatDate(person.last_activity_at)}
                   </div>
                 </div>
 
-                <div className="text-left text-xs text-slate-500 sm:text-right">
+                <div className="text-left text-xs text-lp-500 sm:text-right">
                   Joined {formatDate(person.created_at)}
                 </div>
               </article>
@@ -178,17 +178,17 @@ export default async function PeopleDirectoryPage({
         )}
 
         {directory.totalPages > 1 ? (
-          <nav className="flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-3" aria-label="People directory pagination">
+          <nav className="flex items-center justify-between gap-3 border-t border-lp-200 px-4 py-3" aria-label="People directory pagination">
             {directory.page > 1 ? (
-              <Link className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" href={pageHref(filters, directory.page - 1)}>
+              <Link className="rounded-lg border border-lp-300 px-3 py-2 text-sm font-medium text-lp-700 hover:bg-lp-50" href={pageHref(filters, directory.page - 1)}>
                 Previous
               </Link>
             ) : <span />}
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-lp-500">
               Page {directory.page.toLocaleString()} of {directory.totalPages.toLocaleString()}
             </span>
             {directory.page < directory.totalPages ? (
-              <Link className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" href={pageHref(filters, directory.page + 1)}>
+              <Link className="rounded-lg border border-lp-300 px-3 py-2 text-sm font-medium text-lp-700 hover:bg-lp-50" href={pageHref(filters, directory.page + 1)}>
                 Next
               </Link>
             ) : <span />}

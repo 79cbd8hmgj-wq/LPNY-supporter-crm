@@ -65,22 +65,22 @@ export default async function PersonProfilePage({
   return (
     <div className="space-y-5">
       <div>
-        <Link className="text-sm font-medium text-slate-600 hover:text-slate-950" href="/crm/people">
+        <Link className="text-sm font-medium text-lp-600 hover:text-lp-950" href="/crm/people">
           ← Back to people
         </Link>
       </div>
 
-      <header className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <header className="rounded-xl border border-lp-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Supporter profile</p>
+            <p className="text-sm font-medium uppercase tracking-wide text-lp-500">Supporter profile</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{profile.name}</h1>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <h1 className="text-2xl font-semibold tracking-tight text-lp-950">{profile.name}</h1>
+              <span className="rounded-full bg-lp-100 px-2.5 py-1 text-xs font-semibold text-lp-700">
                 {stageLabels[profile.engagementStage]}
               </span>
               {profile.doNotContact ? (
-                <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                <span className="rounded-full bg-lp-danger-soft px-2.5 py-1 text-xs font-semibold text-lp-danger">
                   Do not contact
                 </span>
               ) : null}
@@ -89,12 +89,12 @@ export default async function PersonProfilePage({
 
           <dl className="grid shrink-0 gap-x-5 gap-y-2 text-sm sm:grid-cols-2 sm:text-right">
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Last activity</dt>
-              <dd className="mt-1 text-slate-800">{formatDateTime(profile.lastActivityAt)}</dd>
+              <dt className="text-xs font-medium uppercase tracking-wide text-lp-500">Last activity</dt>
+              <dd className="mt-1 text-lp-800">{formatDateTime(profile.lastActivityAt)}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Joined</dt>
-              <dd className="mt-1 text-slate-800">{formatDateTime(profile.createdAt)}</dd>
+              <dt className="text-xs font-medium uppercase tracking-wide text-lp-500">Joined</dt>
+              <dd className="mt-1 text-lp-800">{formatDateTime(profile.createdAt)}</dd>
             </div>
           </dl>
         </div>

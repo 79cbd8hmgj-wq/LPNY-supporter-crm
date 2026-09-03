@@ -33,10 +33,10 @@ function QueueCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-        <h2 className="font-semibold text-slate-900">{title}</h2>
-        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+    <section className="rounded-xl border border-lp-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-lp-100 px-4 py-3">
+        <h2 className="font-semibold text-lp-900">{title}</h2>
+        <span className="rounded-full bg-lp-100 px-2.5 py-1 text-xs font-semibold text-lp-700">
           {count}
         </span>
       </div>
@@ -61,13 +61,13 @@ function MetricCard({
       ? "border-red-200 bg-red-50 text-red-950"
       : emphasis === "warning"
         ? "border-amber-200 bg-amber-50 text-amber-950"
-        : "border-slate-200 bg-white text-slate-950";
+        : "border-lp-200 bg-white text-lp-950";
   const labelClass =
     emphasis === "danger"
       ? "text-red-700"
       : emphasis === "warning"
         ? "text-amber-800"
-        : "text-slate-500";
+        : "text-lp-500";
 
   return (
     <div className={`rounded-xl border p-4 shadow-sm ${classes}`}>
@@ -79,12 +79,12 @@ function MetricCard({
 }
 
 function EmptyState({ children }: { children: React.ReactNode }) {
-  return <p className="py-4 text-sm text-slate-500">{children}</p>;
+  return <p className="py-4 text-sm text-lp-500">{children}</p>;
 }
 
 function ProfileLink({ personId, children }: { personId: string; children: React.ReactNode }) {
   return (
-    <Link className="font-medium text-slate-900 hover:underline" href={`/crm/people/${personId}`}>
+    <Link className="font-medium text-lp-900 hover:underline" href={`/crm/people/${personId}`}>
       {children}
     </Link>
   );
@@ -96,12 +96,12 @@ function PeopleList({ people }: { people: DashboardPerson[] }) {
   }
 
   return (
-    <ul className="divide-y divide-slate-100">
+    <ul className="divide-y divide-lp-100">
       {people.map((person) => (
         <li key={person.id} className="py-3 first:pt-0 last:pb-0">
           <div><ProfileLink personId={person.id}>{person.name}</ProfileLink></div>
-          <div className="mt-0.5 text-sm text-slate-600">{person.contact}</div>
-          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className="mt-0.5 text-sm text-lp-600">{person.contact}</div>
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-lp-500">
             <span className="capitalize">{formatStage(person.engagementStage)}</span>
             <span>Joined {formatDateTime(person.createdAt)}</span>
           </div>
@@ -117,21 +117,21 @@ function TaskList({ tasks }: { tasks: DashboardTask[] }) {
   }
 
   return (
-    <ul className="divide-y divide-slate-100">
+    <ul className="divide-y divide-lp-100">
       {tasks.map((task) => (
         <li key={task.id} className="py-3 first:pt-0 last:pb-0">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div><ProfileLink personId={task.personId}>{task.personName}</ProfileLink></div>
-              <div className="mt-0.5 text-sm capitalize text-slate-600">
+              <div className="mt-0.5 text-sm capitalize text-lp-600">
                 {task.taskType.replaceAll("_", " ")}
               </div>
             </div>
-            <span className="rounded-md bg-slate-100 px-2 py-1 text-xs capitalize text-slate-600">
+            <span className="rounded-md bg-lp-100 px-2 py-1 text-xs capitalize text-lp-600">
               {task.priority}
             </span>
           </div>
-          <div className="mt-1 text-xs text-slate-500">Due {formatDateTime(task.dueAt)}</div>
+          <div className="mt-1 text-xs text-lp-500">Due {formatDateTime(task.dueAt)}</div>
         </li>
       ))}
     </ul>
@@ -144,14 +144,14 @@ function ActivityList({ activities }: { activities: DashboardActivity[] }) {
   }
 
   return (
-    <ul className="divide-y divide-slate-100">
+    <ul className="divide-y divide-lp-100">
       {activities.map((activity) => (
         <li key={activity.id} className="py-3 first:pt-0 last:pb-0">
           <div><ProfileLink personId={activity.personId}>{activity.personName}</ProfileLink></div>
-          <div className="mt-0.5 text-sm capitalize text-slate-600">
+          <div className="mt-0.5 text-sm capitalize text-lp-600">
             {formatActivityType(activity.activityType)}
           </div>
-          <div className="mt-1 text-xs text-slate-500">{formatDateTime(activity.occurredAt)}</div>
+          <div className="mt-1 text-xs text-lp-500">{formatDateTime(activity.occurredAt)}</div>
         </li>
       ))}
     </ul>
@@ -167,8 +167,8 @@ function CountBreakdown({ rows }: { rows: Array<{ label: string; count: number }
     <ul className="space-y-2">
       {rows.slice(0, 8).map((row) => (
         <li key={row.label} className="flex items-center justify-between gap-4 text-sm">
-          <span className="truncate text-slate-600">{row.label}</span>
-          <span className="font-semibold tabular-nums text-slate-900">{row.count}</span>
+          <span className="truncate text-lp-600">{row.label}</span>
+          <span className="font-semibold tabular-nums text-lp-900">{row.count}</span>
         </li>
       ))}
     </ul>
@@ -177,10 +177,10 @@ function CountBreakdown({ rows }: { rows: Array<{ label: string; count: number }
 
 function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourcePerformance"] }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="font-semibold text-slate-900">Source performance</h2>
-        <p className="mt-1 text-xs text-slate-500">
+    <section className="rounded-xl border border-lp-200 bg-white shadow-sm">
+      <div className="border-b border-lp-100 px-4 py-3">
+        <h2 className="font-semibold text-lp-900">Source performance</h2>
+        <p className="mt-1 text-xs text-lp-500">
           Distinct supporters attributed during the selected period. Downstream percentages use signups as the denominator.
         </p>
       </div>
@@ -189,7 +189,7 @@ function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourceP
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-lp-50 text-xs uppercase tracking-wide text-lp-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Source</th>
                 <th className="px-4 py-3 text-right font-medium">Signups</th>
@@ -198,22 +198,22 @@ function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourceP
                 <th className="px-4 py-3 text-right font-medium">Volunteers</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lp-100">
               {rows.map((row) => (
                 <tr key={row.sourceId}>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">{row.sourceName}</th>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-slate-900">{row.signups}</td>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-lp-900">{row.sourceName}</th>
+                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-lp-900">{row.signups}</td>
                   <td className="px-4 py-3 text-right">
-                    <div className="font-semibold tabular-nums text-slate-900">{row.contacted}</div>
-                    <div className="text-xs tabular-nums text-slate-500">{row.contactedRate}%</div>
+                    <div className="font-semibold tabular-nums text-lp-900">{row.contacted}</div>
+                    <div className="text-xs tabular-nums text-lp-500">{row.contactedRate}%</div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="font-semibold tabular-nums text-slate-900">{row.engaged}</div>
-                    <div className="text-xs tabular-nums text-slate-500">{row.engagedRate}%</div>
+                    <div className="font-semibold tabular-nums text-lp-900">{row.engaged}</div>
+                    <div className="text-xs tabular-nums text-lp-500">{row.engagedRate}%</div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="font-semibold tabular-nums text-slate-900">{row.volunteers}</div>
-                    <div className="text-xs tabular-nums text-slate-500">{row.volunteerRate}%</div>
+                    <div className="font-semibold tabular-nums text-lp-900">{row.volunteers}</div>
+                    <div className="text-xs tabular-nums text-lp-500">{row.volunteerRate}%</div>
                   </td>
                 </tr>
               ))}

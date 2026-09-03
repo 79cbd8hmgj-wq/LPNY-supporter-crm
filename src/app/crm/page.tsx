@@ -25,9 +25,9 @@ export default async function CrmHomePage({
     <section className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Organizer workspace</p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-950 sm:text-3xl">CRM Dashboard</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
+          <p className="text-sm font-medium uppercase tracking-wide text-lp-500">Organizer workspace</p>
+          <h1 className="mt-1 text-2xl font-semibold text-lp-950 sm:text-3xl">CRM Dashboard</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-lp-600 sm:text-base">
             Reporting and work queues automatically respect your CRM access scope. Start with what needs action today.
           </p>
         </div>
@@ -41,8 +41,8 @@ export default async function CrmHomePage({
                 aria-current={active ? "page" : undefined}
                 className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                   active
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    ? "border-lp-900 bg-lp-900 text-white"
+                    : "border-lp-200 bg-white text-lp-700 hover:border-lp-300 hover:bg-lp-50"
                 }`}
               >
                 {option.label}
