@@ -18,7 +18,7 @@ const roleLabels: Record<StaffRole, string> = {
   volunteer_staff: "Volunteer Staff",
 };
 
-const inputClass = "mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
+const inputClass = "mt-1 min-h-11 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm text-lp-950 outline-none transition focus:border-lp-700 focus:ring-2 focus:ring-lp-200";
 
 function ResultMessage({ result }: { result: StaffActionResult | null }) {
   if (!result) return null;
@@ -40,9 +40,9 @@ function CountyPicker({
   disabled?: boolean;
 }) {
   return (
-    <fieldset className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <legend className="px-1 text-sm font-medium text-slate-800">County assignments</legend>
-      <p className="mb-2 text-xs text-slate-500">Select every county this organizer may work in.</p>
+    <fieldset className="rounded-lg border border-lp-200 bg-lp-50 p-3">
+      <legend className="px-1 text-sm font-medium text-lp-800">County assignments</legend>
+      <p className="mb-2 text-xs text-lp-500">Select every county this organizer may work in.</p>
       <div className="grid max-h-52 gap-1 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
         {counties.map((county) => (
           <label className="flex min-h-9 items-center gap-2 rounded px-2 py-1 text-sm hover:bg-white" key={county.id}>
@@ -105,21 +105,21 @@ function InviteStaffForm({ counties }: { counties: StaffCountyOption[] }) {
   }
 
   return (
-    <form className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" onSubmit={submit}>
+    <form className="space-y-4 rounded-xl border border-lp-200 bg-white p-4 shadow-sm sm:p-5" onSubmit={submit}>
       <div>
-        <h2 className="font-semibold text-slate-950">Invite staff member</h2>
-        <p className="mt-1 text-sm text-slate-600">The invitation email is sent through Supabase Auth. CRM access is activated only after the staff record is registered successfully.</p>
+        <h2 className="font-semibold text-lp-950">Invite staff member</h2>
+        <p className="mt-1 text-sm text-lp-600">The invitation email is sent through Supabase Auth. CRM access is activated only after the staff record is registered successfully.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="text-sm font-medium text-slate-800">
+        <label className="text-sm font-medium text-lp-800">
           Display name
           <input className={inputClass} onChange={(event) => setDisplayName(event.target.value)} required value={displayName} />
         </label>
-        <label className="text-sm font-medium text-slate-800">
+        <label className="text-sm font-medium text-lp-800">
           Email
           <input autoComplete="email" className={inputClass} onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
         </label>
-        <label className="text-sm font-medium text-slate-800 md:max-w-sm">
+        <label className="text-sm font-medium text-lp-800 md:max-w-sm">
           Role
           <select className={inputClass} onChange={(event) => changeRole(event.target.value as StaffRole)} value={role}>
             {Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -130,7 +130,7 @@ function InviteStaffForm({ counties }: { counties: StaffCountyOption[] }) {
         <CountyPicker counties={counties} onToggle={toggleCounty} selected={countyIds} />
       ) : null}
       <ResultMessage result={result} />
-      <button className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={pending} type="submit">
+      <button className="min-h-11 rounded-lg bg-lp-900 px-4 py-2 text-sm font-semibold text-white hover:bg-lp-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={pending} type="submit">
         {pending ? "Sending invitation…" : "Send invitation"}
       </button>
     </form>
@@ -179,25 +179,25 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
   }
 
   return (
-    <article className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="space-y-4 rounded-xl border border-lp-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="font-semibold text-slate-950">{record.displayName}</h3>
-          <p className="text-xs text-slate-500">{record.invitedAt ? `Invited ${new Date(record.invitedAt).toLocaleDateString()}` : "Staff record"}</p>
+          <h3 className="font-semibold text-lp-950">{record.displayName}</h3>
+          <p className="text-xs text-lp-500">{record.invitedAt ? `Invited ${new Date(record.invitedAt).toLocaleDateString()}` : "Staff record"}</p>
         </div>
-        <span className={`w-fit rounded-full px-2 py-1 text-xs font-medium ${savedStatus === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+        <span className={`w-fit rounded-full px-2 py-1 text-xs font-medium ${savedStatus === "active" ? "bg-emerald-50 text-emerald-700" : "bg-lp-100 text-lp-600"}`}>
           {savedStatus === "active" ? "Active" : "Disabled"}
         </span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm font-medium text-slate-800">
+        <label className="text-sm font-medium text-lp-800">
           Role
           <select className={inputClass} onChange={(event) => changeRole(event.target.value as StaffRole)} value={role}>
             {Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
-        <label className="text-sm font-medium text-slate-800">
+        <label className="text-sm font-medium text-lp-800">
           Account status
           <select className={inputClass} onChange={(event) => setStatus(event.target.value as StaffStatus)} value={status}>
             <option value="active">Active</option>
@@ -210,7 +210,7 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
         <CountyPicker counties={counties} disabled={pending} onToggle={toggleCounty} selected={countyIds} />
       ) : null}
       <ResultMessage result={result} />
-      <button className="min-h-10 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60" disabled={pending} onClick={save} type="button">
+      <button className="min-h-10 rounded-lg border border-lp-300 px-3 py-2 text-sm font-semibold text-lp-800 hover:bg-lp-50 disabled:cursor-not-allowed disabled:opacity-60" disabled={pending} onClick={save} type="button">
         {pending ? "Saving…" : "Save access"}
       </button>
     </article>
@@ -229,11 +229,11 @@ export function StaffManagement({
       <InviteStaffForm counties={counties} />
       <section className="space-y-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-950">Current staff</h2>
-          <p className="mt-1 text-sm text-slate-600">Role, status, and county changes are applied transactionally and recorded in the administrative audit trail.</p>
+          <h2 className="text-lg font-semibold text-lp-950">Current staff</h2>
+          <p className="mt-1 text-sm text-lp-600">Role, status, and county changes are applied transactionally and recorded in the administrative audit trail.</p>
         </div>
         {staff.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No staff records are visible.</div>
+          <div className="rounded-xl border border-lp-200 bg-white p-6 text-sm text-lp-600">No staff records are visible.</div>
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">
             {staff.map((record) => <StaffAccessEditor counties={counties} key={record.id} record={record} />)}

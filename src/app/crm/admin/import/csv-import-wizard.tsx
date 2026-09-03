@@ -92,10 +92,10 @@ function classificationLabel(value: CsvImportPreviewRow["classification"]): stri
 
 function classificationClasses(value: CsvImportPreviewRow["classification"]): string {
   switch (value) {
-    case "new": return "bg-emerald-50 text-emerald-800";
-    case "exact_email_match": return "bg-blue-50 text-blue-800";
-    case "ambiguous_phone_match": return "bg-amber-50 text-amber-800";
-    case "invalid": return "bg-red-50 text-red-800";
+    case "new": return "bg-lp-success-soft text-lp-success-ink";
+    case "exact_email_match": return "bg-lp-info-soft text-lp-info-ink";
+    case "ambiguous_phone_match": return "bg-lp-gold-soft text-lp-gold-ink";
+    case "invalid": return "bg-lp-danger-soft text-lp-danger-ink";
   }
 }
 
@@ -143,13 +143,13 @@ function DecisionSelect({
   onChange: (selection: CsvImportDecisionSelection) => void;
 }) {
   if (row.classification === "invalid") {
-    return <span className="text-sm font-medium text-slate-500">Skip — fix CSV first</span>;
+    return <span className="text-sm font-medium text-lp-500">Skip — fix CSV first</span>;
   }
 
   return (
     <select
       aria-label={`Decision for row ${row.rowNumber}`}
-      className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 disabled:bg-slate-100"
+      className="min-h-10 w-full rounded-lg border border-lp-300 bg-white px-3 text-sm text-lp-900 disabled:bg-lp-100"
       disabled={disabled}
       onChange={(event) => onChange(parseSelectionValue(row.rowNumber, event.target.value))}
       value={selectionValue(selection)}
@@ -284,35 +284,35 @@ export function CsvImportWizard() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-lp-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">1. Upload CSV</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">Maximum 2 MiB and 5,000 data rows. Uploaded contents are used only to perform this import and are not written to audit metadata.</p>
+            <h2 className="text-lg font-semibold text-lp-950">1. Upload CSV</h2>
+            <p className="mt-1 text-sm leading-6 text-lp-600">Maximum 2 MiB and 5,000 data rows. Uploaded contents are used only to perform this import and are not written to audit metadata.</p>
           </div>
-          {fileName ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{fileName}</span> : null}
+          {fileName ? <span className="rounded-full bg-lp-100 px-3 py-1 text-xs font-medium text-lp-700">{fileName}</span> : null}
         </div>
         <input
           accept=".csv,text/csv"
-          className="mt-4 block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2.5 file:font-semibold file:text-white hover:file:bg-slate-700"
+          className="mt-4 block w-full text-sm text-lp-700 file:mr-4 file:rounded-lg file:border-0 file:bg-lp-900 file:px-4 file:py-2.5 file:font-semibold file:text-white hover:file:bg-lp-700"
           onChange={(event) => void handleFile(event.target.files?.[0])}
           type="file"
         />
       </section>
 
       {headers.length > 0 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <h2 className="text-lg font-semibold text-slate-950">2. Map columns</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">First name and last name are required. Map at least one contact field: email or phone.</p>
+        <section className="rounded-2xl border border-lp-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-lg font-semibold text-lp-950">2. Map columns</h2>
+          <p className="mt-1 text-sm leading-6 text-lp-600">First name and last name are required. Map at least one contact field: email or phone.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {headers.map((header, index) => {
               const current = mapping[index];
               const selectedElsewhere = new Set(mapping.filter((field, otherIndex) => field && otherIndex !== index));
               return (
-                <label className="rounded-xl border border-slate-200 p-3" key={`${header}-${index}`}>
-                  <span className="block truncate text-sm font-medium text-slate-800" title={header}>{header || `(Column ${index + 1})`}</span>
+                <label className="rounded-xl border border-lp-200 p-3" key={`${header}-${index}`}>
+                  <span className="block truncate text-sm font-medium text-lp-800" title={header}>{header || `(Column ${index + 1})`}</span>
                   <select
-                    className="mt-2 min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900"
+                    className="mt-2 min-h-10 w-full rounded-lg border border-lp-300 bg-white px-3 text-sm text-lp-900"
                     onChange={(event) => updateMapping(index, event.target.value)}
                     value={current ?? ""}
                   >
@@ -327,7 +327,7 @@ export function CsvImportWizard() {
           </div>
           <div className="mt-4 flex justify-end">
             <button
-              className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 rounded-lg bg-lp-900 px-4 py-2 text-sm font-semibold text-white hover:bg-lp-700 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!ready || pending}
               onClick={requestPreview}
               type="button"
@@ -339,22 +339,22 @@ export function CsvImportWizard() {
       ) : null}
 
       {preview ? (
-        <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className="space-y-4 rounded-2xl border border-lp-200 bg-white p-4 shadow-sm sm:p-6">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">3. Review rows</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">Exact email matches cannot create a duplicate. Possible phone matches default to skip until you make an explicit choice.</p>
+            <h2 className="text-lg font-semibold text-lp-950">3. Review rows</h2>
+            <p className="mt-1 text-sm leading-6 text-lp-600">Exact email matches cannot create a duplicate. Possible phone matches default to skip until you make an explicit choice.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-xl bg-emerald-50 p-3"><p className="text-xs font-medium text-emerald-700">New</p><p className="mt-1 text-xl font-semibold text-emerald-950">{counts.new}</p></div>
-            <div className="rounded-xl bg-blue-50 p-3"><p className="text-xs font-medium text-blue-700">Exact email</p><p className="mt-1 text-xl font-semibold text-blue-950">{counts.exact_email_match}</p></div>
-            <div className="rounded-xl bg-amber-50 p-3"><p className="text-xs font-medium text-amber-700">Possible match</p><p className="mt-1 text-xl font-semibold text-amber-950">{counts.ambiguous_phone_match}</p></div>
-            <div className="rounded-xl bg-red-50 p-3"><p className="text-xs font-medium text-red-700">Invalid</p><p className="mt-1 text-xl font-semibold text-red-950">{counts.invalid}</p></div>
+            <div className="rounded-xl bg-lp-success-soft p-3"><p className="text-xs font-medium text-lp-success">New</p><p className="mt-1 text-xl font-semibold text-lp-success-ink">{counts.new}</p></div>
+            <div className="rounded-xl bg-lp-info-soft p-3"><p className="text-xs font-medium text-lp-info">Exact email</p><p className="mt-1 text-xl font-semibold text-lp-info-ink">{counts.exact_email_match}</p></div>
+            <div className="rounded-xl bg-lp-gold-soft p-3"><p className="text-xs font-medium text-lp-gold-ink">Possible match</p><p className="mt-1 text-xl font-semibold text-lp-gold-ink">{counts.ambiguous_phone_match}</p></div>
+            <div className="rounded-xl bg-lp-danger-soft p-3"><p className="text-xs font-medium text-lp-danger">Invalid</p><p className="mt-1 text-xl font-semibold text-lp-danger-ink">{counts.invalid}</p></div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl border border-lp-200">
             <table className="min-w-[900px] w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-lp-50 text-xs uppercase tracking-wide text-lp-500">
                 <tr>
                   <th className="px-3 py-3">Row</th>
                   <th className="px-3 py-3">Supporter</th>
@@ -363,15 +363,15 @@ export function CsvImportWizard() {
                   <th className="px-3 py-3">Decision</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-lp-100">
                 {visibleRows.map((row) => {
                   const selection = selections[row.rowNumber] ?? { rowNumber: row.rowNumber, decision: row.decision, existingPersonId: row.existingPersonId };
                   return (
                     <tr className="align-top" key={row.rowNumber}>
-                      <td className="px-3 py-3 font-medium text-slate-500">{row.rowNumber}</td>
-                      <td className="px-3 py-3"><p className="font-medium text-slate-950">{row.data.firstName || "—"} {row.data.lastName || ""}</p><p className="mt-1 text-xs text-slate-500">{row.data.zipCode || "No ZIP"}{row.data.municipality ? ` · ${row.data.municipality}` : ""}</p></td>
-                      <td className="px-3 py-3 text-slate-700"><p className="break-all">{row.data.email || "—"}</p><p className="mt-1">{row.data.phone || "—"}</p></td>
-                      <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${classificationClasses(row.classification)}`}>{classificationLabel(row.classification)}</span>{row.errors.length ? <ul className="mt-2 space-y-1 text-xs text-red-700">{row.errors.map((error) => <li key={error}>{error}</li>)}</ul> : null}</td>
+                      <td className="px-3 py-3 font-medium text-lp-500">{row.rowNumber}</td>
+                      <td className="px-3 py-3"><p className="font-medium text-lp-950">{row.data.firstName || "—"} {row.data.lastName || ""}</p><p className="mt-1 text-xs text-lp-500">{row.data.zipCode || "No ZIP"}{row.data.municipality ? ` · ${row.data.municipality}` : ""}</p></td>
+                      <td className="px-3 py-3 text-lp-700"><p className="break-all">{row.data.email || "—"}</p><p className="mt-1">{row.data.phone || "—"}</p></td>
+                      <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${classificationClasses(row.classification)}`}>{classificationLabel(row.classification)}</span>{row.errors.length ? <ul className="mt-2 space-y-1 text-xs text-lp-danger">{row.errors.map((error) => <li key={error}>{error}</li>)}</ul> : null}</td>
                       <td className="w-72 px-3 py-3"><DecisionSelect disabled={pending || Boolean(summary)} matches={matches} onChange={(next) => setSelections((current) => ({ ...current, [row.rowNumber]: next }))} row={row} selection={selection} /></td>
                     </tr>
                   );
@@ -381,13 +381,13 @@ export function CsvImportWizard() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <button className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:opacity-40" disabled={page === 0 || pending} onClick={() => setPage((value) => Math.max(0, value - 1))} type="button">Previous</button>
+            <div className="flex items-center gap-2 text-sm text-lp-600">
+              <button className="rounded-lg border border-lp-300 px-3 py-2 font-medium disabled:opacity-40" disabled={page === 0 || pending} onClick={() => setPage((value) => Math.max(0, value - 1))} type="button">Previous</button>
               <span>Page {page + 1} of {pageCount}</span>
-              <button className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:opacity-40" disabled={page + 1 >= pageCount || pending} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))} type="button">Next</button>
+              <button className="rounded-lg border border-lp-300 px-3 py-2 font-medium disabled:opacity-40" disabled={page + 1 >= pageCount || pending} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))} type="button">Next</button>
             </div>
             <button
-              className="min-h-11 rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 rounded-lg bg-lp-900 px-5 py-2 text-sm font-semibold text-white hover:bg-lp-700 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={pending || Boolean(summary)}
               onClick={applyImport}
               type="button"
@@ -399,16 +399,16 @@ export function CsvImportWizard() {
       ) : null}
 
       {message ? (
-        <p className={`rounded-xl border p-4 text-sm ${summary ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-900"}`} role="status">{message}</p>
+        <p className={`rounded-xl border p-4 text-sm ${summary ? "border-lp-success-border bg-lp-success-soft text-lp-success-ink" : "border-lp-gold-border bg-lp-gold-soft text-lp-gold-ink"}`} role="status">{message}</p>
       ) : null}
 
       {summary ? (
-        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-emerald-950">Import summary</h2>
+        <section className="rounded-2xl border border-lp-success-border bg-lp-success-soft p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-lp-success-ink">Import summary</h2>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-emerald-700">Created</p><p className="mt-1 text-xl font-semibold text-emerald-950">{summary.imported}</p></div>
-            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-emerald-700">Updated</p><p className="mt-1 text-xl font-semibold text-emerald-950">{summary.updated}</p></div>
-            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-emerald-700">Skipped</p><p className="mt-1 text-xl font-semibold text-emerald-950">{summary.skipped}</p></div>
+            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-lp-success">Created</p><p className="mt-1 text-xl font-semibold text-lp-success-ink">{summary.imported}</p></div>
+            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-lp-success">Updated</p><p className="mt-1 text-xl font-semibold text-lp-success-ink">{summary.updated}</p></div>
+            <div className="rounded-xl bg-white/70 p-3"><p className="text-xs text-lp-success">Skipped</p><p className="mt-1 text-xl font-semibold text-lp-success-ink">{summary.skipped}</p></div>
           </div>
         </section>
       ) : null}

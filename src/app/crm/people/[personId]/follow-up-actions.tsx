@@ -15,9 +15,9 @@ import {
   setTagAction,
 } from "./actions";
 
-const inputClass = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-700 focus:ring-2 focus:ring-slate-200";
-const primaryButton = "min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50";
-const secondaryButton = "min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50";
+const inputClass = "min-h-11 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm text-lp-950 outline-none focus:border-lp-700 focus:ring-2 focus:ring-lp-200";
+const primaryButton = "min-h-11 rounded-lg bg-lp-900 px-4 py-2 text-sm font-semibold text-white hover:bg-lp-700 disabled:cursor-not-allowed disabled:opacity-50";
+const secondaryButton = "min-h-10 rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm font-medium text-lp-800 hover:bg-lp-50";
 
 const statusMessages: Record<string, string> = {
   contacted: "Contact outcome recorded.",
@@ -68,13 +68,13 @@ function ToggleRows({
   action: (formData: FormData) => Promise<void>;
 }) {
   return (
-    <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+    <div className="divide-y divide-lp-100 rounded-lg border border-lp-200">
       {options.map((option) => (
         <form key={option.id} action={action} className="flex items-center justify-between gap-3 p-2.5">
           <HiddenPerson personId={personId} />
           <input type="hidden" name={field} value={field === "slug" ? option.slug : option.id} />
           <input type="hidden" name="enabled" value={option.enabled ? "false" : "true"} />
-          <span className="text-sm text-slate-800">{option.name}</span>
+          <span className="text-sm text-lp-800">{option.name}</span>
           <button className={secondaryButton} type="submit">{option.enabled ? "Remove" : "Add"}</button>
         </form>
       ))}
@@ -99,11 +99,11 @@ export function FollowUpActions({
   const openTasks = profile.tasks.filter((task) => task.status === "open");
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="rounded-xl border border-lp-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-slate-950">Organizer actions</h2>
-          <p className="mt-1 text-sm text-slate-500">Record the next step without leaving the supporter profile.</p>
+          <h2 className="font-semibold text-lp-950">Organizer actions</h2>
+          <p className="mt-1 text-sm text-lp-500">Record the next step without leaving the supporter profile.</p>
         </div>
         {profile.doNotContact ? (
           <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">Outreach restricted</span>
@@ -113,8 +113,8 @@ export function FollowUpActions({
       <div className="mt-4"><ActionStatus status={actionStatus} /></div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div className="space-y-3 rounded-lg border border-slate-200 p-3">
-          <h3 className="text-sm font-semibold text-slate-900">Contact outcome</h3>
+        <div className="space-y-3 rounded-lg border border-lp-200 p-3">
+          <h3 className="text-sm font-semibold text-lp-900">Contact outcome</h3>
           <div className="flex flex-wrap gap-2">
             <form action={recordContactOutcomeAction}>
               <HiddenPerson personId={profile.id} />
@@ -129,11 +129,11 @@ export function FollowUpActions({
               <button className={secondaryButton} type="submit">Unable to reach</button>
             </form>
           </div>
-          <p className="text-xs text-slate-500">Dates are interpreted in New York time.</p>
+          <p className="text-xs text-lp-500">Dates are interpreted in New York time.</p>
         </div>
 
-        <form action={createFollowUpAction} className="space-y-3 rounded-lg border border-slate-200 p-3">
-          <h3 className="text-sm font-semibold text-slate-900">Create follow-up</h3>
+        <form action={createFollowUpAction} className="space-y-3 rounded-lg border border-lp-200 p-3">
+          <h3 className="text-sm font-semibold text-lp-900">Create follow-up</h3>
           {profile.doNotContact ? <p className="text-xs font-medium text-red-700">Clear do-not-contact before scheduling outreach.</p> : null}
           <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
             <HiddenPerson personId={profile.id} />
@@ -147,24 +147,24 @@ export function FollowUpActions({
           <button className={primaryButton} type="submit" disabled={profile.doNotContact}>Create follow-up</button>
         </form>
 
-        <form action={addNoteAction} className="space-y-3 rounded-lg border border-slate-200 p-3 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-slate-900">Add internal note</h3>
+        <form action={addNoteAction} className="space-y-3 rounded-lg border border-lp-200 p-3 lg:col-span-2">
+          <h3 className="text-sm font-semibold text-lp-900">Add internal note</h3>
           <HiddenPerson personId={profile.id} />
           <textarea className={`${inputClass} min-h-24 resize-y`} name="body" maxLength={4000} required placeholder="Record useful context for the next organizer…" />
           <button className={secondaryButton} type="submit">Add note</button>
         </form>
       </div>
 
-      <details className="mt-4 rounded-lg border border-slate-200 p-3" open={openTasks.length > 0}>
-        <summary className="cursor-pointer text-sm font-semibold text-slate-900">Open tasks ({openTasks.length})</summary>
+      <details className="mt-4 rounded-lg border border-lp-200 p-3" open={openTasks.length > 0}>
+        <summary className="cursor-pointer text-sm font-semibold text-lp-900">Open tasks ({openTasks.length})</summary>
         <div className="mt-3 space-y-2">
-          {openTasks.length === 0 ? <p className="text-sm text-slate-500">No open tasks.</p> : openTasks.map((task) => (
-            <form key={task.id} action={completeTaskAction} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3">
+          {openTasks.length === 0 ? <p className="text-sm text-lp-500">No open tasks.</p> : openTasks.map((task) => (
+            <form key={task.id} action={completeTaskAction} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-lp-50 p-3">
               <HiddenPerson personId={profile.id} />
               <input type="hidden" name="taskId" value={task.id} />
               <div>
-                <div className="text-sm font-medium text-slate-900">{task.task_type.replaceAll("_", " ")}</div>
-                <div className="text-xs text-slate-500">{task.priority} priority</div>
+                <div className="text-sm font-medium text-lp-900">{task.task_type.replaceAll("_", " ")}</div>
+                <div className="text-xs text-lp-500">{task.priority} priority</div>
               </div>
               <button className={secondaryButton} type="submit">Complete</button>
             </form>
@@ -174,8 +174,8 @@ export function FollowUpActions({
 
       {canEnrich ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <form action={changeStageAction} className="space-y-3 rounded-lg border border-slate-200 p-3">
-            <h3 className="text-sm font-semibold text-slate-900">Engagement stage</h3>
+          <form action={changeStageAction} className="space-y-3 rounded-lg border border-lp-200 p-3">
+            <h3 className="text-sm font-semibold text-lp-900">Engagement stage</h3>
             <HiddenPerson personId={profile.id} />
             <select className={inputClass} name="stage" defaultValue={profile.engagementStage}>
               {stageOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -183,37 +183,37 @@ export function FollowUpActions({
             <button className={secondaryButton} type="submit">Update stage</button>
           </form>
 
-          <form action={setDoNotContactAction} className={`space-y-3 rounded-lg border p-3 ${profile.doNotContact ? "border-red-200 bg-red-50/40" : "border-slate-200"}`}>
-            <h3 className="text-sm font-semibold text-slate-900">Do not contact</h3>
+          <form action={setDoNotContactAction} className={`space-y-3 rounded-lg border p-3 ${profile.doNotContact ? "border-red-200 bg-red-50/40" : "border-lp-200"}`}>
+            <h3 className="text-sm font-semibold text-lp-900">Do not contact</h3>
             <HiddenPerson personId={profile.id} />
             <input type="hidden" name="enabled" value={profile.doNotContact ? "false" : "true"} />
-            <p className="text-sm text-slate-600">{profile.doNotContact ? "Outreach is currently restricted for this person." : "Use this when the person asks not to receive outreach."}</p>
+            <p className="text-sm text-lp-600">{profile.doNotContact ? "Outreach is currently restricted for this person." : "Use this when the person asks not to receive outreach."}</p>
             <button className={profile.doNotContact ? secondaryButton : "min-h-10 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"} type="submit">
               {profile.doNotContact ? "Clear do-not-contact" : "Mark do-not-contact"}
             </button>
           </form>
 
-          <details className="rounded-lg border border-slate-200 p-3">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-900">Relationships</summary>
+          <details className="rounded-lg border border-lp-200 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-lp-900">Relationships</summary>
             <div className="mt-3"><ToggleRows personId={profile.id} options={options.relationships} field="slug" action={setRelationshipAction} /></div>
           </details>
 
-          <details className="rounded-lg border border-slate-200 p-3">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-900">Interests</summary>
+          <details className="rounded-lg border border-lp-200 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-lp-900">Interests</summary>
             <div className="mt-3"><ToggleRows personId={profile.id} options={options.interests} field="slug" action={setInterestAction} /></div>
           </details>
 
-          <details className="rounded-lg border border-slate-200 p-3 lg:col-span-2">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-900">Tags</summary>
+          <details className="rounded-lg border border-lp-200 p-3 lg:col-span-2">
+            <summary className="cursor-pointer text-sm font-semibold text-lp-900">Tags</summary>
             <div className="mt-3"><ToggleRows personId={profile.id} options={options.tags} field="tagId" action={setTagAction} /></div>
           </details>
         </div>
       ) : (
-        <form action={setDoNotContactAction} className={`mt-4 space-y-3 rounded-lg border p-3 ${profile.doNotContact ? "border-red-200 bg-red-50/40" : "border-slate-200"}`}>
-          <h3 className="text-sm font-semibold text-slate-900">Do not contact</h3>
+        <form action={setDoNotContactAction} className={`mt-4 space-y-3 rounded-lg border p-3 ${profile.doNotContact ? "border-red-200 bg-red-50/40" : "border-lp-200"}`}>
+          <h3 className="text-sm font-semibold text-lp-900">Do not contact</h3>
           <HiddenPerson personId={profile.id} />
           <input type="hidden" name="enabled" value={profile.doNotContact ? "false" : "true"} />
-          <p className="text-sm text-slate-600">{profile.doNotContact ? "Outreach is currently restricted for this person." : "Record a do-not-contact request from this assigned supporter."}</p>
+          <p className="text-sm text-lp-600">{profile.doNotContact ? "Outreach is currently restricted for this person." : "Record a do-not-contact request from this assigned supporter."}</p>
           <button className={profile.doNotContact ? secondaryButton : "min-h-10 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"} type="submit">
             {profile.doNotContact ? "Clear do-not-contact" : "Mark do-not-contact"}
           </button>
@@ -221,8 +221,8 @@ export function FollowUpActions({
       )}
 
       {canReassign && options.organizers.length > 0 ? (
-        <form action={reassignPersonAction} className="mt-4 space-y-3 rounded-lg border border-slate-200 p-3">
-          <h3 className="text-sm font-semibold text-slate-900">Reassign organizer</h3>
+        <form action={reassignPersonAction} className="mt-4 space-y-3 rounded-lg border border-lp-200 p-3">
+          <h3 className="text-sm font-semibold text-lp-900">Reassign organizer</h3>
           <HiddenPerson personId={profile.id} />
           <select className={inputClass} name="staffUserId" defaultValue={profile.assignedStaffUserId ?? ""} required>
             <option value="" disabled>Select an organizer</option>
@@ -230,7 +230,7 @@ export function FollowUpActions({
               <option key={organizer.id} value={organizer.id}>{organizer.name} · {organizer.role.replaceAll("_", " ")}</option>
             ))}
           </select>
-          <p className="text-xs text-slate-500">County assignments are validated again by the database before reassignment is saved.</p>
+          <p className="text-xs text-lp-500">County assignments are validated again by the database before reassignment is saved.</p>
           <button className={secondaryButton} type="submit">Reassign</button>
         </form>
       ) : null}

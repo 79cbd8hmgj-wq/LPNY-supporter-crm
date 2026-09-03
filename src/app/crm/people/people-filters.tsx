@@ -2,7 +2,7 @@ import type { PeopleFilterState } from "@/lib/crm/people-filters";
 import type { PeopleDirectoryOptions } from "@/lib/crm/people-directory-options";
 
 const inputClass =
-  "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-600 focus:ring-2 focus:ring-slate-200";
+  "min-h-11 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm text-lp-900 outline-none focus:border-lp-600 focus:ring-2 focus:ring-lp-200";
 
 function SelectField({
   label,
@@ -18,7 +18,7 @@ function SelectField({
   emptyLabel?: string;
 }) {
   return (
-    <label className="space-y-1 text-sm font-medium text-slate-700">
+    <label className="space-y-1 text-sm font-medium text-lp-700">
       <span>{label}</span>
       <select className={inputClass} name={name} defaultValue={value ?? ""}>
         <option value="">{emptyLabel}</option>
@@ -43,10 +43,10 @@ export function PeopleFilters({
     <form
       action="/crm/people/filters"
       method="post"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-lp-200 bg-white p-4 shadow-sm"
     >
       <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_1fr_1fr_auto]">
-        <label className="space-y-1 text-sm font-medium text-slate-700">
+        <label className="space-y-1 text-sm font-medium text-lp-700">
           <span>Name, email, phone, ZIP, municipality</span>
           <input
             className={inputClass}
@@ -70,11 +70,11 @@ export function PeopleFilters({
           ]}
         />
         <div className="flex items-end gap-2">
-          <button className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700" type="submit">
+          <button className="min-h-11 rounded-lg bg-lp-900 px-4 py-2 text-sm font-semibold text-white hover:bg-lp-700" type="submit">
             Apply
           </button>
           <button
-            className="min-h-11 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="min-h-11 rounded-lg border border-lp-300 px-4 py-2.5 text-sm font-medium text-lp-700 hover:bg-lp-50"
             type="submit"
             name="intent"
             value="clear"
@@ -84,10 +84,10 @@ export function PeopleFilters({
         </div>
       </div>
 
-      <details className="mt-4 border-t border-slate-100 pt-4">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-700">More filters</summary>
+      <details className="mt-4 border-t border-lp-100 pt-4">
+        <summary className="cursor-pointer text-sm font-semibold text-lp-700">More filters</summary>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="space-y-1 text-sm font-medium text-slate-700">
+          <label className="space-y-1 text-sm font-medium text-lp-700">
             <span>ZIP</span>
             <input className={inputClass} name="zip" inputMode="numeric" maxLength={5} defaultValue={filters.zipCode ?? ""} />
           </label>
@@ -96,15 +96,15 @@ export function PeopleFilters({
           <SelectField label="Tag" name="tag" value={filters.tagId} options={options.tags} />
           <SelectField label="Assigned organizer" name="organizer" value={filters.organizerId} options={options.organizers} />
           <SelectField label="Source" name="source" value={filters.sourceSlug} options={options.sources} />
-          <label className="space-y-1 text-sm font-medium text-slate-700">
+          <label className="space-y-1 text-sm font-medium text-lp-700">
             <span>Joined on/after</span>
             <input className={inputClass} type="date" name="joinedAfter" defaultValue={filters.joinedAfter ?? ""} />
           </label>
-          <label className="space-y-1 text-sm font-medium text-slate-700">
+          <label className="space-y-1 text-sm font-medium text-lp-700">
             <span>Joined on/before</span>
             <input className={inputClass} type="date" name="joinedBefore" defaultValue={filters.joinedBefore ?? ""} />
           </label>
-          <label className="space-y-1 text-sm font-medium text-slate-700">
+          <label className="space-y-1 text-sm font-medium text-lp-700">
             <span>No activity for days</span>
             <input className={inputClass} type="number" min={1} max={3650} name="inactiveDays" defaultValue={filters.inactiveDays ?? ""} />
           </label>

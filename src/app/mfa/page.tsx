@@ -36,7 +36,7 @@ export default async function MfaPage({
   return (
     <main className="mx-auto max-w-md p-6 pt-16">
       <h1 className="text-2xl font-semibold">Multi-factor authentication</h1>
-      <p className="mt-2 text-sm text-slate-600">CRM access requires a verified authenticator factor.</p>
+      <p className="mt-2 text-sm text-lp-600">CRM access requires a verified authenticator factor.</p>
       {errorMessage ? (
         <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
           {errorMessage}
@@ -49,14 +49,14 @@ export default async function MfaPage({
             6-digit code
             <input
               autoComplete="one-time-code"
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white p-2"
+              className="mt-1 w-full rounded-md border border-lp-300 bg-white p-2"
               inputMode="numeric"
               name="code"
               pattern="[0-9]{6}"
               required
             />
           </label>
-          <button className="rounded-md bg-slate-900 px-4 py-2 font-medium text-white" type="submit">
+          <button className="rounded-md bg-lp-900 px-4 py-2 font-medium text-white" type="submit">
             Verify
           </button>
         </form>

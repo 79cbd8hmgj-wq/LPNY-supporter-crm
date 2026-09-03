@@ -1,9 +1,43 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-sans: var(--font-public-sans);
+
+  --color-lp-50: #f7f8f8;
+  --color-lp-100: #eceff1;
+  --color-lp-200: #d8dee2;
+  --color-lp-300: #b7c2c9;
+  --color-lp-400: #8f9fa9;
+  --color-lp-500: #71838e;
+  --color-lp-600: #5a6973;
+  --color-lp-700: #49555d;
+  --color-lp-800: #3f484e;
+  --color-lp-900: #273138;
+  --color-lp-950: #14212b;
+
+  --color-lp-navy: #14212b;
+  --color-lp-gold: #f4c430;
+  --color-lp-gold-soft: #fff8dc;
+  --color-lp-gold-border: #e6b820;
+  --color-lp-gold-ink: #674f00;
+
+  --color-lp-success-soft: #ecfdf3;
+  --color-lp-success-border: #a7e8bd;
+  --color-lp-success: #18733b;
+  --color-lp-success-ink: #0d4925;
+  --color-lp-info-soft: #eef6ff;
+  --color-lp-info: #205d91;
+  --color-lp-info-ink: #163f63;
+  --color-lp-danger-soft: #fff1f1;
+  --color-lp-danger-border: #f1b8b8;
+  --color-lp-danger: #b4232c;
+  --color-lp-danger-ink: #72171d;
+}
+
 :root {
   color-scheme: light;
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f7f8f8;
+  --foreground: #14212b;
 }
 
 * {
@@ -14,7 +48,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-public-sans), Arial, Helvetica, sans-serif;
 }
 
 button,
