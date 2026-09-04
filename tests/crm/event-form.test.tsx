@@ -25,6 +25,7 @@ describe("EventForm", () => {
       startsAt: "2026-09-10T18:30",
       endsAt: "2026-09-10T20:00",
       description: "Orientation, phone banking, and pizza.",
+      visibility: "supporters",
     };
 
     fireEvent.change(screen.getByLabelText("Event title"), { target: { value: submitted.title } });
@@ -32,6 +33,7 @@ describe("EventForm", () => {
     fireEvent.change(screen.getByLabelText("Starts"), { target: { value: submitted.startsAt } });
     fireEvent.change(screen.getByLabelText("Ends (optional)"), { target: { value: submitted.endsAt } });
     fireEvent.change(screen.getByLabelText("Description"), { target: { value: submitted.description } });
+    fireEvent.change(screen.getByLabelText("Who can see this event?"), { target: { value: submitted.visibility } });
     fireEvent.submit(screen.getByRole("button", { name: "Create event" }).closest("form")!);
 
     await screen.findByText("The event could not be created.");
@@ -41,6 +43,7 @@ describe("EventForm", () => {
       expect(screen.getByLabelText("Starts")).toHaveValue(submitted.startsAt);
       expect(screen.getByLabelText("Ends (optional)")).toHaveValue(submitted.endsAt);
       expect(screen.getByLabelText("Description")).toHaveValue(submitted.description);
+      expect(screen.getByLabelText("Who can see this event?")).toHaveValue(submitted.visibility);
     });
   });
 });
