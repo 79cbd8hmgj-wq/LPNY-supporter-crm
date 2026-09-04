@@ -58,6 +58,19 @@ When `PLAYWRIGHT_BASE_URL` is set, Playwright does not start the local Next.js s
 
 A deployed staging E2E run must also receive the **staging** values for the three Supabase application variables above because the browser support utilities create disposable staff/test records directly in the staging project.
 
+### GitHub Staging E2E workflow
+
+The repository includes a manual `Staging E2E` workflow. It runs only from `main` and uses the protected GitHub `staging` environment. Configure these environment secrets:
+
+- `STAGING_BASE_URL`
+- `STAGING_SUPABASE_URL`
+- `STAGING_SUPABASE_ANON_KEY`
+- `STAGING_SUPABASE_SERVICE_ROLE_KEY`
+
+The workflow fails before browser execution unless the Supabase URL points to the named **LPNY Supporter CRM Staging** project (`jcuxbutwcmgohyikpvcq.supabase.co`). It then calls `/api/health` and requires the deployed `commitSha` to equal the workflow's exact `GITHUB_SHA`. These checks prevent a stale deployment or a Production database from being mutated by the Staging suite.
+
+The service-role secret belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
+
 Do not point the full E2E suite at Production.
 
 ## Supabase Auth configuration

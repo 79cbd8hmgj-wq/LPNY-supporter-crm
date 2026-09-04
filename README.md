@@ -111,6 +111,8 @@ npm run test:e2e
 
 The test process must also receive the matching Staging Supabase URL, anon key, and service-role key. Do not run the full mutating E2E suite against Production.
 
+For repeatable hosted acceptance, use **Actions → Staging E2E → Run workflow** from `main`. The workflow reads credentials only from the protected GitHub `staging` environment, locks database access to the named Staging Supabase project, and verifies `/api/health` reports the exact workflow commit before running Chromium/WebKit.
+
 ## Environment safety
 
 Production supporter records, production database dumps, production access tokens, and production service-role keys must **never** be used in local or staging environments. Development and automated tests use lookup seeds and synthetic fixtures only.
