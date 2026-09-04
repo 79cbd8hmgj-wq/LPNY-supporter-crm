@@ -67,7 +67,7 @@ select set_config(
 set local role authenticated;
 
 select lives_ok(
-  $$select public.claim_supporter_account()$$,
+  $$$select public.claim_supporter_account()$$$,
   'Verified supporter can claim the matching canonical person record'
 );
 
