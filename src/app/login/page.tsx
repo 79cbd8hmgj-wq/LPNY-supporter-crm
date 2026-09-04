@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { loginAction } from "./actions";
 
 const errorMessages: Record<string, string> = {
   "invalid-input": "Enter a valid email address and password.",
   "invalid-credentials": "The email or password was not accepted.",
   "not-authorized": "This account does not have active CRM access.",
+  "invalid-recovery": "This password recovery link is invalid, expired, or has already been used. Request a new link.",
 };
 
 export default async function LoginPage({
@@ -47,6 +49,9 @@ export default async function LoginPage({
         <button className="w-full rounded-md bg-lp-900 p-2 font-medium text-white" type="submit">
           Sign in
         </button>
+        <p className="text-center text-sm">
+          <Link className="font-medium underline" href="/auth/forgot-password">Forgot password?</Link>
+        </p>
       </form>
     </main>
   );
