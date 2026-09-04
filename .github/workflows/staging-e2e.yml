@@ -1,0 +1,98 @@
+name: Staging E2E
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-deployed-e2e
+  cancel-in-progress: false
+
+jobs:
+  verify-staging:
+    if: github.ref == 'refs/heads/staging'
+    environment: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      PLAYWRIGHT_TARGET_ENV: staging
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Validate protected Staging target
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in PLAYWRIGHT_BASE_URL NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not configured in the GitHub staging environment"
+              exit 1
+            fi
+          done
+
+          node <<'NODE'
+          const expectedSupabaseHost = "jcuxbutwcmgohyikpvcq.supabase.co";
+          const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
+          const app = new URL(process.env.PLAYWRIGHT_BASE_URL);
+
+          if (supabase.protocol !== "https:" || supabase.hostname !== expectedSupabaseHost) {
+            throw new Error("Staging E2E is locked to the named LPNY Supporter CRM Staging Supabase project.");
+          }
+
+          if (app.protocol !== "https:" || ["localhost", "127.0.0.1"].includes(app.hostname)) {
+            throw new Error("Staging E2E requires a deployed HTTPS application origin.");
+          }
+          NODE
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify deployed release identity
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async () => {
+            const healthUrl = new URL("/api/health", process.env.PLAYWRIGHT_BASE_URL);
+            const response = await fetch(healthUrl, {
+              headers: { "cache-control": "no-cache" },
+            });
+
+            if (!response.ok) {
+              throw new Error(`Staging health check failed with HTTP ${response.status}.`);
+            }
+
+            const health = await response.json();
+            if (health.commitSha !== process.env.GITHUB_SHA) {
+              throw new Error(
+                `Staging is not running the workflow commit. Expected ${process.env.GITHUB_SHA}, received ${health.commitSha ?? "null"}.`,
+              );
+            }
+
+            if (health.dataEnvironment !== "staging") {
+              throw new Error(
+                `Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
+              );
+            }
+          })().catch((error) => {
+            console.error(`::error::${error instanceof Error ? error.message : "Staging health verification failed"}`);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Install browser dependencies
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run deployed Staging browser E2E
+        run: npm run test:e2e
