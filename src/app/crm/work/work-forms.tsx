@@ -24,15 +24,15 @@ export function TaskForm({ people }: { people: Array<{ id: string; name: string 
 }
 
 export function EventForm() {
-  const [values, setValues] = useState<EventFormValues>({ title: "", location: "", startsAt: "", endsAt: "", description: "" });
+  const [values, setValues] = useState<EventFormValues>({ title: "", location: "", startsAt: "", endsAt: "", description: "", visibility: "staff" });
   const [result, action, pending] = useActionState(async (previous: WorkItemResult, formData: FormData) => {
     const next = await createEventAction(previous, formData);
     if (next.status === "error" && next.values) setValues(next.values);
-    if (next.status === "success") setValues({ title: "", location: "", startsAt: "", endsAt: "", description: "" });
+    if (next.status === "success") setValues({ title: "", location: "", startsAt: "", endsAt: "", description: "", visibility: "staff" });
     return next;
   }, initial);
 
-  function field(name: keyof EventFormValues) {
+  function field(name: Exclude<keyof EventFormValues, "visibility">) {
     return { value: values[name], onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [name]: event.target.value })) };
   }
 
@@ -42,6 +42,7 @@ export function EventForm() {
     <label className="block text-sm font-medium">Location<input className={`${input} mt-1`} name="location" maxLength={240} {...field("location")} /></label>
     <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-medium">Starts<input className={`${input} mt-1`} type="datetime-local" name="startsAt" required {...field("startsAt")} /></label><label className="block text-sm font-medium">Ends (optional)<input className={`${input} mt-1`} type="datetime-local" name="endsAt" {...field("endsAt")} /></label></div>
     <label className="block text-sm font-medium">Description<textarea className={`${input} mt-1 min-h-24`} name="description" maxLength={2000} {...field("description")} /></label>
+    <label className="block text-sm font-medium">Who can see this event?<select className={`${input} mt-1`} name="visibility" value={values.visibility} onChange={(event) => setValues(current => ({ ...current, visibility: event.target.value as EventFormValues["visibility"] }))}><option value="staff">Staff only</option><option value="supporters">Signed-in supporters</option><option value="public">Public</option></select></label>
     <button className={button} disabled={pending}>{pending ? "Creating…" : "Create event"}</button>
   </form>;
 }
