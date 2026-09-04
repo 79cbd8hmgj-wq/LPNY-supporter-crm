@@ -15,12 +15,12 @@ export function evaluateStaffAccess(input: StaffAccessInput): StaffAccessDecisio
     return { kind: "redirect", to: "/login" };
   }
 
-  if (input.currentAal !== "aal2") {
-    return { kind: "redirect", to: "/mfa" };
-  }
-
   if (!input.staff || input.staff.status !== "active") {
     return { kind: "redirect", to: "/login?error=not-authorized" };
+  }
+
+  if (input.currentAal !== "aal2") {
+    return { kind: "redirect", to: "/mfa" };
   }
 
   return {

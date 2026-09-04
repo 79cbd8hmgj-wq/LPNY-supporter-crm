@@ -28,7 +28,7 @@ export async function createEventAction(_: WorkItemResult, formData: FormData): 
   const input = validateEventInput(submittedFields);
   if (!input) return { status: "error", message: "Enter a title and valid event times. The end must be after the start.", values };
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.rpc("create_crm_event", { p_title: input.title, p_description: input.description, p_location: input.location, p_starts_at: input.startsAt, p_ends_at: input.endsAt });
+  const { error } = await supabase.rpc("create_crm_event", { p_title: input.title, p_description: input.description, p_location: input.location, p_starts_at: input.startsAt, p_ends_at: input.endsAt, p_visibility: input.visibility });
   if (error) return eventRpcErrorResult(error, values);
   revalidatePath("/crm/work");
   return { status: "success", message: "Event created." };

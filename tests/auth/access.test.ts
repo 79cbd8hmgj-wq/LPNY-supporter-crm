@@ -25,11 +25,11 @@ describe("evaluateStaffAccess", () => {
     ).toEqual({ kind: "redirect", to: "/mfa" });
   });
 
-  it("rejects missing staff authorization", () => {
+  it("rejects missing staff authorization before requiring staff MFA", () => {
     expect(
       evaluateStaffAccess({
         authUserId: "auth-1",
-        currentAal: "aal2",
+        currentAal: "aal1",
         staff: null,
       }),
     ).toEqual({ kind: "redirect", to: "/login?error=not-authorized" });

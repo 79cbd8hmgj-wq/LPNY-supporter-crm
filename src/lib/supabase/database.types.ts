@@ -60,6 +60,12 @@ export type Database = {
         Update: { staff_user_id?: string; person_id?: string; created_at?: string };
         Relationships: [];
       };
+      supporter_accounts: {
+        Row: { id: string; auth_user_id: string; person_id: string; created_at: string };
+        Insert: { id?: string; auth_user_id: string; person_id: string; created_at?: string };
+        Update: { id?: string; auth_user_id?: string; person_id?: string; created_at?: string };
+        Relationships: [];
+      };
       admin_audit_events: {
         Row: {
           id: string;
@@ -199,9 +205,9 @@ export type Database = {
         Relationships: [];
       };
       crm_events: {
-        Row: { id: string; title: string; description: string | null; location: string | null; starts_at: string; ends_at: string | null; created_by_staff_user_id: string; created_at: string };
-        Insert: { id?: string; title: string; description?: string | null; location?: string | null; starts_at: string; ends_at?: string | null; created_by_staff_user_id: string; created_at?: string };
-        Update: { id?: string; title?: string; description?: string | null; location?: string | null; starts_at?: string; ends_at?: string | null; created_by_staff_user_id?: string; created_at?: string };
+        Row: { id: string; title: string; description: string | null; location: string | null; starts_at: string; ends_at: string | null; created_by_staff_user_id: string; created_at: string; visibility: Database["public"]["Enums"]["crm_event_visibility"] };
+        Insert: { id?: string; title: string; description?: string | null; location?: string | null; starts_at: string; ends_at?: string | null; created_by_staff_user_id: string; created_at?: string; visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
+        Update: { id?: string; title?: string; description?: string | null; location?: string | null; starts_at?: string; ends_at?: string | null; created_by_staff_user_id?: string; created_at?: string; visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
         Relationships: [];
       };
       activities: {
@@ -363,8 +369,66 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      claim_supporter_account: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      get_my_supporter_profile: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          person_id: string;
+          first_name: string;
+          last_name: string;
+          email: string | null;
+          phone: string | null;
+          zip_code: string | null;
+          county_name: string | null;
+          municipality: string | null;
+          interests: string[];
+          email_opt_in: boolean;
+          sms_opt_in: boolean;
+          phone_opt_in: boolean;
+        }>;
+      };
+      list_supporter_interests: {
+        Args: Record<string, never>;
+        Returns: Array<{ slug: string; name: string; selected: boolean }>;
+      };
+      update_my_supporter_profile: {
+        Args: {
+          p_first_name: string;
+          p_last_name: string;
+          p_phone: string | null;
+          p_normalized_phone: string | null;
+          p_zip_code: string;
+          p_county_id: string | null;
+          p_municipality: string | null;
+          p_interest_slugs: string[];
+          p_email_opt_in: boolean;
+          p_phone_opt_in: boolean;
+        };
+        Returns: undefined;
+      };
+      list_my_upcoming_events: {
+        Args: { p_limit?: number | null };
+        Returns: Array<{
+          id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string | null;
+        }>;
+      };
+      set_crm_event_visibility: {
+        Args: {
+          p_event_id: string;
+          p_visibility: Database["public"]["Enums"]["crm_event_visibility"];
+        };
+        Returns: undefined;
+      };
       create_crm_event: {
-        Args: { p_title: string; p_description?: string | null; p_location?: string | null; p_starts_at: string; p_ends_at?: string | null };
+        Args: { p_title: string; p_description?: string | null; p_location?: string | null; p_starts_at: string; p_ends_at?: string | null; p_visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
         Returns: string;
       };
       create_person_task: {
@@ -491,6 +555,7 @@ export type Database = {
       consent_channel: "email" | "sms" | "phone";
       consent_state: "opted_in" | "opted_out";
       duplicate_status: "open" | "merged" | "kept_separate";
+      crm_event_visibility: "staff" | "supporters" | "public";
     };
     CompositeTypes: { [_ in never]: never };
   };
