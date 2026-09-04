@@ -409,7 +409,7 @@ export type Database = {
         Returns: undefined;
       };
       create_crm_event: {
-        Args: { p_title: string; p_description?: string | null; p_location?: string | null; p_starts_at: string; p_ends_at?: string | null };
+        Args: { p_title: string; p_description?: string | null; p_location?: string | null; p_starts_at: string; p_ends_at?: string | null; p_visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
         Returns: string;
       };
       create_person_task: {
