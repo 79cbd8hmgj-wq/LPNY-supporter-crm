@@ -392,7 +392,7 @@ export type Database = {
       };
       list_supporter_interests: {
         Args: Record<string, never>;
-        Returns: Array<{ slug: string; name: string }>;
+        Returns: Array<{ slug: string; name: string; selected: boolean }>;
       };
       update_my_supporter_profile: {
         Args: {
