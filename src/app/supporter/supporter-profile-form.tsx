@@ -15,6 +15,7 @@ type Profile = {
   municipality: string | null;
   county_name: string | null;
   email_opt_in: boolean;
+  sms_opt_in: boolean;
   phone_opt_in: boolean;
 };
 
@@ -111,7 +112,7 @@ export function SupporterProfileForm({
           <span className="text-sm">Send me LPNY email updates.</span>
         </label>
         <label className="flex items-start gap-3">
-          <input defaultChecked={profile.phone_opt_in} name="phoneOptIn" type="checkbox" />
+          <input defaultChecked={profile.sms_opt_in || profile.phone_opt_in} name="phoneOptIn" type="checkbox" />
           <span className="text-sm">LPNY may call or text me about organizing opportunities.</span>
         </label>
       </fieldset>
