@@ -50,7 +50,10 @@ export default async function SupporterPortalPage() {
       </section>
 
       <section className="rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
-        <h2 className="text-xl font-semibold">My profile</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold">My profile</h2>
+          <Link className="text-sm font-medium underline" href="/supporter/profile/edit">Edit profile</Link>
+        </div>
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
           <div><dt className="text-sm text-lp-500">Name</dt><dd className="font-medium">{profile.first_name} {profile.last_name}</dd></div>
           <div><dt className="text-sm text-lp-500">Email</dt><dd className="font-medium">{profile.email ?? "Not provided"}</dd></div>
@@ -66,7 +69,7 @@ export default async function SupporterPortalPage() {
         <div className="mt-5">
           <h3 className="text-sm font-medium text-lp-700">Communication preferences</h3>
           <p className="mt-1 text-sm text-lp-600">
-            Email {profile.email_opt_in ? "on" : "off"} · Text {profile.sms_opt_in ? "on" : "off"} · Phone {profile.phone_opt_in ? "on" : "off"}
+            Email {profile.email_opt_in ? "on" : "off"} · Call/text {profile.sms_opt_in || profile.phone_opt_in ? "on" : "off"}
           </p>
         </div>
       </section>
