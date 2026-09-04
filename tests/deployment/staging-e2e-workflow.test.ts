@@ -17,12 +17,14 @@ describe("deployed Staging E2E workflow", () => {
     expect(workflow).toContain("PLAYWRIGHT_TARGET_ENV: staging");
   });
 
-  it("requires staging-only secrets and locks the Supabase project", () => {
-    expect(workflow).toContain("secrets.STAGING_BASE_URL");
-    expect(workflow).toContain("secrets.STAGING_SUPABASE_URL");
-    expect(workflow).toContain("secrets.STAGING_SUPABASE_ANON_KEY");
+  it("uses fixed public Staging endpoints and keeps only the service-role credential secret", () => {
+    expect(workflow).toContain("https://lpny-supporter-crm-git-staging-calypso-digital.vercel.app");
+    expect(workflow).toContain("https://jcuxbutwcmgohyikpvcq.supabase.co");
+    expect(workflow).toContain("sb_publishable_");
     expect(workflow).toContain("secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY");
-    expect(workflow).toContain("jcuxbutwcmgohyikpvcq.supabase.co");
+    expect(workflow).not.toContain("secrets.STAGING_BASE_URL");
+    expect(workflow).not.toContain("secrets.STAGING_SUPABASE_URL");
+    expect(workflow).not.toContain("secrets.STAGING_SUPABASE_ANON_KEY");
   });
 
   it("refuses to run against a deployment from a different commit", () => {

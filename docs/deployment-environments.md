@@ -60,16 +60,13 @@ A deployed staging E2E run must also receive the **staging** values for the thre
 
 ### GitHub Staging E2E workflow
 
-The repository includes a protected `Staging E2E` workflow. It runs automatically whenever the dedicated `staging` branch moves and can also be rerun manually with `workflow_dispatch`. Before a release acceptance run, point the `staging` branch at the exact verified `main` commit and wait for Vercel to finish its Preview deployment. Configure these GitHub `staging` environment secrets:
+The repository includes a protected `Staging E2E` workflow. It runs automatically whenever the dedicated `staging` branch moves and can also be rerun manually with `workflow_dispatch`. Before a release acceptance run, point the `staging` branch at the exact verified `main` commit and wait for Vercel to finish its Preview deployment. The public Staging Vercel URL, Supabase URL, and publishable key are versioned directly in the workflow. Configure only this GitHub `staging` environment secret:
 
-- `STAGING_BASE_URL`
-- `STAGING_SUPABASE_URL`
-- `STAGING_SUPABASE_ANON_KEY`
 - `STAGING_SUPABASE_SERVICE_ROLE_KEY`
 
 The workflow fails before browser execution unless the runner credentials point to the named **LPNY Supporter CRM Staging** project (`jcuxbutwcmgohyikpvcq.supabase.co`). A `staging` branch push therefore becomes the repeatable release-acceptance trigger rather than relying on an operator to remember to start the suite. It then calls `/api/health` and requires both the deployed `commitSha` to equal the workflow's exact `GITHUB_SHA` and `dataEnvironment` to equal `staging`. This verifies that the deployed application itself is also connected to Staging before any mutating browser test starts.
 
-The service-role secret belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
+The service-role secret is the only required GitHub Staging secret. It belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
 
 Do not point the full E2E suite at Production.
 

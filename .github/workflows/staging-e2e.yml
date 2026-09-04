@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      PLAYWRIGHT_BASE_URL: https://lpny-supporter-crm-git-staging-calypso-digital.vercel.app
       PLAYWRIGHT_TARGET_ENV: staging
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://jcuxbutwcmgohyikpvcq.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_fFuzM9rofqDxv1oJ3llIhQ_MZF_H-EK
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -38,15 +38,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in PLAYWRIGHT_BASE_URL NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::$name is not configured in the GitHub staging environment"
-              exit 1
-            fi
-          done
+          if [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            echo "::error::STAGING_SUPABASE_SERVICE_ROLE_KEY is not configured in the GitHub staging environment"
+            exit 1
+          fi
 
           node <<'NODE'
           const expectedSupabaseHost = "jcuxbutwcmgohyikpvcq.supabase.co";
+          const expectedAppHost = "lpny-supporter-crm-git-staging-calypso-digital.vercel.app";
           const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
           const app = new URL(process.env.PLAYWRIGHT_BASE_URL);
 
@@ -54,8 +53,8 @@ jobs:
             throw new Error("Staging E2E is locked to the named LPNY Supporter CRM Staging Supabase project.");
           }
 
-          if (app.protocol !== "https:" || ["localhost", "127.0.0.1"].includes(app.hostname)) {
-            throw new Error("Staging E2E requires a deployed HTTPS application origin.");
+          if (app.protocol !== "https:" || app.hostname !== expectedAppHost) {
+            throw new Error("Staging E2E is locked to the Vercel staging branch deployment.");
           }
           NODE
 
