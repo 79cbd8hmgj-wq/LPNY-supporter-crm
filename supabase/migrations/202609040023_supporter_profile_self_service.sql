@@ -5,14 +5,23 @@
 create or replace function public.list_supporter_interests()
 returns table (
   slug text,
-  name text
+  name text,
+  selected boolean
 )
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select i.slug, i.name
+  select
+    i.slug,
+    i.name,
+    exists (
+      select 1
+      from public.person_interests pi
+      where pi.person_id = private.current_supporter_person_id()
+        and pi.interest_id = i.id
+    ) as selected
   from public.interests i
   where private.is_supporter()
     and i.active
