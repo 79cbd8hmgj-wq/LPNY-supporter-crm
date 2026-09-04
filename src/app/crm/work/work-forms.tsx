@@ -42,7 +42,7 @@ export function EventForm() {
     <label className="block text-sm font-medium">Location<input className={`${input} mt-1`} name="location" maxLength={240} {...field("location")} /></label>
     <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-medium">Starts<input className={`${input} mt-1`} type="datetime-local" name="startsAt" required {...field("startsAt")} /></label><label className="block text-sm font-medium">Ends (optional)<input className={`${input} mt-1`} type="datetime-local" name="endsAt" {...field("endsAt")} /></label></div>
     <label className="block text-sm font-medium">Description<textarea className={`${input} mt-1 min-h-24`} name="description" maxLength={2000} {...field("description")} /></label>
-    <label className="block text-sm font-medium">Who can see this event?<select className={`${input} mt-1`} name="visibility" value={values.visibility} onChange={(event) => setValues(current => ({ ...current, visibility: event.target.value as EventFormValues["visibility"] }))}><option value="staff">Staff only</option><option value="supporters">Signed-in supporters</option><option value="public">Public</option></select></label>
+    <label className="block text-sm font-medium">Who can see this event?<select className={`${input} mt-1`} name="visibility" key={values.visibility} defaultValue={values.visibility} onChange={(event) => setValues(current => ({ ...current, visibility: event.target.value as EventFormValues["visibility"] }))}><option value="staff">Staff only</option><option value="supporters">Signed-in supporters</option><option value="public">Public</option></select></label>
     <button className={button} disabled={pending}>{pending ? "Creating…" : "Create event"}</button>
   </form>;
 }
