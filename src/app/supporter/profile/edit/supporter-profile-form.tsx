@@ -147,7 +147,6 @@ export function SupporterProfileForm({
           <input
             className="mt-1 h-5 w-5"
             defaultChecked={profile.phoneOptIn}
-            disabled={!profile.phone && false}
             name="phoneOptIn"
             type="checkbox"
           />
