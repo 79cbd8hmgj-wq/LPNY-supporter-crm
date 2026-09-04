@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import type { EventFormValues, WorkItemResult } from "@/lib/crm/work-items";
 import { createEventAction, createTaskAction } from "./actions";
 
 const initial = { status: "success" as const, message: "" };
 const input = "min-h-11 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-sm text-lp-950";
 const button = "min-h-11 rounded-lg bg-lp-navy px-4 py-2 text-sm font-semibold text-white hover:bg-lp-800 disabled:opacity-60";
 
-function Status({ result }: { result: typeof initial | { status: "success" | "error"; message: string } }) {
+function Status({ result }: { result: WorkItemResult }) {
   return result.message ? <p role="status" className={`rounded-lg p-3 text-sm ${result.status === "error" ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>{result.message}</p> : null;
 }
 
@@ -23,13 +24,24 @@ export function TaskForm({ people }: { people: Array<{ id: string; name: string 
 }
 
 export function EventForm() {
-  const [result, action, pending] = useActionState(createEventAction, initial);
+  const [values, setValues] = useState<EventFormValues>({ title: "", location: "", startsAt: "", endsAt: "", description: "" });
+  const [result, action, pending] = useActionState(async (previous: WorkItemResult, formData: FormData) => {
+    const next = await createEventAction(previous, formData);
+    if (next.status === "error" && next.values) setValues(next.values);
+    if (next.status === "success") setValues({ title: "", location: "", startsAt: "", endsAt: "", description: "" });
+    return next;
+  }, initial);
+
+  function field(name: keyof EventFormValues) {
+    return { value: values[name], onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [name]: event.target.value })) };
+  }
+
   return <form action={action} className="space-y-3 rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
     <h2 className="text-lg font-semibold">Create event</h2><p className="text-sm text-lp-600">Add an event to the shared organizer calendar.</p><Status result={result} />
-    <label className="block text-sm font-medium">Event title<input className={`${input} mt-1`} name="title" maxLength={160} placeholder="Albany volunteer meetup" required /></label>
-    <label className="block text-sm font-medium">Location<input className={`${input} mt-1`} name="location" maxLength={240} /></label>
-    <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-medium">Starts<input className={`${input} mt-1`} type="datetime-local" name="startsAt" required /></label><label className="block text-sm font-medium">Ends (optional)<input className={`${input} mt-1`} type="datetime-local" name="endsAt" /></label></div>
-    <label className="block text-sm font-medium">Description<textarea className={`${input} mt-1 min-h-24`} name="description" maxLength={2000} /></label>
+    <label className="block text-sm font-medium">Event title<input className={`${input} mt-1`} name="title" maxLength={160} placeholder="Albany volunteer meetup" required {...field("title")} /></label>
+    <label className="block text-sm font-medium">Location<input className={`${input} mt-1`} name="location" maxLength={240} {...field("location")} /></label>
+    <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-medium">Starts<input className={`${input} mt-1`} type="datetime-local" name="startsAt" required {...field("startsAt")} /></label><label className="block text-sm font-medium">Ends (optional)<input className={`${input} mt-1`} type="datetime-local" name="endsAt" {...field("endsAt")} /></label></div>
+    <label className="block text-sm font-medium">Description<textarea className={`${input} mt-1 min-h-24`} name="description" maxLength={2000} {...field("description")} /></label>
     <button className={button} disabled={pending}>{pending ? "Creating…" : "Create event"}</button>
   </form>;
 }

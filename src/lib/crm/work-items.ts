@@ -1,6 +1,37 @@
 import { parseNewYorkLocalDateTime } from "./organizer-actions";
 
-export type WorkItemResult = { status: "success" | "error"; message: string };
+export type EventFormValues = {
+  title: string;
+  location: string;
+  startsAt: string;
+  endsAt: string;
+  description: string;
+};
+
+export type WorkItemResult = {
+  status: "success" | "error";
+  message: string;
+  values?: EventFormValues;
+};
+
+function formText(value: unknown, max: number) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").slice(0, max);
+}
+
+function localDateTime(value: unknown) {
+  return typeof value === "string" && parseNewYorkLocalDateTime(value) ? value : "";
+}
+
+export function normalizeEventFormValues(input: Record<string, unknown>): EventFormValues {
+  return {
+    title: formText(input.title, 160),
+    location: formText(input.location, 240),
+    startsAt: localDateTime(input.startsAt),
+    endsAt: localDateTime(input.endsAt),
+    description: formText(input.description, 2000),
+  };
+}
 
 function text(value: unknown, max: number) {
   if (typeof value !== "string") return null;
