@@ -241,6 +241,7 @@ function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourceP
 
 export function DashboardSections({ data }: { data: DashboardData }) {
   const reporting = data.reporting;
+  const recentActivity = data.recentActivity.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -272,8 +273,8 @@ export function DashboardSections({ data }: { data: DashboardData }) {
         <QueueCard title="Unassigned contact queue" count={data.unassignedContacts.length}>
           <PeopleList people={data.unassignedContacts} />
         </QueueCard>
-        <QueueCard title="Recent activity" count={data.recentActivity.length}>
-          <ActivityList activities={data.recentActivity} />
+        <QueueCard title="Recent activity" count={recentActivity.length}>
+          <ActivityList activities={recentActivity} />
         </QueueCard>
       </section>
 
