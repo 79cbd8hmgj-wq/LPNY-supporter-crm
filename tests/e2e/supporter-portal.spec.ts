@@ -87,7 +87,7 @@ test("supporter claims their profile and sees only published supporter events", 
 
     await expect(page).toHaveURL(/\/supporter$/, { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: "Welcome, Portal" })).toBeVisible();
-    await expect(page.getByLabel("Email")).toHaveValue(email);
+    await expect(page.getByRole("textbox", { name: /^Email/ })).toHaveValue(email);
     await expect(page.getByText(visibleTitle)).toBeVisible();
     await expect(page.getByText(privateTitle)).not.toBeVisible();
 
