@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const localBaseURL = "http://localhost:3000";
+const localBaseURL = "http://127.0.0.1:3000";
 const configuredBaseURL = process.env.PLAYWRIGHT_BASE_URL?.trim();
 const targetEnvironment = process.env.PLAYWRIGHT_TARGET_ENV?.trim().toLowerCase();
 const targetsDeployment = Boolean(configuredBaseURL);
@@ -21,6 +21,10 @@ export default defineConfig({
     : {
         command: "npm run dev",
         url: localBaseURL,
+        env: {
+          ...process.env,
+          APP_URL: process.env.APP_URL?.trim() || localBaseURL,
+        },
         reuseExistingServer: !process.env.CI,
       },
   projects: [
