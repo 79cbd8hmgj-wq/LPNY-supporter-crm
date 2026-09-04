@@ -60,14 +60,14 @@ A deployed staging E2E run must also receive the **staging** values for the thre
 
 ### GitHub Staging E2E workflow
 
-The repository includes a manual `Staging E2E` workflow. It runs only from `main` and uses the protected GitHub `staging` environment. Configure these environment secrets:
+The repository includes a manual `Staging E2E` workflow. It runs only from the dedicated `staging` branch and uses the protected GitHub `staging` environment. Before a release acceptance run, point the `staging` branch at the exact verified `main` commit and wait for Vercel to finish its Preview deployment. Configure these environment secrets:
 
 - `STAGING_BASE_URL`
 - `STAGING_SUPABASE_URL`
 - `STAGING_SUPABASE_ANON_KEY`
 - `STAGING_SUPABASE_SERVICE_ROLE_KEY`
 
-The workflow fails before browser execution unless the Supabase URL points to the named **LPNY Supporter CRM Staging** project (`jcuxbutwcmgohyikpvcq.supabase.co`). It then calls `/api/health` and requires the deployed `commitSha` to equal the workflow's exact `GITHUB_SHA`. These checks prevent a stale deployment or a Production database from being mutated by the Staging suite.
+The workflow fails before browser execution unless the runner credentials point to the named **LPNY Supporter CRM Staging** project (`jcuxbutwcmgohyikpvcq.supabase.co`). It then calls `/api/health` and requires both the deployed `commitSha` to equal the workflow's exact `GITHUB_SHA` and `dataEnvironment` to equal `staging`. This verifies that the deployed application itself is also connected to Staging before any mutating browser test starts.
 
 The service-role secret belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
 
@@ -100,7 +100,7 @@ For each deployed environment:
 ### Deployment identity verification
 
 The unauthenticated `GET /api/health` endpoint returns only an `ok` status, the abbreviated
-release, and the validated full `VERCEL_GIT_COMMIT_SHA`. It deliberately does not inspect or
+release, the validated full `VERCEL_GIT_COMMIT_SHA`, and a coarse `dataEnvironment` value (`staging` or `other`). It deliberately does not inspect or
 return any other environment variables, credentials, host details, database state, or user data.
 Responses use `Cache-Control: no-store, max-age=0` so operators and intermediaries do not reuse a
 version response from an earlier deployment.

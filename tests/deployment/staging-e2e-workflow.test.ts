@@ -8,9 +8,9 @@ describe("deployed Staging E2E workflow", () => {
     "utf8",
   );
 
-  it("is manual, main-only, and uses the protected staging environment", () => {
+  it("is manual, staging-branch-only, and uses the protected staging environment", () => {
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).toContain("github.ref == 'refs/heads/main'");
+    expect(workflow).toContain("github.ref == 'refs/heads/staging'");
     expect(workflow).toContain("environment: staging");
     expect(workflow).toContain("PLAYWRIGHT_TARGET_ENV: staging");
   });
@@ -25,6 +25,7 @@ describe("deployed Staging E2E workflow", () => {
 
   it("refuses to run against a deployment from a different commit", () => {
     expect(workflow).toContain("health.commitSha !== process.env.GITHUB_SHA");
+    expect(workflow).toContain('health.dataEnvironment !== "staging"');
     expect(workflow).toContain("npm run test:e2e");
   });
 });

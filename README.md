@@ -111,7 +111,7 @@ npm run test:e2e
 
 The test process must also receive the matching Staging Supabase URL, anon key, and service-role key. Do not run the full mutating E2E suite against Production.
 
-For repeatable hosted acceptance, use **Actions → Staging E2E → Run workflow** from `main`. The workflow reads credentials only from the protected GitHub `staging` environment, locks database access to the named Staging Supabase project, and verifies `/api/health` reports the exact workflow commit before running Chromium/WebKit.
+For repeatable hosted acceptance, point the dedicated `staging` branch at the exact verified `main` release commit, wait for its Vercel Preview deployment, then use **Actions → Staging E2E → Run workflow** from `staging`. The workflow reads credentials only from the protected GitHub `staging` environment and verifies both the exact deployed commit and the app's Staging data target before running Chromium/WebKit.
 
 ## Environment safety
 

@@ -26,6 +26,7 @@ describe("deployment build metadata", () => {
   it("serves only non-sensitive metadata without caching", async () => {
     vi.stubEnv("VERCEL_GIT_COMMIT_SHA", "0123456789abcdef0123456789abcdef01234567");
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "must-not-leak");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://jcuxbutwcmgohyikpvcq.supabase.co");
 
     const response = GET();
 
@@ -35,7 +36,9 @@ describe("deployment build metadata", () => {
       status: "ok",
       release: "0123456",
       commitSha: "0123456789abcdef0123456789abcdef01234567",
+      dataEnvironment: "staging",
     });
     expect(JSON.stringify(body)).not.toContain("must-not-leak");
+    expect(JSON.stringify(body)).not.toContain("jcuxbutwcmgohyikpvcq");
   });
 });

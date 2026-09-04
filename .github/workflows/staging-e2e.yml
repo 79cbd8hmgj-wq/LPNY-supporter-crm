@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   verify-staging:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/staging'
     environment: staging
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -77,6 +77,12 @@ jobs:
             if (health.commitSha !== process.env.GITHUB_SHA) {
               throw new Error(
                 `Staging is not running the workflow commit. Expected ${process.env.GITHUB_SHA}, received ${health.commitSha ?? "null"}.`,
+              );
+            }
+
+            if (health.dataEnvironment !== "staging") {
+              throw new Error(
+                `Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
               );
             }
           })().catch((error) => {

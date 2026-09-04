@@ -72,7 +72,8 @@ Do not launch the CRM with real supporter data until every required item below i
 - [ ] Staging Supabase Auth Site URL/redirect settings are correct.
 - [ ] Staging database migrations are current.
 - [ ] GitHub `staging` environment has `STAGING_BASE_URL`, `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY`, and `STAGING_SUPABASE_SERVICE_ROLE_KEY` configured without Production values.
-- [ ] The manual `Staging E2E` workflow runs from the exact release commit on `main` and its `/api/health` commit check passes.
+- [ ] The dedicated `staging` branch points at the exact verified release commit from `main` and Vercel Preview deployment is complete.
+- [ ] The manual `Staging E2E` workflow runs from that `staging` branch and `/api/health` reports both the exact release SHA and `dataEnvironment: staging`.
 - [ ] Full deployed browser E2E passes with `PLAYWRIGHT_BASE_URL=<staging origin>` and `PLAYWRIGHT_TARGET_ENV=staging`.
 - [ ] Chromium passes against deployed Staging.
 - [ ] Mobile WebKit passes against deployed Staging.
@@ -106,7 +107,7 @@ Do not launch the CRM with real supporter data until every required item below i
 After deployment, perform only non-mutating or explicitly controlled checks:
 
 - [ ] Public home/Get Involved page loads.
-- [ ] Public `/api/health` reports only `status`, `release`, and `commitSha`; the SHA matches the approved Production release.
+- [ ] Public `/api/health` reports only `status`, `release`, `commitSha`, and coarse `dataEnvironment`; the SHA matches the approved Production release.
 - [ ] Security headers are present on live responses.
 - [ ] `/crm` redirects unauthenticated users to login.
 - [ ] One authorized Production Admin can sign in and satisfy MFA.
