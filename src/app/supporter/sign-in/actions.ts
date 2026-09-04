@@ -52,8 +52,30 @@ export async function requestSupporterSignInAction(
     .is("archived_at", null)
     .maybeSingle();
 
-  // Do not reveal whether a supporter record exists for an email address.
+  // Do not reveal whether a supporter record exists or is portal-eligible.
   if (personError || !person) {
+    return { status: "success", message: supporterSignInGenericMessage };
+  }
+
+  const { data: supporterRelationshipType, error: supporterRelationshipTypeError } = await admin
+    .from("relationship_types")
+    .select("id")
+    .eq("slug", "supporter")
+    .eq("active", true)
+    .maybeSingle();
+
+  if (supporterRelationshipTypeError || !supporterRelationshipType) {
+    return { status: "success", message: supporterSignInGenericMessage };
+  }
+
+  const { data: supporterRelationship, error: supporterRelationshipError } = await admin
+    .from("person_relationships")
+    .select("person_id")
+    .eq("person_id", person.id)
+    .eq("relationship_type_id", supporterRelationshipType.id)
+    .maybeSingle();
+
+  if (supporterRelationshipError || !supporterRelationship) {
     return { status: "success", message: supporterSignInGenericMessage };
   }
 

@@ -1,6 +1,6 @@
 begin;
 
-select plan(15);
+select plan(18);
 
 select has_table('public', 'supporter_accounts', 'supporter_accounts exists');
 select has_function('public', 'claim_supporter_account', array[]::text[], 'supporter claim RPC exists');
@@ -12,7 +12,8 @@ insert into auth.users (
 ) values
 ('00000000-0000-0000-0000-000000000701','00000000-0000-0000-0000-000000000701','authenticated','authenticated','supporter-a@example.test','',now(),'{}','{}',now(),now()),
 ('00000000-0000-0000-0000-000000000701','00000000-0000-0000-0000-000000000702','authenticated','authenticated','attacker@example.test','',now(),'{}','{}',now(),now()),
-('00000000-0000-0000-0000-000000000701','00000000-0000-0000-0000-000000000703','authenticated','authenticated','unknown@example.test','',now(),'{}','{}',now(),now());
+('00000000-0000-0000-0000-000000000701','00000000-0000-0000-0000-000000000703','authenticated','authenticated','unknown@example.test','',now(),'{}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000701','00000000-0000-0000-0000-000000000704','authenticated','authenticated','contact-only@example.test','',now(),'{}','{}',now(),now());
 
 insert into public.people (
   id, first_name, last_name, email, normalized_email, zip_code, county_id, municipality
@@ -25,7 +26,24 @@ insert into public.people (
   '12207',
   (select id from public.counties where name = 'Albany' limit 1),
   'Albany'
+), (
+  '20000000-0000-0000-0000-000000000702',
+  'Contact',
+  'Only',
+  'contact-only@example.test',
+  'contact-only@example.test',
+  '12207',
+  (select id from public.counties where name = 'Albany' limit 1),
+  'Albany'
 );
+
+insert into public.person_relationships (person_id, relationship_type_id)
+select
+  '20000000-0000-0000-0000-000000000701',
+  id
+from public.relationship_types
+where slug = 'supporter'
+  and active = true;
 
 insert into public.person_interests (person_id, interest_id)
 select
@@ -138,6 +156,52 @@ select throws_ok(
   'P0002',
   null,
   'An authenticated email without a matching supporter record cannot claim access'
+);
+
+reset role;
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-000000000704","role":"authenticated","email":"contact-only@example.test"}',
+  true
+);
+set local role authenticated;
+
+select throws_ok(
+  $$select public.claim_supporter_account()$$,
+  'P0002',
+  null,
+  'An authenticated CRM contact without the Supporter relationship cannot claim portal access'
+);
+
+reset role;
+
+delete from public.person_relationships
+where person_id = '20000000-0000-0000-0000-000000000701'
+  and relationship_type_id = (
+    select id
+    from public.relationship_types
+    where slug = 'supporter'
+    limit 1
+  );
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-000000000701","role":"authenticated","email":"supporter-a@example.test"}',
+  true
+);
+set local role authenticated;
+
+select is(
+  (select count(*) from public.supporter_accounts)::bigint,
+  0::bigint,
+  'Removing the Supporter relationship revokes visibility of the existing portal mapping'
+);
+
+select is(
+  (select count(*) from public.get_my_supporter_profile())::bigint,
+  0::bigint,
+  'Removing the Supporter relationship revokes supporter profile access'
 );
 
 reset role;
