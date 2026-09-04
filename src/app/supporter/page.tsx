@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { requireSupporter } from "@/lib/auth/require-supporter";
+import { supporterSignOutAction } from "./actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function formatEventTime(value: string) {
@@ -12,6 +15,7 @@ function formatEventTime(value: string) {
 }
 
 export default async function SupporterPortalPage() {
+  await requireSupporter();
   const supabase = await createServerSupabaseClient();
   const [{ data: profiles, error: profileError }, { data: events, error: eventsError }] = await Promise.all([
     supabase.rpc("get_my_supporter_profile"),
@@ -25,7 +29,18 @@ export default async function SupporterPortalPage() {
   const profile = profiles[0];
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-lp-50 text-lp-950">
+      <header className="border-b-4 border-lp-gold bg-lp-navy text-white">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+          <Link className="font-semibold tracking-tight text-white" href="/supporter">
+            <span className="text-lp-gold">LPNY</span> Supporter Portal
+          </Link>
+          <form action={supporterSignOutAction}>
+            <button className="text-sm font-medium text-white underline" type="submit">Sign out</button>
+          </form>
+        </div>
+      </header>
+      <main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <section>
         <p className="text-sm font-semibold uppercase tracking-wide text-lp-500">Supporter portal</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
@@ -75,6 +90,7 @@ export default async function SupporterPortalPage() {
           <p className="mt-3 text-sm text-lp-600">No supporter events are published yet.</p>
         )}
       </section>
+      </main>
     </div>
   );
 }
