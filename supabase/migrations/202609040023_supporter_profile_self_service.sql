@@ -149,11 +149,12 @@ begin
   limit 1;
 
   if v_email_state is distinct from v_email_target then
-    insert into public.consent_events (person_id, channel, state, metadata)
+    insert into public.consent_events (person_id, channel, state, effective_at, metadata)
     values (
       v_person_id,
       'email',
       v_email_target,
+      clock_timestamp(),
       jsonb_build_object('source', 'supporter_portal')
     );
   end if;
@@ -167,11 +168,12 @@ begin
   limit 1;
 
   if v_sms_state is distinct from v_phone_target then
-    insert into public.consent_events (person_id, channel, state, metadata)
+    insert into public.consent_events (person_id, channel, state, effective_at, metadata)
     values (
       v_person_id,
       'sms',
       v_phone_target,
+      clock_timestamp(),
       jsonb_build_object('source', 'supporter_portal')
     );
   end if;
@@ -185,11 +187,12 @@ begin
   limit 1;
 
   if v_phone_state is distinct from v_phone_target then
-    insert into public.consent_events (person_id, channel, state, metadata)
+    insert into public.consent_events (person_id, channel, state, effective_at, metadata)
     values (
       v_person_id,
       'phone',
       v_phone_target,
+      clock_timestamp(),
       jsonb_build_object('source', 'supporter_portal')
     );
   end if;
