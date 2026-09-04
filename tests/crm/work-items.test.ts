@@ -16,7 +16,7 @@ describe("work item validation", () => {
   });
 
   it("accepts events and requires the end to follow the start", () => {
-    expect(validateEventInput({ title: "Volunteer meetup", location: "Albany", description: "Planning", startsAt: "2026-09-04T18:00", endsAt: "2026-09-04T19:00" })).toMatchObject({ title: "Volunteer meetup", location: "Albany" });
+    expect(validateEventInput({ title: "Volunteer meetup", location: "Albany", description: "Planning", startsAt: "2026-09-04T18:00", endsAt: "2026-09-04T19:00", visibility: "supporters" })).toMatchObject({ title: "Volunteer meetup", location: "Albany", visibility: "supporters" });
     expect(validateEventInput({ title: "Volunteer meetup", location: "", description: "", startsAt: "2026-09-04T19:00", endsAt: "2026-09-04T18:00" })).toBeNull();
   });
 
@@ -33,6 +33,7 @@ describe("work item validation", () => {
       startsAt: "2026-09-04T18:00",
       endsAt: "",
       description: "Planning notes",
+      visibility: "staff",
     });
   });
 });
