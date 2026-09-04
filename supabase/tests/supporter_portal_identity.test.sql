@@ -168,7 +168,7 @@ select set_config(
 set local role authenticated;
 
 select throws_ok(
-  $select public.claim_supporter_account()$,
+  $$select public.claim_supporter_account()$$,
   'P0002',
   null,
   'An authenticated CRM contact without the Supporter relationship cannot claim portal access'
