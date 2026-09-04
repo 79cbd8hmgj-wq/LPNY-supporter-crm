@@ -25,6 +25,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
+Vercel also supplies `VERCEL_GIT_COMMIT_SHA` at build/runtime. The application treats only a
+valid 40-character Git SHA from that variable as public build metadata; it is not an application
+secret and does not need to be copied into local environment files. The CRM footer displays its
+first seven characters (or `local` when no valid SHA is available).
+
 Rules:
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` must point to the same environment's Supabase project.
@@ -78,6 +83,26 @@ For each deployed environment:
 3. Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the client or to preview environments that are not explicitly trusted.
 4. Require successful repository CI before promoting a commit.
 5. Record the deployed commit SHA in the launch/change record.
+
+### Deployment identity verification
+
+The unauthenticated `GET /api/health` endpoint returns only an `ok` status, the abbreviated
+release, and the validated full `VERCEL_GIT_COMMIT_SHA`. It deliberately does not inspect or
+return any other environment variables, credentials, host details, database state, or user data.
+Responses use `Cache-Control: no-store, max-age=0` so operators and intermediaries do not reuse a
+version response from an earlier deployment.
+
+After deploying, compare the endpoint's `commitSha` with the exact 40-character SHA approved in
+repository CI:
+
+```bash
+curl --fail --silent --show-error https://<deployment-host>/api/health
+```
+
+The full SHA must match exactly, and `release` must equal its first seven characters. A `null`
+`commitSha` or `local` release is expected for local development but is a deployment configuration
+failure in Staging or Production. The signed-in CRM footer provides a quick visual cross-check of
+the same abbreviated release.
 
 Staging must be reachable by the browser test runner before deployed E2E is considered verified.
 

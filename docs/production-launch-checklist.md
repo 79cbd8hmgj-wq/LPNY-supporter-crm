@@ -7,6 +7,8 @@ Do not launch the CRM with real supporter data until every required item below i
 - [ ] Phase 6 pull request is fully reviewed/accepted and no longer draft.
 - [ ] Repository CI is green on the exact release head: lint, typecheck, unit tests, production build, dependency audit, migrations, database/RLS tests, Chromium E2E, and mobile WebKit E2E.
 - [ ] Production deployment uses the exact verified commit SHA.
+- [ ] `GET /api/health` returns that exact 40-character SHA in `commitSha`, its first seven characters in `release`, and `Cache-Control: no-store, max-age=0`.
+- [ ] The signed-in CRM footer's abbreviated release matches the first seven characters of the verified commit SHA.
 - [ ] All database changes are committed versioned migrations.
 - [ ] No uncommitted/dashboard-only database configuration is required for core behavior.
 
@@ -102,6 +104,7 @@ Do not launch the CRM with real supporter data until every required item below i
 After deployment, perform only non-mutating or explicitly controlled checks:
 
 - [ ] Public home/Get Involved page loads.
+- [ ] Public `/api/health` reports only `status`, `release`, and `commitSha`; the SHA matches the approved Production release.
 - [ ] Security headers are present on live responses.
 - [ ] `/crm` redirects unauthenticated users to login.
 - [ ] One authorized Production Admin can sign in and satisfy MFA.

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { requireStaffUser } from "@/lib/auth/require-staff";
+import { getBuildMetadata } from "@/lib/deployment/build-metadata";
 import { CrmNavigation } from "./crm-navigation";
 
 export default async function CrmLayout({ children }: { children: ReactNode }) {
   const staff = await requireStaffUser();
+  const build = getBuildMetadata();
 
   return (
     <div className="min-h-screen bg-lp-50 text-lp-950">
@@ -23,6 +25,9 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl p-4 sm:p-6">{children}</main>
+      <footer className="mx-auto max-w-7xl px-4 pb-4 text-right text-xs text-lp-600 sm:px-6">
+        Release <span className="font-mono">{build.release}</span>
+      </footer>
     </div>
   );
 }
