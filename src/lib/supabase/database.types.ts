@@ -205,9 +205,9 @@ export type Database = {
         Relationships: [];
       };
       crm_events: {
-        Row: { id: string; title: string; description: string | null; location: string | null; starts_at: string; ends_at: string | null; created_by_staff_user_id: string; created_at: string };
-        Insert: { id?: string; title: string; description?: string | null; location?: string | null; starts_at: string; ends_at?: string | null; created_by_staff_user_id: string; created_at?: string };
-        Update: { id?: string; title?: string; description?: string | null; location?: string | null; starts_at?: string; ends_at?: string | null; created_by_staff_user_id?: string; created_at?: string };
+        Row: { id: string; title: string; description: string | null; location: string | null; starts_at: string; ends_at: string | null; created_by_staff_user_id: string; created_at: string; visibility: Database["public"]["Enums"]["crm_event_visibility"] };
+        Insert: { id?: string; title: string; description?: string | null; location?: string | null; starts_at: string; ends_at?: string | null; created_by_staff_user_id: string; created_at?: string; visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
+        Update: { id?: string; title?: string; description?: string | null; location?: string | null; starts_at?: string; ends_at?: string | null; created_by_staff_user_id?: string; created_at?: string; visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
         Relationships: [];
       };
       activities: {
@@ -390,6 +390,24 @@ export type Database = {
           phone_opt_in: boolean;
         }>;
       };
+      list_my_upcoming_events: {
+        Args: { p_limit?: number | null };
+        Returns: Array<{
+          id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string | null;
+        }>;
+      };
+      set_crm_event_visibility: {
+        Args: {
+          p_event_id: string;
+          p_visibility: Database["public"]["Enums"]["crm_event_visibility"];
+        };
+        Returns: undefined;
+      };
       create_crm_event: {
         Args: { p_title: string; p_description?: string | null; p_location?: string | null; p_starts_at: string; p_ends_at?: string | null };
         Returns: string;
@@ -518,6 +536,7 @@ export type Database = {
       consent_channel: "email" | "sms" | "phone";
       consent_state: "opted_in" | "opted_out";
       duplicate_status: "open" | "merged" | "kept_separate";
+      crm_event_visibility: "staff" | "supporters" | "public";
     };
     CompositeTypes: { [_ in never]: never };
   };
