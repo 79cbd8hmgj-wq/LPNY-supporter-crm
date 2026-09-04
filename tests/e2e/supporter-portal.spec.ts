@@ -91,6 +91,44 @@ test("supporter claims their profile and sees only published supporter events", 
     await expect(page.getByText(visibleTitle)).toBeVisible();
     await expect(page.getByText(privateTitle)).not.toBeVisible();
 
+    await page.getByLabel("First name").fill("Portal Updated");
+    await page.getByLabel("Phone").fill("(315) 555-0199");
+    await page.getByLabel("ZIP code").fill("13202");
+    await page.getByLabel("Events", { exact: true }).check();
+    await page.getByLabel("Send me LPNY email updates.").check();
+    await page
+      .getByLabel("LPNY may call or text me about organizing opportunities.")
+      .check();
+    await page.getByRole("button", { name: "Save profile" }).click();
+    await expect(page.getByText("Your profile has been updated.")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Welcome, Portal Updated" })).toBeVisible();
+    await expect(page.getByLabel("Phone")).toHaveValue("(315) 555-0199");
+    await expect(page.getByLabel("ZIP code")).toHaveValue("13202");
+    await expect(page.getByLabel("Events", { exact: true })).toBeChecked();
+
+    const { data: updatedPerson, error: updatedPersonError } = await admin
+      .from("people")
+      .select("first_name, normalized_phone, zip_code, municipality, engagement_stage")
+      .eq("id", person!.id)
+      .single();
+    expect(updatedPersonError).toBeNull();
+    expect(updatedPerson).toMatchObject({
+      first_name: "Portal Updated",
+      normalized_phone: "3155550199",
+      zip_code: "13202",
+      municipality: "Syracuse",
+      engagement_stage: "new",
+    });
+
+    const { data: selectedInterests, error: selectedInterestsError } = await admin
+      .from("person_interests")
+      .select("interests!inner(slug)")
+      .eq("person_id", person!.id);
+    expect(selectedInterestsError).toBeNull();
+    expect(JSON.stringify(selectedInterests)).toContain("events");
+
     const { data: mapping, error: mappingError } = await admin
       .from("supporter_accounts")
       .select("person_id")
