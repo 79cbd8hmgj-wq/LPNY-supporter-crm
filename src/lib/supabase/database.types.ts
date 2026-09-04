@@ -390,6 +390,25 @@ export type Database = {
           phone_opt_in: boolean;
         }>;
       };
+      list_supporter_interests: {
+        Args: Record<string, never>;
+        Returns: Array<{ slug: string; name: string }>;
+      };
+      update_my_supporter_profile: {
+        Args: {
+          p_first_name: string;
+          p_last_name: string;
+          p_phone: string | null;
+          p_normalized_phone: string | null;
+          p_zip_code: string;
+          p_county_id: string | null;
+          p_municipality: string | null;
+          p_interest_slugs: string[];
+          p_email_opt_in: boolean;
+          p_phone_opt_in: boolean;
+        };
+        Returns: undefined;
+      };
       list_my_upcoming_events: {
         Args: { p_limit?: number | null };
         Returns: Array<{
