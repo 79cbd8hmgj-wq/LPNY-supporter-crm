@@ -10,11 +10,6 @@ export type SupporterProfileActionState = {
   message: string;
 };
 
-export const supporterProfileInitialState: SupporterProfileActionState = {
-  status: "idle",
-  message: "",
-};
-
 function checked(formData: FormData, name: string) {
   return formData.get(name) === "on";
 }
