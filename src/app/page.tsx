@@ -12,6 +12,9 @@ export default function HomePage() {
         <Link className="inline-flex min-h-11 items-center rounded-md bg-lp-900 px-4 py-2 font-medium text-white" href="/get-involved">
           Get involved
         </Link>
+        <Link className="inline-flex min-h-11 items-center rounded-md border border-lp-300 px-4 py-2 font-medium text-lp-800" href="/supporter/sign-in">
+          Supporter sign in
+        </Link>
         <Link className="inline-flex min-h-11 items-center rounded-md border border-lp-300 px-4 py-2 font-medium text-lp-800" href="/login">
           Staff sign in
         </Link>
