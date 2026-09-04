@@ -71,7 +71,7 @@ Do not launch the CRM with real supporter data until every required item below i
 - [ ] Staging uses synthetic/non-production data.
 - [ ] Staging Supabase Auth Site URL/redirect settings are correct.
 - [ ] Staging database migrations are current.
-- [ ] GitHub `staging` environment has `STAGING_BASE_URL`, `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY`, and `STAGING_SUPABASE_SERVICE_ROLE_KEY` configured without Production values.
+- [ ] GitHub `staging` environment has `STAGING_SUPABASE_SERVICE_ROLE_KEY` configured with the Staging project value; the public Staging app URL, Supabase URL, and publishable key remain versioned in the workflow.
 - [ ] The dedicated `staging` branch points at the exact verified release commit from `main` and Vercel Preview deployment is complete.
 - [ ] Moving `staging` to the exact release commit automatically triggers `Staging E2E`; `/api/health` reports both the exact release SHA and `dataEnvironment: staging`.
 - [ ] Full deployed browser E2E passes with `PLAYWRIGHT_BASE_URL=<staging origin>` and `PLAYWRIGHT_TARGET_ENV=staging`.

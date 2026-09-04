@@ -69,7 +69,7 @@ The repository includes a protected `Staging E2E` workflow. It runs automaticall
 
 The workflow fails before browser execution unless the runner credentials point to the named **LPNY Supporter CRM Staging** project (`jcuxbutwcmgohyikpvcq.supabase.co`). A `staging` branch push therefore becomes the repeatable release-acceptance trigger rather than relying on an operator to remember to start the suite. It then calls `/api/health` and requires both the deployed `commitSha` to equal the workflow's exact `GITHUB_SHA` and `dataEnvironment` to equal `staging`. This verifies that the deployed application itself is also connected to Staging before any mutating browser test starts.
 
-The service-role secret belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
+The service-role secret is the only required GitHub Staging secret. It belongs only in the protected GitHub `staging` environment. Do not copy it into repository files, workflow inputs, logs, or chat.
 
 Do not point the full E2E suite at Production.
 

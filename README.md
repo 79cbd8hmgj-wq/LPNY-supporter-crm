@@ -109,7 +109,7 @@ PLAYWRIGHT_TARGET_ENV=staging \
 npm run test:e2e
 ```
 
-The test process must also receive the matching Staging Supabase URL, anon key, and service-role key. Do not run the full mutating E2E suite against Production.
+The hosted workflow versions the public Staging app URL, Supabase URL, and publishable browser key. Only the Staging service-role key is stored as the protected GitHub environment secret `STAGING_SUPABASE_SERVICE_ROLE_KEY`. Do not run the full mutating E2E suite against Production.
 
 For repeatable hosted acceptance, point the dedicated `staging` branch at the exact verified `main` release commit. That branch push automatically starts `Staging E2E`; `workflow_dispatch` remains available for reruns. The workflow reads credentials only from the protected GitHub `staging` environment and verifies both the exact deployed commit and the app's Staging data target before running Chromium/WebKit.
 
