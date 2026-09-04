@@ -12,6 +12,7 @@ import {
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getStaffInvitationErrorMessage } from "@/lib/admin/staff-invitation-error";
+import { getServerEnv } from "@/lib/env";
 
 export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffActionResult> {
   await requireStaffRole(["admin"]);
@@ -23,6 +24,7 @@ export async function inviteStaffMember(input: StaffInviteInput): Promise<StaffA
   const admin = createAdminSupabaseClient();
   const invitation = await admin.auth.admin.inviteUserByEmail(parsed.data.email, {
     data: { display_name: parsed.data.displayName },
+    redirectTo: new URL("/auth/confirm", getServerEnv().APP_URL).toString(),
   });
 
   if (invitation.error || !invitation.data.user) {
