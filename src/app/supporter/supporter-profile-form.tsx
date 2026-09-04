@@ -2,9 +2,14 @@
 
 import { useActionState } from "react";
 import {
-  supporterProfileInitialState,
   updateSupporterProfileAction,
+  type SupporterProfileActionState,
 } from "./profile-actions";
+
+const supporterProfileInitialState: SupporterProfileActionState = {
+  status: "idle",
+  message: "",
+};
 
 type Profile = {
   first_name: string;
