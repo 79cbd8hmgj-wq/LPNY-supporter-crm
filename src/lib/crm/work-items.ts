@@ -6,6 +6,7 @@ export type EventFormValues = {
   startsAt: string;
   endsAt: string;
   description: string;
+  visibility: "staff" | "supporters" | "public";
 };
 
 export type WorkItemResult = {
@@ -30,6 +31,7 @@ export function normalizeEventFormValues(input: Record<string, unknown>): EventF
     startsAt: localDateTime(input.startsAt),
     endsAt: localDateTime(input.endsAt),
     description: formText(input.description, 2000),
+    visibility: input.visibility === "supporters" || input.visibility === "public" ? input.visibility : "staff",
   };
 }
 
@@ -57,5 +59,9 @@ export function validateEventInput(input: Record<string, unknown>) {
   const endsAt = input.endsAt === "" ? null : typeof input.endsAt === "string" ? parseNewYorkLocalDateTime(input.endsAt) : null;
   if (!title || !startsAt || (input.location !== "" && !location) || (input.description !== "" && !description) || (input.endsAt !== "" && !endsAt)) return null;
   if (endsAt && new Date(endsAt) <= new Date(startsAt)) return null;
-  return { title, location, description, startsAt, endsAt };
+  const visibility =
+    input.visibility === "staff" || input.visibility === "supporters" || input.visibility === "public"
+      ? input.visibility
+      : "staff";
+  return { title, location, description, startsAt, endsAt, visibility };
 }
