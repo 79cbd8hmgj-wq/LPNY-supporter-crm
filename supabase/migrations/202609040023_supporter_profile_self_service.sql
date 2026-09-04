@@ -76,6 +76,10 @@ begin
       nullif(trim(coalesce(p_phone, '')), '') is null
       and p_normalized_phone is not null
     )
+    or (
+      coalesce(p_phone_opt_in, false)
+      and nullif(trim(coalesce(p_phone, '')), '') is null
+    )
   then
     raise exception 'invalid supporter profile' using errcode = '22023';
   end if;
