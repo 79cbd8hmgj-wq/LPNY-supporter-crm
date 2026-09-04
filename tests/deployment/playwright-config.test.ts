@@ -16,8 +16,11 @@ describe("Playwright deployment targeting", () => {
     vi.stubEnv("PLAYWRIGHT_TARGET_ENV", "");
 
     const config = await loadConfig();
-    expect(config.use).toMatchObject({ baseURL: "http://localhost:3000" });
-    expect(config.webServer).toBeDefined();
+    expect(config.use).toMatchObject({ baseURL: "http://127.0.0.1:3000" });
+    expect(config.webServer).toMatchObject({
+      url: "http://127.0.0.1:3000",
+      env: expect.objectContaining({ APP_URL: "http://127.0.0.1:3000" }),
+    });
   });
 
   it("targets an explicit staging deployment without starting a local server", async () => {
