@@ -31,7 +31,10 @@ test("an invited staff member sets an initial password and enrolls TOTP", async 
   expect(staffError).toBeNull();
 
   try {
-    await page.goto(properties.action_link);
+    const confirmUrl = new URL("/auth/confirm", baseURL);
+    confirmUrl.searchParams.set("token_hash", properties.hashed_token);
+    confirmUrl.searchParams.set("type", "invite");
+    await page.goto(confirmUrl.toString());
     await expect(page).toHaveURL(/\/auth\/setup-password$/);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByLabel("Confirm password").fill(password);

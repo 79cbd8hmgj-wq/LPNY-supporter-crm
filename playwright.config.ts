@@ -21,6 +21,10 @@ export default defineConfig({
     : {
         command: "npm run dev",
         url: localBaseURL,
+        env: {
+          ...process.env,
+          APP_URL: process.env.APP_URL?.trim() || localBaseURL,
+        },
         reuseExistingServer: !process.env.CI,
       },
   projects: [

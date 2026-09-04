@@ -17,7 +17,10 @@ describe("Playwright deployment targeting", () => {
 
     const config = await loadConfig();
     expect(config.use).toMatchObject({ baseURL: "http://localhost:3000" });
-    expect(config.webServer).toBeDefined();
+    expect(config.webServer).toMatchObject({
+      url: "http://localhost:3000",
+      env: expect.objectContaining({ APP_URL: "http://localhost:3000" }),
+    });
   });
 
   it("targets an explicit staging deployment without starting a local server", async () => {

@@ -95,6 +95,20 @@ const STAGE_LABELS: Record<EngagementStage, string> = {
 };
 
 const REPORTING_QUERY_PAGE_SIZE = 500;
+const DASHBOARD_RECENT_ACTIVITY_LIMIT = 5;
+const DASHBOARD_RECENT_ACTIVITY_TYPES: string[] = [
+  "contacted",
+  "unable_to_reach",
+  "task_completed",
+  "task_created",
+  "follow_up_created",
+  "stage_changed",
+  "note_added",
+  "reassigned",
+  "do_not_contact_changed",
+  "archived",
+  "duplicate_merged",
+];
 
 function increment(map: Map<string, number>, key: string) {
   map.set(key, (map.get(key) ?? 0) + 1);
@@ -348,8 +362,9 @@ export async function loadDashboardData(
     supabase
       .from("activities")
       .select("id, person_id, activity_type, occurred_at")
+      .in("activity_type", DASHBOARD_RECENT_ACTIVITY_TYPES)
       .order("occurred_at", { ascending: false })
-      .limit(10),
+      .limit(DASHBOARD_RECENT_ACTIVITY_LIMIT),
   ]);
 
   const counties = assertQuery(countiesResult.data, countiesResult.error, "dashboard county counts");

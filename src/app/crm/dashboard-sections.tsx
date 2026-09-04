@@ -19,8 +19,22 @@ function formatStage(stage: DashboardPerson["engagementStage"]) {
   return stage.replaceAll("_", " ");
 }
 
+const ACTIVITY_LABELS: Record<string, string> = {
+  contacted: "Contacted",
+  unable_to_reach: "Unable to reach",
+  task_completed: "Task completed",
+  task_created: "Task created",
+  follow_up_created: "Follow-up scheduled",
+  stage_changed: "Stage changed",
+  note_added: "Note added",
+  reassigned: "Reassigned",
+  do_not_contact_changed: "Do-not-contact updated",
+  archived: "Archived",
+  duplicate_merged: "Duplicate merged",
+};
+
 function formatActivityType(activityType: string) {
-  return activityType.replaceAll("_", " ");
+  return ACTIVITY_LABELS[activityType] ?? activityType.replaceAll("_", " ");
 }
 
 function QueueCard({
@@ -145,13 +159,13 @@ function ActivityList({ activities }: { activities: DashboardActivity[] }) {
 
   return (
     <ul className="divide-y divide-lp-100">
-      {activities.map((activity) => (
-        <li key={activity.id} className="py-3 first:pt-0 last:pb-0">
-          <div><ProfileLink personId={activity.personId}>{activity.personName}</ProfileLink></div>
-          <div className="mt-0.5 text-sm capitalize text-lp-600">
-            {formatActivityType(activity.activityType)}
+      {activities.slice(0, 5).map((activity) => (
+        <li key={activity.id} className="py-2.5 first:pt-0 last:pb-0">
+          <div className="text-sm leading-5">
+            <ProfileLink personId={activity.personId}>{activity.personName}</ProfileLink>
+            <span className="text-lp-600"> · {formatActivityType(activity.activityType)}</span>
           </div>
-          <div className="mt-1 text-xs text-lp-500">{formatDateTime(activity.occurredAt)}</div>
+          <div className="mt-0.5 text-xs text-lp-500">{formatDateTime(activity.occurredAt)}</div>
         </li>
       ))}
     </ul>
@@ -227,6 +241,7 @@ function SourcePerformance({ rows }: { rows: DashboardData["reporting"]["sourceP
 
 export function DashboardSections({ data }: { data: DashboardData }) {
   const reporting = data.reporting;
+  const recentActivity = data.recentActivity.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -258,8 +273,8 @@ export function DashboardSections({ data }: { data: DashboardData }) {
         <QueueCard title="Unassigned contact queue" count={data.unassignedContacts.length}>
           <PeopleList people={data.unassignedContacts} />
         </QueueCard>
-        <QueueCard title="Recent activity" count={data.recentActivity.length}>
-          <ActivityList activities={data.recentActivity} />
+        <QueueCard title="Recent activity" count={recentActivity.length}>
+          <ActivityList activities={recentActivity} />
         </QueueCard>
       </section>
 
