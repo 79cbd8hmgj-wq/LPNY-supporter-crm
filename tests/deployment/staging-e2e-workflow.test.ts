@@ -8,7 +8,9 @@ describe("deployed Staging E2E workflow", () => {
     "utf8",
   );
 
-  it("is manual, staging-branch-only, and uses the protected staging environment", () => {
+  it("runs automatically for staging pushes, supports manual reruns, and uses the protected environment", () => {
+    expect(workflow).toContain("push:");
+    expect(workflow).toContain("- staging");
     expect(workflow).toContain("workflow_dispatch:");
     expect(workflow).toContain("github.ref == 'refs/heads/staging'");
     expect(workflow).toContain("environment: staging");
