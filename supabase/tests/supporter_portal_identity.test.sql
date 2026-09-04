@@ -198,6 +198,36 @@ select is(
   'Removing the Supporter relationship immediately revokes supporter profile access'
 );
 
+
+reset role;
+
+delete from public.person_relationships
+where person_id = '20000000-0000-0000-0000-000000000701'
+  and relationship_type_id = (
+    select id from public.relationship_types
+    where slug = 'supporter'
+    limit 1
+  );
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-000000000701","role":"authenticated","email":"supporter-a@example.test"}',
+  true
+);
+set local role authenticated;
+
+select is(
+  (select count(*) from public.supporter_accounts)::bigint,
+  0::bigint,
+  'Removing the Supporter relationship revokes visibility of the existing portal mapping'
+);
+
+select is(
+  (select count(*) from public.get_my_supporter_profile())::bigint,
+  0::bigint,
+  'Removing the Supporter relationship revokes supporter profile access'
+);
+
 reset role;
 
 select * from finish();
