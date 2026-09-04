@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaffUser } from "@/lib/auth/require-staff";
+import { eventRpcErrorResult } from "@/lib/crm/work-event-errors";
 import { normalizeEventFormValues, validateEventInput, validateTaskInput, type WorkItemResult } from "@/lib/crm/work-items";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -28,7 +29,7 @@ export async function createEventAction(_: WorkItemResult, formData: FormData): 
   if (!input) return { status: "error", message: "Enter a title and valid event times. The end must be after the start.", values };
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.rpc("create_crm_event", { p_title: input.title, p_description: input.description, p_location: input.location, p_starts_at: input.startsAt, p_ends_at: input.endsAt });
-  if (error) return { status: "error", message: "The event could not be created.", values };
+  if (error) return eventRpcErrorResult(error, values);
   revalidatePath("/crm/work");
   return { status: "success", message: "Event created." };
 }
