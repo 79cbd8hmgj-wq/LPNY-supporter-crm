@@ -30,6 +30,23 @@ test("supporter claims their profile and sees only published supporter events", 
   expect(personError).toBeNull();
   expect(person?.id).toBeTruthy();
 
+  const { data: supporterRelationshipType, error: supporterRelationshipTypeError } = await admin
+    .from("relationship_types")
+    .select("id")
+    .eq("slug", "supporter")
+    .eq("active", true)
+    .single();
+  expect(supporterRelationshipTypeError).toBeNull();
+  expect(supporterRelationshipType?.id).toBeTruthy();
+
+  const { error: supporterRelationshipError } = await admin
+    .from("person_relationships")
+    .insert({
+      person_id: person!.id,
+      relationship_type_id: supporterRelationshipType!.id,
+    });
+  expect(supporterRelationshipError).toBeNull();
+
   const { data: staffAuth, error: staffAuthError } = await admin.auth.admin.createUser({
     email: staffEmail,
     email_confirm: true,
