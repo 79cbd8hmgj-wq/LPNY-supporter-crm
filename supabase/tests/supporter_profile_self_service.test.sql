@@ -40,6 +40,14 @@ insert into public.people (
   'engaged'
 );
 
+insert into public.person_relationships (person_id, relationship_type_id)
+select
+  '20000000-0000-0000-0000-000000000721',
+  id
+from public.relationship_types
+where slug = 'supporter'
+  and active = true;
+
 insert into public.supporter_accounts (auth_user_id, person_id)
 values (
   '00000000-0000-0000-0000-000000000721',
