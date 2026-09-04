@@ -7,6 +7,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  APP_URL: z.string().url(),
 });
 
 export const env = publicEnvSchema.parse({
@@ -17,5 +18,6 @@ export const env = publicEnvSchema.parse({
 export function getServerEnv() {
   return serverEnvSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    APP_URL: process.env.APP_URL,
   });
 }

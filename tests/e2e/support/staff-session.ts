@@ -23,7 +23,7 @@ function decodeBase32(secret: string) {
   return Buffer.from(bytes);
 }
 
-function totp(secret: string, timestamp = Date.now()) {
+export function totp(secret: string, timestamp = Date.now()) {
   const counter = Math.floor(timestamp / 1000 / 30);
   const counterBuffer = Buffer.alloc(8);
   counterBuffer.writeBigUInt64BE(BigInt(counter));
