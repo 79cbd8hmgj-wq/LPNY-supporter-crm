@@ -73,7 +73,7 @@ Do not launch the CRM with real supporter data until every required item below i
 - [ ] Staging database migrations are current.
 - [ ] GitHub `staging` environment has `STAGING_BASE_URL`, `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY`, and `STAGING_SUPABASE_SERVICE_ROLE_KEY` configured without Production values.
 - [ ] The dedicated `staging` branch points at the exact verified release commit from `main` and Vercel Preview deployment is complete.
-- [ ] The manual `Staging E2E` workflow runs from that `staging` branch and `/api/health` reports both the exact release SHA and `dataEnvironment: staging`.
+- [ ] Moving `staging` to the exact release commit automatically triggers `Staging E2E`; `/api/health` reports both the exact release SHA and `dataEnvironment: staging`.
 - [ ] Full deployed browser E2E passes with `PLAYWRIGHT_BASE_URL=<staging origin>` and `PLAYWRIGHT_TARGET_ENV=staging`.
 - [ ] Chromium passes against deployed Staging.
 - [ ] Mobile WebKit passes against deployed Staging.
