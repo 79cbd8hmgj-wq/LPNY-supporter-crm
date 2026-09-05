@@ -44,13 +44,29 @@ describe("deployed Staging E2E workflow", () => {
 
   it("uses curl for the protected health request before parsing the response", () => {
     expect(workflow).toContain("curl --fail-with-body --location");
-    expect(workflow).toContain('HEALTH_RESPONSE="$(curl');
     expect(workflow).toContain("JSON.parse(process.env.HEALTH_RESPONSE");
     expect(workflow).not.toContain("const response = await fetch(healthUrl");
   });
 
-  it("refuses to run against a deployment from a different commit", () => {
-    expect(workflow).toContain("health.commitSha !== process.env.GITHUB_SHA");
+  it("waits for Vercel to serve the exact staging commit before failing", () => {
+    expect(workflow).toContain("for attempt in {1..30}");
+    expect(workflow).toContain("Waiting for Vercel to serve ${GITHUB_SHA}");
+    expect(workflow).toContain("sleep 10");
+    expect(workflow).toContain("Staging did not reach the workflow commit before the deployment wait expired");
+  });
+
+  it("accepts an older deployed ancestor only when intervening changes are non-deploying", () => {
+    expect(workflow).toContain("fetch-depth: 0");
+    expect(workflow).toContain("git merge-base --is-ancestor");
+    expect(workflow).toContain("git diff --name-only");
+    expect(workflow).toContain('file.startsWith(".github/")');
+    expect(workflow).toContain('file.startsWith("tests/")');
+    expect(workflow).toContain('file.startsWith("docs/")');
+    expect(workflow).toContain('file === "README.md"');
+    expect(workflow).toContain("Application-equivalent staging deployment accepted");
+  });
+
+  it("refuses to run against a deployment from a different data environment", () => {
     expect(workflow).toContain('health.dataEnvironment !== "staging"');
     expect(workflow).toContain("npm run test:e2e");
   });

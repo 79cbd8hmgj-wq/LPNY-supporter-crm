@@ -28,6 +28,8 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.STAGING_VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -71,33 +73,102 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          HEALTH_RESPONSE="$(curl --fail-with-body --location --silent --show-error \
-            --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
-            --header "cache-control: no-cache" \
-            --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
-            "${PLAYWRIGHT_BASE_URL%/}/api/health")"
-          export HEALTH_RESPONSE
+          DEPLOYMENT_READY=0
 
-          node <<'NODE'
+          for attempt in {1..30}; do
+            if HEALTH_RESPONSE="$(curl --fail-with-body --location --silent --show-error \
+              --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
+              --header "cache-control: no-cache" \
+              --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+              "${PLAYWRIGHT_BASE_URL%/}/api/health")"; then
+              export HEALTH_RESPONSE
+
+              if node <<'NODE'
+          const { execSync } = require("node:child_process");
+
           try {
             const health = JSON.parse(process.env.HEALTH_RESPONSE ?? "");
-
-            if (health.commitSha !== process.env.GITHUB_SHA) {
-              throw new Error(
-                `Staging is not running the workflow commit. Expected ${process.env.GITHUB_SHA}, received ${health.commitSha ?? "null"}.`,
-              );
-            }
+            const workflowSha = process.env.GITHUB_SHA ?? "";
+            const shaPattern = /^[0-9a-f]{40}$/;
 
             if (health.dataEnvironment !== "staging") {
-              throw new Error(
-                `Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
+              console.error(
+                `::error::Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
               );
+              process.exit(2);
             }
+
+            if (health.commitSha === workflowSha) {
+              process.exit(0);
+            }
+
+            if (!shaPattern.test(health.commitSha ?? "") || !shaPattern.test(workflowSha)) {
+              console.error("::error::Staging health returned an invalid deployment commit SHA.");
+              process.exit(2);
+            }
+
+            try {
+              execSync(`git merge-base --is-ancestor ${health.commitSha} ${workflowSha}`, {
+                stdio: "ignore",
+              });
+            } catch {
+              console.error(
+                `::error::Deployed staging commit ${health.commitSha} is not an ancestor of workflow commit ${workflowSha}.`,
+              );
+              process.exit(2);
+            }
+
+            const changedFiles = execSync(
+              `git diff --name-only ${health.commitSha}..${workflowSha}`,
+              { encoding: "utf8" },
+            )
+              .trim()
+              .split("\n")
+              .filter(Boolean);
+
+            const isNonDeployingFile = (file) =>
+              file.startsWith(".github/") ||
+              file.startsWith("tests/") ||
+              file.startsWith("docs/") ||
+              file === "README.md";
+
+            if (changedFiles.every(isNonDeployingFile)) {
+              console.log(
+                `Application-equivalent staging deployment accepted: ${health.commitSha} -> ${workflowSha}.`,
+              );
+              process.exit(0);
+            }
+
+            console.log(
+              `Staging is still serving ${health.commitSha}; expected ${workflowSha}, and deploy-affecting files changed.`,
+            );
+            process.exit(1);
           } catch (error) {
             console.error(`::error::${error instanceof Error ? error.message : "Staging health verification failed"}`);
-            process.exit(1);
+            process.exit(2);
           }
           NODE
+              then
+                DEPLOYMENT_READY=1
+                break
+              else
+                verification_status=$?
+                if [ "${verification_status}" -eq 2 ]; then
+                  exit 1
+                fi
+              fi
+            fi
+
+            if [ "${attempt}" -lt 30 ]; then
+              echo "Waiting for Vercel to serve ${GITHUB_SHA} (attempt ${attempt}/30)"
+              sleep 10
+            fi
+          done
+
+          if [ "${DEPLOYMENT_READY}" -ne 1 ]; then
+            echo "::error::Staging did not reach the workflow commit before the deployment wait expired"
+            exit 1
+          fi
 
       - name: Install browser dependencies
         run: npx playwright install --with-deps chromium webkit
