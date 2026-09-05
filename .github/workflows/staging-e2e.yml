@@ -67,7 +67,11 @@ jobs:
           NODE
 
       - name: Install dependencies
+        id: install
         run: npm ci
+
+      - name: Clean stale Staging E2E fixtures
+        run: node scripts/cleanup-staging-e2e.mjs
 
       - name: Verify deployed release identity
         shell: bash
@@ -175,3 +179,7 @@ jobs:
 
       - name: Run deployed Staging browser E2E
         run: npm run test:e2e
+
+      - name: Clean Staging E2E fixtures
+        if: always() && steps.install.outcome == 'success'
+        run: node scripts/cleanup-staging-e2e.mjs
