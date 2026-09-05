@@ -25,6 +25,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://jcuxbutwcmgohyikpvcq.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_fFuzM9rofqDxv1oJ3llIhQ_MZF_H-EK
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.STAGING_VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +41,11 @@ jobs:
           set -euo pipefail
           if [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
             echo "::error::STAGING_SUPABASE_SERVICE_ROLE_KEY is not configured in the GitHub staging environment"
+            exit 1
+          fi
+
+          if [ -z "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
+            echo "::error::STAGING_VERCEL_AUTOMATION_BYPASS_SECRET is not configured in the GitHub staging environment"
             exit 1
           fi
 
@@ -68,7 +74,11 @@ jobs:
           (async () => {
             const healthUrl = new URL("/api/health", process.env.PLAYWRIGHT_BASE_URL);
             const response = await fetch(healthUrl, {
-              headers: { "cache-control": "no-cache" },
+              headers: {
+                "cache-control": "no-cache",
+                "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+                "x-vercel-set-bypass-cookie": "true",
+              },
             });
 
             if (!response.ok) {
