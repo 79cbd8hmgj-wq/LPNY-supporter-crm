@@ -210,6 +210,12 @@ export type Database = {
         Update: { id?: string; title?: string; description?: string | null; location?: string | null; starts_at?: string; ends_at?: string | null; created_by_staff_user_id?: string; created_at?: string; visibility?: Database["public"]["Enums"]["crm_event_visibility"] };
         Relationships: [];
       };
+      crm_event_rsvps: {
+        Row: { event_id: string; person_id: string; status: Database["public"]["Enums"]["crm_event_rsvp_status"]; responded_at: string; updated_at: string };
+        Insert: { event_id: string; person_id: string; status?: Database["public"]["Enums"]["crm_event_rsvp_status"]; responded_at?: string; updated_at?: string };
+        Update: { event_id?: string; person_id?: string; status?: Database["public"]["Enums"]["crm_event_rsvp_status"]; responded_at?: string; updated_at?: string };
+        Relationships: [];
+      };
       activities: {
         Row: { id: string; person_id: string; activity_type: string; actor_staff_user_id: string | null; occurred_at: string; metadata: Json };
         Insert: { id?: string; person_id: string; activity_type: string; actor_staff_user_id?: string | null; occurred_at?: string; metadata?: Json };
@@ -373,6 +379,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: string;
       };
+      sync_my_supporter_email: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
       get_my_supporter_profile: {
         Args: Record<string, never>;
         Returns: Array<{
@@ -418,7 +428,12 @@ export type Database = {
           location: string | null;
           starts_at: string;
           ends_at: string | null;
+          rsvp_status: Database["public"]["Enums"]["crm_event_rsvp_status"] | null;
         }>;
+      };
+      set_my_event_rsvp: {
+        Args: { p_event_id: string; p_attending: boolean };
+        Returns: Database["public"]["Enums"]["crm_event_rsvp_status"];
       };
       set_crm_event_visibility: {
         Args: {
@@ -556,6 +571,7 @@ export type Database = {
       consent_state: "opted_in" | "opted_out";
       duplicate_status: "open" | "merged" | "kept_separate";
       crm_event_visibility: "staff" | "supporters" | "public";
+      crm_event_rsvp_status: "going" | "cancelled";
     };
     CompositeTypes: { [_ in never]: never };
   };

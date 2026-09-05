@@ -67,7 +67,7 @@ test("supporter claims their profile and sees only published supporter events", 
   expect(staffError).toBeNull();
   expect(staff?.id).toBeTruthy();
 
-  const { error: eventsError } = await admin.from("crm_events").insert([
+  const { data: createdEvents, error: eventsError } = await admin.from("crm_events").insert([
     {
       title: visibleTitle,
       description: "A supporter-visible event.",
@@ -84,8 +84,10 @@ test("supporter claims their profile and sees only published supporter events", 
       created_by_staff_user_id: staff!.id,
       visibility: "staff",
     },
-  ]);
+  ]).select("id, title");
   expect(eventsError).toBeNull();
+  const visibleEventId = createdEvents?.find((event) => event.title === visibleTitle)?.id;
+  expect(visibleEventId).toBeTruthy();
 
   const { data: invitation, error: invitationError } = await admin.auth.admin.generateLink({
     type: "invite",
@@ -107,6 +109,19 @@ test("supporter claims their profile and sees only published supporter events", 
     await expect(page.getByRole("textbox", { name: /^Email/ })).toHaveValue(email);
     await expect(page.getByText(visibleTitle)).toBeVisible();
     await expect(page.getByText(privateTitle)).not.toBeVisible();
+
+    const visibleEvent = page.getByRole("article").filter({ hasText: visibleTitle });
+    await visibleEvent.getByRole("button", { name: "I’m going" }).click();
+    await expect(visibleEvent.getByRole("button", { name: "Cancel RSVP" })).toBeVisible();
+
+    const { data: rsvp, error: rsvpError } = await admin
+      .from("crm_event_rsvps")
+      .select("status")
+      .eq("event_id", visibleEventId!)
+      .eq("person_id", person!.id)
+      .single();
+    expect(rsvpError).toBeNull();
+    expect(rsvp?.status).toBe("going");
 
     await page.getByLabel("First name").fill("Portal Updated");
     await page.getByLabel("Phone").fill("(315) 555-0199");

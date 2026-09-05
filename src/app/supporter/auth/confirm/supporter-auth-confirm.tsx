@@ -4,7 +4,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
-const tokenTypes = new Set<EmailOtpType>(["invite", "magiclink", "email", "signup"]);
+const tokenTypes = new Set<EmailOtpType>(["invite", "magiclink", "email", "email_change", "signup"]);
 
 export function SupporterAuthConfirm() {
   const started = useRef(false);
@@ -51,6 +51,12 @@ export function SupporterAuthConfirm() {
       if (claimError) {
         await supabase.auth.signOut();
         throw claimError;
+      }
+
+      const { error: emailSyncError } = await supabase.rpc("sync_my_supporter_email");
+      if (emailSyncError) {
+        await supabase.auth.signOut();
+        throw emailSyncError;
       }
 
       window.location.replace("/supporter");
