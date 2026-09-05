@@ -95,29 +95,33 @@ describe("staff access update validation", () => {
 describe("staff temporary password validation", () => {
   const staffUserId = "33333333-3333-4333-8333-333333333333";
 
-  it("accepts matching passwords that satisfy the staff password policy", () => {
+  it("accepts a simple matching temporary password with at least 8 characters", () => {
     expect(staffTemporaryPasswordSchema.parse({
       staffUserId,
-      password: "Temporary-access-42!",
-      confirmPassword: "Temporary-access-42!",
+      password: "temporary",
+      confirmPassword: "temporary",
     })).toEqual({
       staffUserId,
-      password: "Temporary-access-42!",
-      confirmPassword: "Temporary-access-42!",
+      password: "temporary",
+      confirmPassword: "temporary",
     });
   });
 
-  it.each([
-    "Short1!",
-    "alllowercase1!",
-    "ALLUPPERCASE1!",
-    "NoNumbersHere!",
-    "NoSymbolsHere1",
-  ])("rejects a weak temporary password", (password) => {
+  it("does not require uppercase, numbers, or symbols", () => {
+    for (const password of ["password", "lowercaseonly", "12345678"]) {
+      expect(staffTemporaryPasswordSchema.safeParse({
+        staffUserId,
+        password,
+        confirmPassword: password,
+      }).success).toBe(true);
+    }
+  });
+
+  it("rejects temporary passwords shorter than 8 characters", () => {
     expect(staffTemporaryPasswordSchema.safeParse({
       staffUserId,
-      password,
-      confirmPassword: password,
+      password: "short7",
+      confirmPassword: "short7",
     }).success).toBe(false);
   });
 
