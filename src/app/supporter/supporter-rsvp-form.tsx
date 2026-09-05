@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  setSupporterRsvpAction,
-  supporterRsvpInitialState,
-} from "./rsvp-actions";
+import { setSupporterRsvpAction } from "./rsvp-actions";
+import type { SupporterRsvpActionState } from "./rsvp-actions";
+
+const supporterRsvpInitialState: SupporterRsvpActionState = {
+  status: "idle",
+  message: "",
+};
 
 export function SupporterRsvpForm({
   eventId,
