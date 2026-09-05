@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { staffPasswordSchema } from "@/lib/auth/recovery";
 import { normalizeName } from "@/lib/intake/normalize";
 
 export const staffRoleSchema = z.enum([
@@ -67,8 +68,25 @@ export const staffAccessUpdateSchema = z
   })
   .superRefine(enforceCountyRoleRules);
 
+export const staffTemporaryPasswordSchema = z
+  .object({
+    staffUserId: z.string().uuid(),
+    password: staffPasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.password !== value.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+  });
+
 export type StaffInviteInput = z.infer<typeof staffInviteSchema>;
 export type StaffAccessUpdateInput = z.infer<typeof staffAccessUpdateSchema>;
+export type StaffTemporaryPasswordInput = z.infer<typeof staffTemporaryPasswordSchema>;
 export type StaffRole = z.infer<typeof staffRoleSchema>;
 export type StaffStatus = z.infer<typeof staffStatusSchema>;
 
