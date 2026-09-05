@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { supporterSignOutAction } from "./actions";
 import { SupporterEmailForm } from "./supporter-email-form";
 import { SupporterProfileForm } from "./supporter-profile-form";
+import { SupporterRsvpForm } from "./supporter-rsvp-form";
 
 function formatEventTime(value: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -87,6 +88,7 @@ export default async function SupporterPortalPage() {
                   {event.description ? (
                     <p className="mt-2 leading-6 text-lp-700">{event.description}</p>
                   ) : null}
+                  <SupporterRsvpForm eventId={event.id} status={event.rsvp_status} />
                 </article>
               ))}
             </div>
