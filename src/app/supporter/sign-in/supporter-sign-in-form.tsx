@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  requestSupporterSignInAction,
-  supporterSignInInitialState,
-} from "./actions";
+import { requestSupporterSignInAction } from "./actions";
+import type { SupporterSignInState } from "./actions";
+
+const supporterSignInInitialState: SupporterSignInState = {
+  status: "idle",
+  message: "",
+};
 
 export function SupporterSignInForm() {
   const [state, action, pending] = useActionState(
