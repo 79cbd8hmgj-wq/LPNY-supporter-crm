@@ -17,14 +17,29 @@ describe("deployed Staging E2E workflow", () => {
     expect(workflow).toContain("PLAYWRIGHT_TARGET_ENV: staging");
   });
 
-  it("uses fixed public Staging endpoints and keeps only the service-role credential secret", () => {
+  it("uses fixed public Staging endpoints and protects server-side credentials", () => {
     expect(workflow).toContain("https://lpny-supporter-crm-git-staging-calypso-digital.vercel.app");
     expect(workflow).toContain("https://jcuxbutwcmgohyikpvcq.supabase.co");
     expect(workflow).toContain("sb_publishable_");
-    expect(workflow).toContain("secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY");
-    expect(workflow).not.toContain("secrets.STAGING_BASE_URL");
-    expect(workflow).not.toContain("secrets.STAGING_SUPABASE_URL");
-    expect(workflow).not.toContain("secrets.STAGING_SUPABASE_ANON_KEY");
+    expect(workflow).toContain("STAGING_SUPABASE_SERVICE_ROLE_KEY");
+    expect(workflow).toContain("STAGING_VERCEL_AUTOMATION_BYPASS_SECRET");
+    expect(workflow).not.toContain("STAGING_BASE_URL");
+    expect(workflow).not.toContain("STAGING_SUPABASE_URL");
+    expect(workflow).not.toContain("STAGING_SUPABASE_ANON_KEY");
+  });
+
+  it("requires the Vercel automation bypass and forwards it to health checks and browser E2E", () => {
+    expect(workflow).toContain("STAGING_VERCEL_AUTOMATION_BYPASS_SECRET is not configured");
+    expect(workflow).toContain("x-vercel-protection-bypass");
+    expect(workflow).toContain("x-vercel-set-bypass-cookie");
+
+    const playwrightConfig = readFileSync(
+      resolve(process.cwd(), "playwright.config.ts"),
+      "utf8",
+    );
+    expect(playwrightConfig).toContain("x-vercel-protection-bypass");
+    expect(playwrightConfig).toContain("VERCEL_AUTOMATION_BYPASS_SECRET");
+    expect(playwrightConfig).toContain("x-vercel-set-bypass-cookie");
   });
 
   it("refuses to run against a deployment from a different commit", () => {
