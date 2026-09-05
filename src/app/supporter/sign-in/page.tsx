@@ -20,7 +20,7 @@ export default async function SupporterSignInPage({
       </Link>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight">Supporter sign in</h1>
       <p className="mt-2 text-sm leading-6 text-lp-600">
-        Enter the email address you have used with LPNY. No password is required.
+        Continue with Google for the fastest sign-in. If your Google email is not the one you used with LPNY, you can still request an email sign-in link.
       </p>
       {error ? (
         <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
