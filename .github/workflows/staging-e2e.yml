@@ -70,22 +70,19 @@ jobs:
       - name: Verify deployed release identity
         shell: bash
         run: |
+          set -euo pipefail
+          HEALTH_RESPONSE="$(curl --fail-with-body --location --silent --show-error \
+            --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
+            --header "cache-control: no-cache" \
+            --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+            --header "x-vercel-set-bypass-cookie: true" \
+            "${PLAYWRIGHT_BASE_URL%/}/api/health")"
+          export HEALTH_RESPONSE
+
           node <<'NODE'
-          (async () => {
-            const healthUrl = new URL("/api/health", process.env.PLAYWRIGHT_BASE_URL);
-            const response = await fetch(healthUrl, {
-              headers: {
-                "cache-control": "no-cache",
-                "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
-                "x-vercel-set-bypass-cookie": "true",
-              },
-            });
+          try {
+            const health = JSON.parse(process.env.HEALTH_RESPONSE ?? "");
 
-            if (!response.ok) {
-              throw new Error(`Staging health check failed with HTTP ${response.status}.`);
-            }
-
-            const health = await response.json();
             if (health.commitSha !== process.env.GITHUB_SHA) {
               throw new Error(
                 `Staging is not running the workflow commit. Expected ${process.env.GITHUB_SHA}, received ${health.commitSha ?? "null"}.`,
@@ -97,10 +94,10 @@ jobs:
                 `Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
               );
             }
-          })().catch((error) => {
+          } catch (error) {
             console.error(`::error::${error instanceof Error ? error.message : "Staging health verification failed"}`);
             process.exit(1);
-          });
+          }
           NODE
 
       - name: Install browser dependencies
