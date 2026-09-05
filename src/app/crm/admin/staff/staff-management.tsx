@@ -9,7 +9,7 @@ import type {
   StaffRole,
   StaffStatus,
 } from "@/lib/admin/staff";
-import { inviteStaffMember, updateStaffAccess } from "./actions";
+import { inviteStaffMember, setStaffTemporaryPassword, updateStaffAccess } from "./actions";
 
 const roleLabels: Record<StaffRole, string> = {
   admin: "Admin",
@@ -139,11 +139,15 @@ function InviteStaffForm({ counties }: { counties: StaffCountyOption[] }) {
 
 function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord; counties: StaffCountyOption[] }) {
   const [pending, startTransition] = useTransition();
+  const [passwordPending, startPasswordTransition] = useTransition();
   const [result, setResult] = useState<StaffActionResult | null>(null);
+  const [passwordResult, setPasswordResult] = useState<StaffActionResult | null>(null);
   const [role, setRole] = useState<StaffRole>(record.role);
   const [status, setStatus] = useState<StaffStatus>(record.status);
   const [savedStatus, setSavedStatus] = useState<StaffStatus>(record.status);
   const [countyIds, setCountyIds] = useState<Set<string>>(new Set(record.countyIds));
+  const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [confirmTemporaryPassword, setConfirmTemporaryPassword] = useState("");
 
   function changeRole(nextRole: StaffRole) {
     setRole(nextRole);
@@ -175,6 +179,34 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
       });
       setResult(next);
       if (next.status === "success") setSavedStatus(status);
+    });
+  }
+
+  function submitTemporaryPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPasswordResult(null);
+
+    const confirmed = window.confirm(
+      `Set a new temporary password for ${record.displayName}? Their current password will stop working immediately.`,
+    );
+    if (!confirmed) return;
+
+    const password = temporaryPassword;
+    const confirmPassword = confirmTemporaryPassword;
+    startPasswordTransition(async () => {
+      try {
+        const next = await setStaffTemporaryPassword({
+          staffUserId: record.id,
+          password,
+          confirmPassword,
+        });
+        setPasswordResult(next);
+      } catch {
+        setPasswordResult({ status: "error", message: "Unable to change this staff password right now." });
+      } finally {
+        setTemporaryPassword("");
+        setConfirmTemporaryPassword("");
+      }
     });
   }
 
@@ -213,6 +245,50 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
       <button className="min-h-10 rounded-lg border border-lp-300 px-3 py-2 text-sm font-semibold text-lp-800 hover:bg-lp-50 disabled:cursor-not-allowed disabled:opacity-60" disabled={pending} onClick={save} type="button">
         {pending ? "Saving…" : "Save access"}
       </button>
+
+      <details className="rounded-lg border border-lp-200 bg-lp-50 p-3">
+        <summary className="cursor-pointer text-sm font-semibold text-lp-900">Set temporary password</summary>
+        <form className="mt-3 space-y-3" onSubmit={submitTemporaryPassword}>
+          <p className="text-xs leading-5 text-lp-600">
+            Emergency recovery when Auth email delivery is unavailable. This replaces the current password immediately and sends no email. The password remains valid until the staff member changes it.
+          </p>
+          <label className="block text-sm font-medium text-lp-800">
+            Temporary password
+            <input
+              autoComplete="new-password"
+              className={inputClass}
+              disabled={passwordPending || savedStatus !== "active"}
+              minLength={12}
+              onChange={(event) => setTemporaryPassword(event.target.value)}
+              required
+              type="password"
+              value={temporaryPassword}
+            />
+          </label>
+          <label className="block text-sm font-medium text-lp-800">
+            Confirm temporary password
+            <input
+              autoComplete="new-password"
+              className={inputClass}
+              disabled={passwordPending || savedStatus !== "active"}
+              minLength={12}
+              onChange={(event) => setConfirmTemporaryPassword(event.target.value)}
+              required
+              type="password"
+              value={confirmTemporaryPassword}
+            />
+          </label>
+          <p className="text-xs text-lp-500">Use at least 12 characters with uppercase, lowercase, a number, and a symbol.</p>
+          <ResultMessage result={passwordResult} />
+          <button
+            className="min-h-10 rounded-lg border border-lp-400 bg-white px-3 py-2 text-sm font-semibold text-lp-900 hover:bg-lp-100 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={passwordPending || savedStatus !== "active"}
+            type="submit"
+          >
+            {savedStatus !== "active" ? "Reactivate account first" : passwordPending ? "Setting password…" : "Set temporary password"}
+          </button>
+        </form>
+      </details>
     </article>
   );
 }
@@ -230,7 +306,7 @@ export function StaffManagement({
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-semibold text-lp-950">Current staff</h2>
-          <p className="mt-1 text-sm text-lp-600">Role, status, and county changes are applied transactionally and recorded in the administrative audit trail.</p>
+          <p className="mt-1 text-sm text-lp-600">Role, status, county, and emergency password changes are restricted to Admins and recorded in the administrative audit trail.</p>
         </div>
         {staff.length === 0 ? (
           <div className="rounded-xl border border-lp-200 bg-white p-6 text-sm text-lp-600">No staff records are visible.</div>

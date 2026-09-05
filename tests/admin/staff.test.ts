@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   staffAccessUpdateSchema,
   staffInviteSchema,
+  staffTemporaryPasswordSchema,
 } from "@/lib/admin/staff";
 
 const albanyCountyId = "11111111-1111-4111-8111-111111111111";
@@ -87,6 +88,44 @@ describe("staff access update validation", () => {
       role: "state_organizer",
       status: "active",
       countyIds: [erieCountyId],
+    }).success).toBe(false);
+  });
+});
+
+describe("staff temporary password validation", () => {
+  const staffUserId = "33333333-3333-4333-8333-333333333333";
+
+  it("accepts matching passwords that satisfy the staff password policy", () => {
+    expect(staffTemporaryPasswordSchema.parse({
+      staffUserId,
+      password: "Temporary-access-42!",
+      confirmPassword: "Temporary-access-42!",
+    })).toEqual({
+      staffUserId,
+      password: "Temporary-access-42!",
+      confirmPassword: "Temporary-access-42!",
+    });
+  });
+
+  it.each([
+    "Short1!",
+    "alllowercase1!",
+    "ALLUPPERCASE1!",
+    "NoNumbersHere!",
+    "NoSymbolsHere1",
+  ])("rejects a weak temporary password", (password) => {
+    expect(staffTemporaryPasswordSchema.safeParse({
+      staffUserId,
+      password,
+      confirmPassword: password,
+    }).success).toBe(false);
+  });
+
+  it("requires password confirmation to match", () => {
+    expect(staffTemporaryPasswordSchema.safeParse({
+      staffUserId,
+      password: "Temporary-access-42!",
+      confirmPassword: "Different-access-42!",
     }).success).toBe(false);
   });
 });

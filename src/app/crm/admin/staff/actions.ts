@@ -5,9 +5,11 @@ import { requireStaffRole } from "@/lib/auth/require-role";
 import {
   staffAccessUpdateSchema,
   staffInviteSchema,
+  staffTemporaryPasswordSchema,
   type StaffAccessUpdateInput,
   type StaffActionResult,
   type StaffInviteInput,
+  type StaffTemporaryPasswordInput,
 } from "@/lib/admin/staff";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -88,4 +90,65 @@ export async function updateStaffAccess(input: StaffAccessUpdateInput): Promise<
 
   revalidatePath("/crm/admin/staff");
   return { status: "success", message: "Staff access updated." };
+}
+
+export async function setStaffTemporaryPassword(
+  input: StaffTemporaryPasswordInput,
+): Promise<StaffActionResult> {
+  const actor = await requireStaffRole(["admin"]);
+  const parsed = staffTemporaryPasswordSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Enter a valid temporary password.",
+    };
+  }
+
+  const admin = createAdminSupabaseClient();
+  const target = await admin
+    .from("staff_users")
+    .select("id, auth_user_id, status")
+    .eq("id", parsed.data.staffUserId)
+    .maybeSingle();
+
+  if (target.error || !target.data?.auth_user_id) {
+    return { status: "error", message: "Unable to find the staff Auth account." };
+  }
+
+  if (target.data.status !== "active") {
+    return { status: "error", message: "Reactivate this staff account before setting a temporary password." };
+  }
+
+  const passwordUpdate = await admin.auth.admin.updateUserById(target.data.auth_user_id, {
+    password: parsed.data.password,
+  });
+
+  if (passwordUpdate.error) {
+    console.error("Supabase staff temporary password update failed", {
+      code: passwordUpdate.error.code,
+      status: passwordUpdate.error.status,
+    });
+    return { status: "error", message: "Unable to change this staff password right now." };
+  }
+
+  const audit = await admin.from("admin_audit_events").insert({
+    actor_staff_user_id: actor.staffUserId,
+    action_type: "staff_temporary_password_set",
+    target_type: "staff_user",
+    target_id: target.data.id,
+    metadata: {},
+  });
+
+  if (audit.error) {
+    console.error("Staff temporary password audit failed", { code: audit.error.code });
+    return {
+      status: "error",
+      message: "The password was changed, but the audit event could not be recorded. Do not repeat the reset; review the audit log before making another change.",
+    };
+  }
+
+  return {
+    status: "success",
+    message: "Temporary password set. Share it privately; it remains valid until the staff member changes it.",
+  };
 }
