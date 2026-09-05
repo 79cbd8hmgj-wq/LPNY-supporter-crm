@@ -55,6 +55,17 @@ describe("deployed Staging E2E workflow", () => {
     expect(workflow).toContain("Staging did not reach the workflow commit before the deployment wait expired");
   });
 
+  it("accepts an older deployed ancestor only when intervening changes are non-deploying", () => {
+    expect(workflow).toContain("fetch-depth: 0");
+    expect(workflow).toContain("git merge-base --is-ancestor");
+    expect(workflow).toContain("git diff --name-only");
+    expect(workflow).toContain('file.startsWith(".github/")');
+    expect(workflow).toContain('file.startsWith("tests/")');
+    expect(workflow).toContain('file.startsWith("docs/")');
+    expect(workflow).toContain('file === "README.md"');
+    expect(workflow).toContain("Application-equivalent staging deployment accepted");
+  });
+
   it("refuses to run against a deployment from a different data environment", () => {
     expect(workflow).toContain('health.dataEnvironment !== "staging"');
     expect(workflow).toContain("npm run test:e2e");
