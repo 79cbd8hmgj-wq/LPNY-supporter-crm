@@ -14,10 +14,6 @@ export type SupporterSignInState = {
   message: string;
 };
 
-export const supporterSignInInitialState: SupporterSignInState = {
-  status: "idle",
-  message: "",
-};
 
 function createPasswordlessEmailClient() {
   return createClient<Database>(
