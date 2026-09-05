@@ -42,6 +42,13 @@ describe("deployed Staging E2E workflow", () => {
     expect(playwrightConfig).toContain("x-vercel-set-bypass-cookie");
   });
 
+  it("uses curl for the protected health request before parsing the response", () => {
+    expect(workflow).toContain("curl --fail-with-body --location");
+    expect(workflow).toContain('HEALTH_RESPONSE="$(curl');
+    expect(workflow).toContain("JSON.parse(process.env.HEALTH_RESPONSE");
+    expect(workflow).not.toContain("const response = await fetch(healthUrl");
+  });
+
   it("refuses to run against a deployment from a different commit", () => {
     expect(workflow).toContain("health.commitSha !== process.env.GITHUB_SHA");
     expect(workflow).toContain('health.dataEnvironment !== "staging"');
