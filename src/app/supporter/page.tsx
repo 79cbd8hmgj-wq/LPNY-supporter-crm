@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireSupporter } from "@/lib/auth/require-supporter";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { supporterSignOutAction } from "./actions";
+import { SupporterEmailForm } from "./supporter-email-form";
 import { SupporterProfileForm } from "./supporter-profile-form";
 
 function formatEventTime(value: string) {
@@ -68,6 +69,7 @@ export default async function SupporterPortalPage() {
           <p className="mt-1 text-sm text-lp-600">
             Keep your contact information, interests, and communication preferences current.
           </p>
+          <SupporterEmailForm email={profile.email} />
           <SupporterProfileForm profile={profile} interests={interests ?? []} />
         </section>
 
