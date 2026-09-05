@@ -17,25 +17,50 @@ function formatEventTime(value: string) {
   }).format(new Date(value));
 }
 
-export default async function SupporterPortalPage() {
+function tabClass(active: boolean) {
+  return `flex-1 rounded-lg px-4 py-3 text-center text-sm font-semibold transition ${active
+    ? "bg-lp-navy text-white"
+    : "border border-lp-200 bg-white text-lp-700 hover:bg-lp-50"}`;
+}
+
+export default async function SupporterPortalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   await requireSupporter();
+  const params = await searchParams;
+  const view = params.view === "profile" ? "profile" : "events";
   const supabase = await createServerSupabaseClient();
 
-  const [
-    { data: profiles, error: profileError },
-    { data: interests, error: interestsError },
-    { data: events, error: eventsError },
-  ] = await Promise.all([
-    supabase.rpc("get_my_supporter_profile"),
-    supabase.rpc("list_supporter_interests"),
-    supabase.rpc("list_my_upcoming_events", { p_limit: 20 }),
-  ]);
+  const { data: profiles, error: profileError } = await supabase.rpc(
+    "get_my_supporter_profile",
+  );
 
-  if (profileError || interestsError || !profiles?.[0]) {
+  if (profileError || !profiles?.[0]) {
     throw new Error("Unable to load supporter profile");
   }
 
   const profile = profiles[0];
+
+  let interests = null;
+  let interestsError = null;
+  let events = null;
+  let eventsError = null;
+
+  if (view === "profile") {
+    const result = await supabase.rpc("list_supporter_interests");
+    interests = result.data;
+    interestsError = result.error;
+  } else {
+    const result = await supabase.rpc("list_my_upcoming_events", { p_limit: 20 });
+    events = result.data;
+    eventsError = result.error;
+  }
+
+  if (view === "profile" && interestsError) {
+    throw new Error("Unable to load supporter profile");
+  }
 
   return (
     <div className="min-h-screen bg-lp-50 text-lp-950">
@@ -65,37 +90,62 @@ export default async function SupporterPortalPage() {
           </p>
         </section>
 
-        <section className="rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">My profile</h2>
-          <p className="mt-1 text-sm text-lp-600">
-            Keep your contact information, interests, and communication preferences current.
-          </p>
-          <SupporterEmailForm email={profile.email} />
-          <SupporterProfileForm profile={profile} interests={interests ?? []} />
-        </section>
+        <nav
+          aria-label="Supporter portal sections"
+          className="flex gap-2 rounded-xl border border-lp-200 bg-white p-2 shadow-sm"
+        >
+          <Link
+            aria-current={view === "events" ? "page" : undefined}
+            className={tabClass(view === "events")}
+            href="/supporter"
+          >
+            Events
+          </Link>
+          <Link
+            aria-current={view === "profile" ? "page" : undefined}
+            className={tabClass(view === "profile")}
+            href="/supporter?view=profile"
+          >
+            My profile
+          </Link>
+        </nav>
 
-        <section className="rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Upcoming events</h2>
-          {eventsError ? (
-            <p className="mt-3 text-sm text-red-700">Upcoming events could not be loaded.</p>
-          ) : events?.length ? (
-            <div className="mt-4 divide-y divide-lp-100">
-              {events.map((event) => (
-                <article className="py-4 first:pt-0 last:pb-0" key={event.id}>
-                  <h3 className="font-semibold">{event.title}</h3>
-                  <p className="mt-1 text-sm text-lp-600">{formatEventTime(event.starts_at)}</p>
-                  {event.location ? <p className="mt-1 text-sm text-lp-600">{event.location}</p> : null}
-                  {event.description ? (
-                    <p className="mt-2 leading-6 text-lp-700">{event.description}</p>
-                  ) : null}
-                  <SupporterRsvpForm eventId={event.id} status={event.rsvp_status} />
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-lp-600">No supporter events are published yet.</p>
-          )}
-        </section>
+        {view === "profile" ? (
+          <section className="rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold">My profile</h2>
+            <p className="mt-1 text-sm text-lp-600">
+              Keep your contact information, interests, and communication preferences current.
+            </p>
+            <SupporterEmailForm email={profile.email} />
+            <SupporterProfileForm profile={profile} interests={interests ?? []} />
+          </section>
+        ) : (
+          <section className="rounded-xl border border-lp-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold">Upcoming events</h2>
+            <p className="mt-1 text-sm text-lp-600">
+              Events published for supporters appear here.
+            </p>
+            {eventsError ? (
+              <p className="mt-3 text-sm text-red-700">Upcoming events could not be loaded.</p>
+            ) : events?.length ? (
+              <div className="mt-4 divide-y divide-lp-100">
+                {events.map((event) => (
+                  <article className="py-4 first:pt-0 last:pb-0" key={event.id}>
+                    <h3 className="font-semibold">{event.title}</h3>
+                    <p className="mt-1 text-sm text-lp-600">{formatEventTime(event.starts_at)}</p>
+                    {event.location ? <p className="mt-1 text-sm text-lp-600">{event.location}</p> : null}
+                    {event.description ? (
+                      <p className="mt-2 leading-6 text-lp-700">{event.description}</p>
+                    ) : null}
+                    <SupporterRsvpForm eventId={event.id} status={event.rsvp_status} />
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-lp-600">No supporter events are published yet.</p>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );

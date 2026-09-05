@@ -121,7 +121,7 @@ test("supporter claims their profile and sees only published supporter events", 
 
     await expect(page).toHaveURL(/\/supporter$/, { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: "Welcome, Portal" })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: /^Email/ })).toHaveValue(email);
+    await expect(page.getByRole("link", { name: "Events" })).toHaveAttribute("aria-current", "page");
     await expect(page.getByText(visibleTitle)).toBeVisible();
     await expect(page.getByText(privateTitle)).not.toBeVisible();
 
@@ -138,6 +138,9 @@ test("supporter claims their profile and sees only published supporter events", 
     expect(rsvpError).toBeNull();
     expect(rsvp?.status).toBe("going");
 
+    await page.getByRole("link", { name: "My profile" }).click();
+    await expect(page.getByRole("link", { name: "My profile" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("textbox", { name: /^Email/ })).toHaveValue(email);
     await page.getByLabel("First name").fill("Portal Updated");
     await page.getByLabel("Phone").fill("(315) 555-0199");
     await page.getByLabel("ZIP code").fill("13202");
