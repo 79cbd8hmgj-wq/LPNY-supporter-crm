@@ -28,10 +28,10 @@ describe("deployed Staging E2E workflow", () => {
     expect(workflow).not.toContain("STAGING_SUPABASE_ANON_KEY");
   });
 
-  it("requires the Vercel automation bypass and forwards it to health checks and browser E2E", () => {
+  it("uses the Vercel bypass header for health checks and reserves the bypass cookie for browsers", () => {
     expect(workflow).toContain("STAGING_VERCEL_AUTOMATION_BYPASS_SECRET is not configured");
     expect(workflow).toContain("x-vercel-protection-bypass");
-    expect(workflow).toContain("x-vercel-set-bypass-cookie");
+    expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
 
     const playwrightConfig = readFileSync(
       resolve(process.cwd(), "playwright.config.ts"),

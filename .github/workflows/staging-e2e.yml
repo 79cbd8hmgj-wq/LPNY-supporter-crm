@@ -75,7 +75,6 @@ jobs:
             --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
             --header "cache-control: no-cache" \
             --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
-            --header "x-vercel-set-bypass-cookie: true" \
             "${PLAYWRIGHT_BASE_URL%/}/api/health")"
           export HEALTH_RESPONSE
 
