@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { createEventAction } = vi.hoisted(() => ({ createEventAction: vi.fn() }));
 
@@ -9,6 +9,11 @@ vi.mock("@/app/crm/work/actions", () => ({
 }));
 
 import { EventForm } from "@/app/crm/work/work-forms";
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 describe("EventForm", () => {
   it("defaults new events to signed-in supporter visibility", () => {
