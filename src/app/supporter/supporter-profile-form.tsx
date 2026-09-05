@@ -14,7 +14,6 @@ const supporterProfileInitialState: SupporterProfileActionState = {
 type Profile = {
   first_name: string;
   last_name: string;
-  email: string | null;
   phone: string | null;
   zip_code: string | null;
   municipality: string | null;
@@ -70,14 +69,6 @@ export function SupporterProfileForm({
           <input className={inputClass} defaultValue={profile.last_name} maxLength={80} name="lastName" required />
         </label>
       </div>
-
-      <label className="block text-sm font-medium">
-        Email
-        <input className={`${inputClass} bg-lp-50 text-lp-600`} disabled value={profile.email ?? ""} />
-        <span className="mt-1 block text-xs font-normal text-lp-500">
-          Email changes require a new verification flow and are not editable here yet.
-        </span>
-      </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-medium">
