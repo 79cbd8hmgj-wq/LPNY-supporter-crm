@@ -9,10 +9,6 @@ export type SupporterRsvpActionState = {
   message: string;
 };
 
-export const supporterRsvpInitialState: SupporterRsvpActionState = {
-  status: "idle",
-  message: "",
-};
 
 export async function setSupporterRsvpAction(
   _previous: SupporterRsvpActionState,
