@@ -373,6 +373,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: string;
       };
+      sync_my_supporter_email: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
       get_my_supporter_profile: {
         Args: Record<string, never>;
         Returns: Array<{
