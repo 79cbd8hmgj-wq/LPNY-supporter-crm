@@ -28,6 +28,8 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.STAGING_VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -82,8 +84,12 @@ jobs:
               export HEALTH_RESPONSE
 
               if node <<'NODE'
+          const { execSync } = require("node:child_process");
+
           try {
             const health = JSON.parse(process.env.HEALTH_RESPONSE ?? "");
+            const workflowSha = process.env.GITHUB_SHA ?? "";
+            const shaPattern = /^[0-9a-f]{40}$/;
 
             if (health.dataEnvironment !== "staging") {
               console.error(
@@ -92,12 +98,51 @@ jobs:
               process.exit(2);
             }
 
-            if (health.commitSha !== process.env.GITHUB_SHA) {
-              console.log(
-                `Staging is still serving ${health.commitSha ?? "null"}; expected ${process.env.GITHUB_SHA}.`,
-              );
-              process.exit(1);
+            if (health.commitSha === workflowSha) {
+              process.exit(0);
             }
+
+            if (!shaPattern.test(health.commitSha ?? "") || !shaPattern.test(workflowSha)) {
+              console.error("::error::Staging health returned an invalid deployment commit SHA.");
+              process.exit(2);
+            }
+
+            try {
+              execSync(`git merge-base --is-ancestor ${health.commitSha} ${workflowSha}`, {
+                stdio: "ignore",
+              });
+            } catch {
+              console.error(
+                `::error::Deployed staging commit ${health.commitSha} is not an ancestor of workflow commit ${workflowSha}.`,
+              );
+              process.exit(2);
+            }
+
+            const changedFiles = execSync(
+              `git diff --name-only ${health.commitSha}..${workflowSha}`,
+              { encoding: "utf8" },
+            )
+              .trim()
+              .split("\n")
+              .filter(Boolean);
+
+            const isNonDeployingFile = (file) =>
+              file.startsWith(".github/") ||
+              file.startsWith("tests/") ||
+              file.startsWith("docs/") ||
+              file === "README.md";
+
+            if (changedFiles.every(isNonDeployingFile)) {
+              console.log(
+                `Application-equivalent staging deployment accepted: ${health.commitSha} -> ${workflowSha}.`,
+              );
+              process.exit(0);
+            }
+
+            console.log(
+              `Staging is still serving ${health.commitSha}; expected ${workflowSha}, and deploy-affecting files changed.`,
+            );
+            process.exit(1);
           } catch (error) {
             console.error(`::error::${error instanceof Error ? error.message : "Staging health verification failed"}`);
             process.exit(2);
