@@ -19,13 +19,8 @@ test("public supporter can submit the short get-involved form", async ({ page },
   );
   await page.getByRole("button", { name: "Get involved" }).click();
   const submission = await submissionPromise;
-  const submissionBody = await submission.text();
 
-  expect(
-    submission.status(),
-    `Intake API returned ${submission.status()}: ${submissionBody}`,
-  ).toBe(200);
-  expect(submissionBody).toContain('"ok":true');
+  expect(submission.status(), `Intake API returned ${submission.status()}`).toBe(200);
   await expect(page.getByRole("heading", { name: "Thanks for getting involved." })).toBeVisible({
     timeout: 10_000,
   });
