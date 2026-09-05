@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 const localBaseURL = "http://localhost:3000";
 const configuredBaseURL = process.env.PLAYWRIGHT_BASE_URL?.trim();
 const targetEnvironment = process.env.PLAYWRIGHT_TARGET_ENV?.trim().toLowerCase();
+const vercelAutomationBypassSecret =
+  process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
 const targetsDeployment = Boolean(configuredBaseURL);
 
 if (targetsDeployment && targetEnvironment !== "staging") {
@@ -15,6 +17,13 @@ export default defineConfig({
   use: {
     baseURL: configuredBaseURL || localBaseURL,
     trace: "on-first-retry",
+    extraHTTPHeaders:
+      targetsDeployment && vercelAutomationBypassSecret
+        ? {
+            "x-vercel-protection-bypass": vercelAutomationBypassSecret,
+            "x-vercel-set-bypass-cookie": "true",
+          }
+        : undefined,
   },
   webServer: targetsDeployment
     ? undefined
