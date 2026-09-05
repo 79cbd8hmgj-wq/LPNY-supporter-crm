@@ -92,6 +92,10 @@ export async function updateStaffAccess(input: StaffAccessUpdateInput): Promise<
   return { status: "success", message: "Staff access updated." };
 }
 
+function exceptionName(error: unknown) {
+  return error instanceof Error ? error.name : "UnknownError";
+}
+
 export async function setStaffTemporaryPassword(
   input: StaffTemporaryPasswordInput,
 ): Promise<StaffActionResult> {
@@ -104,46 +108,109 @@ export async function setStaffTemporaryPassword(
     };
   }
 
-  const admin = createAdminSupabaseClient();
-  const target = await admin
-    .from("staff_users")
-    .select("id, auth_user_id, status")
-    .eq("id", parsed.data.staffUserId)
-    .maybeSingle();
+  let admin: ReturnType<typeof createAdminSupabaseClient>;
+  try {
+    admin = createAdminSupabaseClient();
+  } catch (error) {
+    console.error("Staff temporary password admin client initialization failed", {
+      errorName: exceptionName(error),
+    });
+    return {
+      status: "error",
+      message: "Password service configuration is unavailable. Reference: TPW-CONFIG.",
+    };
+  }
 
-  if (target.error || !target.data?.auth_user_id) {
-    return { status: "error", message: "Unable to find the staff Auth account." };
+  let target;
+  try {
+    target = await admin
+      .from("staff_users")
+      .select("id, auth_user_id, status")
+      .eq("id", parsed.data.staffUserId)
+      .maybeSingle();
+  } catch (error) {
+    console.error("Staff temporary password staff lookup threw", {
+      errorName: exceptionName(error),
+    });
+    return {
+      status: "error",
+      message: "Unable to load this staff account for password recovery. Reference: TPW-LOOKUP-EXCEPTION.",
+    };
+  }
+
+  if (target.error) {
+    console.error("Staff temporary password staff lookup failed", {
+      code: target.error.code,
+    });
+    return {
+      status: "error",
+      message: "Unable to load this staff account for password recovery. Reference: TPW-LOOKUP.",
+    };
+  }
+
+  if (!target.data?.auth_user_id) {
+    return {
+      status: "error",
+      message: "This staff record is not linked to a Supabase Auth account. Reference: TPW-NO-AUTH-LINK.",
+    };
   }
 
   if (target.data.status !== "active") {
     return { status: "error", message: "Reactivate this staff account before setting a temporary password." };
   }
 
-  const passwordUpdate = await admin.auth.admin.updateUserById(target.data.auth_user_id, {
-    password: parsed.data.password,
-  });
+  let passwordUpdate;
+  try {
+    passwordUpdate = await admin.auth.admin.updateUserById(target.data.auth_user_id, {
+      password: parsed.data.password,
+    });
+  } catch (error) {
+    console.error("Supabase staff temporary password update threw before a response", {
+      errorName: exceptionName(error),
+    });
+    return {
+      status: "error",
+      message: "The password request failed before Supabase Auth returned a response. Reference: TPW-AUTH-EXCEPTION.",
+    };
+  }
 
   if (passwordUpdate.error) {
     console.error("Supabase staff temporary password update failed", {
       code: passwordUpdate.error.code,
       status: passwordUpdate.error.status,
     });
-    return { status: "error", message: "Unable to change this staff password right now." };
+    const status = passwordUpdate.error.status ? ` HTTP ${passwordUpdate.error.status}.` : "";
+    const code = passwordUpdate.error.code ? ` Code: ${passwordUpdate.error.code}.` : "";
+    return {
+      status: "error",
+      message: `Supabase Auth rejected the password change.${status}${code} Reference: TPW-AUTH.`,
+    };
   }
 
-  const audit = await admin.from("admin_audit_events").insert({
-    actor_staff_user_id: actor.staffUserId,
-    action_type: "staff_temporary_password_set",
-    target_type: "staff_user",
-    target_id: target.data.id,
-    metadata: {},
-  });
+  let audit;
+  try {
+    audit = await admin.from("admin_audit_events").insert({
+      actor_staff_user_id: actor.staffUserId,
+      action_type: "staff_temporary_password_set",
+      target_type: "staff_user",
+      target_id: target.data.id,
+      metadata: {},
+    });
+  } catch (error) {
+    console.error("Staff temporary password audit insert threw", {
+      errorName: exceptionName(error),
+    });
+    return {
+      status: "error",
+      message: "The password was changed, but the audit event could not be recorded. Reference: TPW-AUDIT-EXCEPTION. Do not repeat the reset.",
+    };
+  }
 
   if (audit.error) {
     console.error("Staff temporary password audit failed", { code: audit.error.code });
     return {
       status: "error",
-      message: "The password was changed, but the audit event could not be recorded. Do not repeat the reset; review the audit log before making another change.",
+      message: "The password was changed, but the audit event could not be recorded. Reference: TPW-AUDIT. Do not repeat the reset.",
     };
   }
 

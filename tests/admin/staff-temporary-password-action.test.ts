@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   requireStaffRole,
+  createAdminSupabaseClient,
   from,
   staffMaybeSingle,
   auditInsert,
@@ -10,6 +11,7 @@ const {
   revalidatePath,
 } = vi.hoisted(() => ({
   requireStaffRole: vi.fn(),
+  createAdminSupabaseClient: vi.fn(),
   from: vi.fn(),
   staffMaybeSingle: vi.fn(),
   auditInsert: vi.fn(),
@@ -26,18 +28,7 @@ vi.mock("@/lib/env", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createServerSupabaseClient: vi.fn(async () => ({ rpc })),
 }));
-vi.mock("@/lib/supabase/admin", () => ({
-  createAdminSupabaseClient: () => ({
-    auth: {
-      admin: {
-        updateUserById,
-        inviteUserByEmail: vi.fn(),
-        deleteUser: vi.fn(),
-      },
-    },
-    from,
-  }),
-}));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminSupabaseClient }));
 
 import { setStaffTemporaryPassword } from "@/app/crm/admin/staff/actions";
 
@@ -86,6 +77,17 @@ describe("admin temporary staff password action", () => {
       }
       throw new Error(`Unexpected table: ${table}`);
     });
+
+    createAdminSupabaseClient.mockReturnValue({
+      auth: {
+        admin: {
+          updateUserById,
+          inviteUserByEmail: vi.fn(),
+          deleteUser: vi.fn(),
+        },
+      },
+      from,
+    });
   });
 
   it("sets the Auth password and appends a password-free audit event", async () => {
@@ -120,7 +122,7 @@ describe("admin temporary staff password action", () => {
     expect(auditInsert).not.toHaveBeenCalled();
   });
 
-  it("does not expose Supabase Auth error details", async () => {
+  it("surfaces a safe Supabase Auth status/code while hiding backend detail", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     updateUserById.mockResolvedValue({
       data: { user: null },
@@ -129,12 +131,55 @@ describe("admin temporary staff password action", () => {
 
     const result = await setStaffTemporaryPassword(validInput());
 
-    expect(result).toEqual({ status: "error", message: "Unable to change this staff password right now." });
+    expect(result).toEqual({
+      status: "error",
+      message: "Supabase Auth rejected the password change. HTTP 500. Code: unexpected_auth_failure. Reference: TPW-AUTH.",
+    });
     expect(JSON.stringify(result)).not.toContain("sensitive backend detail");
     expect(auditInsert).not.toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledWith(
       "Supabase staff temporary password update failed",
       { code: "unexpected_auth_failure", status: 500 },
+    );
+    consoleError.mockRestore();
+  });
+
+  it("distinguishes an Auth client exception before Supabase returns a response", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    updateUserById.mockRejectedValue(new TypeError("network detail"));
+
+    const result = await setStaffTemporaryPassword(validInput());
+
+    expect(result).toEqual({
+      status: "error",
+      message: "The password request failed before Supabase Auth returned a response. Reference: TPW-AUTH-EXCEPTION.",
+    });
+    expect(JSON.stringify(result)).not.toContain("network detail");
+    expect(auditInsert).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Supabase staff temporary password update threw before a response",
+      { errorName: "TypeError" },
+    );
+    consoleError.mockRestore();
+  });
+
+  it("distinguishes admin client configuration failure", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    createAdminSupabaseClient.mockImplementationOnce(() => {
+      throw new Error("missing secret detail");
+    });
+
+    const result = await setStaffTemporaryPassword(validInput());
+
+    expect(result).toEqual({
+      status: "error",
+      message: "Password service configuration is unavailable. Reference: TPW-CONFIG.",
+    });
+    expect(JSON.stringify(result)).not.toContain("missing secret detail");
+    expect(updateUserById).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Staff temporary password admin client initialization failed",
+      { errorName: "Error" },
     );
     consoleError.mockRestore();
   });
