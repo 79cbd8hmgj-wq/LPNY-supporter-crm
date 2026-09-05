@@ -258,7 +258,7 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
               autoComplete="new-password"
               className={inputClass}
               disabled={passwordPending || savedStatus !== "active"}
-              minLength={12}
+              minLength={8}
               onChange={(event) => setTemporaryPassword(event.target.value)}
               required
               type="password"
@@ -271,14 +271,14 @@ function StaffAccessEditor({ record, counties }: { record: StaffManagementRecord
               autoComplete="new-password"
               className={inputClass}
               disabled={passwordPending || savedStatus !== "active"}
-              minLength={12}
+              minLength={8}
               onChange={(event) => setConfirmTemporaryPassword(event.target.value)}
               required
               type="password"
               value={confirmTemporaryPassword}
             />
           </label>
-          <p className="text-xs text-lp-500">Use at least 12 characters with uppercase, lowercase, a number, and a symbol.</p>
+          <p className="text-xs text-lp-500">Use at least 8 characters. No special character or capitalization pattern is required.</p>
           <ResultMessage result={passwordResult} />
           <button
             className="min-h-10 rounded-lg border border-lp-400 bg-white px-3 py-2 text-sm font-semibold text-lp-900 hover:bg-lp-100 disabled:cursor-not-allowed disabled:opacity-60"
