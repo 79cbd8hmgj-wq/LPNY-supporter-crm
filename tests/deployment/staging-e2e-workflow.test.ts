@@ -70,4 +70,19 @@ describe("deployed Staging E2E workflow", () => {
     expect(workflow).toContain('health.dataEnvironment !== "staging"');
     expect(workflow).toContain("npm run test:e2e");
   });
+
+  it("cleans reserved browser fixtures before and after deployed E2E", () => {
+    const cleanupCalls = workflow.match(/node scripts\/cleanup-staging-e2e\.mjs/g) ?? [];
+    expect(cleanupCalls).toHaveLength(2);
+    expect(workflow).toContain("id: install");
+    expect(workflow).toContain("if: always() && steps.install.outcome == 'success'");
+
+    const cleanupScript = readFileSync(
+      resolve(process.cwd(), "scripts/cleanup-staging-e2e.mjs"),
+      "utf8",
+    );
+    expect(cleanupScript).toContain("jcuxbutwcmgohyikpvcq.supabase.co");
+    expect(cleanupScript).toContain("@example.test");
+    expect(cleanupScript).toContain("PLAYWRIGHT_TARGET_ENV");
+  });
 });
