@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { establishInvitationSession } from "@/lib/auth/invitation";
 import { establishRecoverySession } from "@/lib/auth/recovery";
-import { getServerEnv } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
+  const origin = requestUrl.origin;
+
   if (requestUrl.searchParams.get("type") === "recovery") {
-    const invalidRecovery = new URL("/login?error=invalid-recovery", getServerEnv().APP_URL);
+    const invalidRecovery = new URL("/login?error=invalid-recovery", origin);
     const supabase = await createServerSupabaseClient();
     const user = await establishRecoverySession(supabase, requestUrl);
     if (!user) return NextResponse.redirect(invalidRecovery);
@@ -17,14 +18,14 @@ export async function GET(request: Request) {
     cookieStore.set("password_recovery", user.id, {
       httpOnly: true,
       sameSite: "lax",
-      secure: invalidRecovery.protocol === "https:",
+      secure: requestUrl.protocol === "https:",
       maxAge: 60 * 30,
       path: "/auth/reset-password",
     });
-    return NextResponse.redirect(new URL("/auth/reset-password", getServerEnv().APP_URL));
+    return NextResponse.redirect(new URL("/auth/reset-password", origin));
   }
 
-  const destination = new URL("/login?error=invalid-invitation", getServerEnv().APP_URL);
+  const destination = new URL("/login?error=invalid-invitation", origin);
   const supabase = await createServerSupabaseClient();
   const user = await establishInvitationSession(supabase, requestUrl);
   if (!user) return NextResponse.redirect(destination);
@@ -33,9 +34,9 @@ export async function GET(request: Request) {
   cookieStore.set("invitation_setup", user.id, {
     httpOnly: true,
     sameSite: "lax",
-    secure: destination.protocol === "https:",
+    secure: requestUrl.protocol === "https:",
     maxAge: 60 * 30,
     path: "/auth/setup-password",
   });
-  return NextResponse.redirect(new URL("/auth/setup-password", getServerEnv().APP_URL));
+  return NextResponse.redirect(new URL("/auth/setup-password", origin));
 }
