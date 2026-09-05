@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  requestSupporterEmailChangeAction,
-  supporterEmailInitialState,
-} from "./email-actions";
+import { requestSupporterEmailChangeAction } from "./email-actions";
+import type { SupporterEmailActionState } from "./email-actions";
+
+const supporterEmailInitialState: SupporterEmailActionState = {
+  status: "idle",
+  message: "",
+};
 
 const inputClass =
   "mt-1 min-h-11 w-full rounded-lg border border-lp-300 bg-white px-3 py-2 text-base text-lp-950";
