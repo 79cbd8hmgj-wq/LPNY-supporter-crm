@@ -3,6 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 import { requireSupabaseEnvironment } from "./support/staff-session";
 
+test("supporter sign-in handles an unknown email without a server error", async ({ page }, testInfo) => {
+  const email = `unknown-supporter-${testInfo.project.name}-${randomUUID().slice(0, 8)}@example.test`;
+
+  await page.goto("/supporter/sign-in");
+  await page.getByRole("textbox", { name: "Email" }).fill(email);
+  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
+
+  await expect(
+    page.getByText(
+      "If that email is linked to an LPNY supporter profile, a secure sign-in link has been sent.",
+    ),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/supporter\/sign-in$/);
+});
+
 test("supporter claims their profile and sees only published supporter events", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   const { url, serviceRoleKey } = requireSupabaseEnvironment();
