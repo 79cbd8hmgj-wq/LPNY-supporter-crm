@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(13);
 
 select has_table('public', 'crm_event_rsvps', 'event RSVP table exists');
 
