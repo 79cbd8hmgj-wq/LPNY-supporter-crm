@@ -11,10 +11,6 @@ export type SupporterEmailActionState = {
   message: string;
 };
 
-export const supporterEmailInitialState: SupporterEmailActionState = {
-  status: "idle",
-  message: "",
-};
 
 export async function requestSupporterEmailChangeAction(
   _previous: SupporterEmailActionState,
