@@ -7,7 +7,7 @@ test("organizer can Quick Add a supporter and sees duplicate warnings", async ({
   const supporterEmail = `quick-add-supporter-${suffix}@example.test`;
   const supporterPhone = `518555${Math.floor(1000 + Math.random() * 8999)}`;
   const supporterFirstName = testInfo.project.name === "webkit-mobile" ? "WebKit" : "Chromium";
-  const supporterLastName = "Supporter";
+  const supporterLastName = `Supporter-${suffix.slice(-8)}`;
   const supporterDisplayName = `${supporterFirstName} ${supporterLastName}`;
 
   await loginWithMfa(page, email, password);
