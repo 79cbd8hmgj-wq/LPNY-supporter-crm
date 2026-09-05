@@ -11,6 +11,11 @@ vi.mock("@/app/crm/work/actions", () => ({
 import { EventForm } from "@/app/crm/work/work-forms";
 
 describe("EventForm", () => {
+  it("defaults new events to signed-in supporter visibility", () => {
+    render(<EventForm />);
+    expect(screen.getByLabelText("Who can see this event?")).toHaveValue("supporters");
+  });
+
   it("restores every submitted field after an action-level failure", async () => {
     createEventAction.mockImplementation(async (_previous, formData: FormData) => ({
       status: "error",
