@@ -71,33 +71,59 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          HEALTH_RESPONSE="$(curl --fail-with-body --location --silent --show-error \
-            --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
-            --header "cache-control: no-cache" \
-            --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
-            "${PLAYWRIGHT_BASE_URL%/}/api/health")"
-          export HEALTH_RESPONSE
+          DEPLOYMENT_READY=0
 
-          node <<'NODE'
+          for attempt in {1..30}; do
+            if HEALTH_RESPONSE="$(curl --fail-with-body --location --silent --show-error \
+              --retry 2 --retry-all-errors --connect-timeout 15 --max-time 30 \
+              --header "cache-control: no-cache" \
+              --header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+              "${PLAYWRIGHT_BASE_URL%/}/api/health")"; then
+              export HEALTH_RESPONSE
+
+              if node <<'NODE'
           try {
             const health = JSON.parse(process.env.HEALTH_RESPONSE ?? "");
 
-            if (health.commitSha !== process.env.GITHUB_SHA) {
-              throw new Error(
-                `Staging is not running the workflow commit. Expected ${process.env.GITHUB_SHA}, received ${health.commitSha ?? "null"}.`,
+            if (health.dataEnvironment !== "staging") {
+              console.error(
+                `::error::Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
               );
+              process.exit(2);
             }
 
-            if (health.dataEnvironment !== "staging") {
-              throw new Error(
-                `Deployed application is not connected to the named Staging data environment (reported ${health.dataEnvironment ?? "unknown"}).`,
+            if (health.commitSha !== process.env.GITHUB_SHA) {
+              console.log(
+                `Staging is still serving ${health.commitSha ?? "null"}; expected ${process.env.GITHUB_SHA}.`,
               );
+              process.exit(1);
             }
           } catch (error) {
             console.error(`::error::${error instanceof Error ? error.message : "Staging health verification failed"}`);
-            process.exit(1);
+            process.exit(2);
           }
           NODE
+              then
+                DEPLOYMENT_READY=1
+                break
+              else
+                verification_status=$?
+                if [ "${verification_status}" -eq 2 ]; then
+                  exit 1
+                fi
+              fi
+            fi
+
+            if [ "${attempt}" -lt 30 ]; then
+              echo "Waiting for Vercel to serve ${GITHUB_SHA} (attempt ${attempt}/30)"
+              sleep 10
+            fi
+          done
+
+          if [ "${DEPLOYMENT_READY}" -ne 1 ]; then
+            echo "::error::Staging did not reach the workflow commit before the deployment wait expired"
+            exit 1
+          fi
 
       - name: Install browser dependencies
         run: npx playwright install --with-deps chromium webkit
