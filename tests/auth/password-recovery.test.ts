@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: cookieGet, set: cookieSet })) }));
 vi.mock("@/lib/env", () => ({
   getServerEnv: vi.fn(() => ({ APP_URL: "https://staff.lpny.example", SUPABASE_SERVICE_ROLE_KEY: "test" })),
+  getAppUrl: vi.fn(() => "https://staff.lpny.example"),
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createServerSupabaseClient: vi.fn(async () => ({
