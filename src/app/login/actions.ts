@@ -49,3 +49,22 @@ export async function verifyStaffEmailCode(_previous: EmailCodeState, form: Form
   // Staff authorization and verified authenticator MFA are still mandatory.
   redirect("/mfa");
 }
+
+const passwordLoginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1),
+});
+
+// Keep existing password/MFA route as a recovery fallback until the production
+// Magic Link email template is confirmed to contain {{ .Token }}.
+export async function loginAction(formData: FormData) {
+  const parsed = passwordLoginSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) redirect("/login?error=invalid-input");
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error) redirect("/login?error=invalid-credentials");
+  redirect("/mfa");
+}
