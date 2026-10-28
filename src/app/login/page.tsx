@@ -1,6 +1,9 @@
 import { StaffEmailLogin } from "./staff-email-login";
+import { loginAction } from "./actions";
 
 const errorMessages: Record<string, string> = {
+  "invalid-input": "Enter a valid email and password.",
+  "invalid-credentials": "The email or password was not accepted.",
   "not-authorized": "This account does not have active CRM access.",
   "invalid-recovery": "This password recovery link is invalid or expired.",
   "invalid-invitation": "This staff invitation link is invalid or expired. Ask an administrator to send a new invitation.",
@@ -26,6 +29,18 @@ export default async function LoginPage({
         </p>
       ) : null}
       <StaffEmailLogin />
+      <details className="mt-6 border-t border-lp-300 pt-4">
+        <summary className="cursor-pointer text-sm underline">Use an existing staff password instead</summary>
+        <form action={loginAction} className="mt-4 space-y-3">
+          <label className="block text-sm font-medium">Email
+            <input className="mt-1 w-full rounded-md border border-lp-300 p-2" type="email" name="email" autoComplete="email" required />
+          </label>
+          <label className="block text-sm font-medium">Password
+            <input className="mt-1 w-full rounded-md border border-lp-300 p-2" type="password" name="password" autoComplete="current-password" required />
+          </label>
+          <button className="w-full rounded-md bg-lp-900 p-2 text-white" type="submit">Sign in with password</button>
+        </form>
+      </details>
     </main>
   );
 }
