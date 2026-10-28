@@ -21,3 +21,8 @@ export function getServerEnv() {
     APP_URL: process.env.APP_URL,
   });
 }
+
+// Password recovery needs only the public application origin, not admin credentials.
+export function getAppUrl() {
+  return z.string().url().parse(process.env.APP_URL);
+}
