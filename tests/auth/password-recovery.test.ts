@@ -12,7 +12,8 @@ const { resetPasswordForEmail, getUser, updateUser, cookieGet, cookieSet, redire
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: cookieGet, set: cookieSet })) }));
 vi.mock("@/lib/env", () => ({
-  getServerEnv: () => ({ APP_URL: "https://staff.lpny.example", SUPABASE_SERVICE_ROLE_KEY: "test" }),
+  getServerEnv: vi.fn(() => ({ APP_URL: "https://staff.lpny.example", SUPABASE_SERVICE_ROLE_KEY: "test" })),
+  getAppUrl: vi.fn(() => "https://staff.lpny.example"),
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createServerSupabaseClient: vi.fn(async () => ({
@@ -54,6 +55,18 @@ describe("password recovery request", () => {
     expect(resetPasswordForEmail).toHaveBeenCalledWith("staff@example.org", {
       redirectTo: "https://staff.lpny.example/auth/confirm?type=recovery",
     });
+  });
+
+  it("does not require a service-role key to request a recovery email", async () => {
+    // Auth reset requests use the normal public Supabase client, not admin credentials.
+    const { getServerEnv } = await import("@/lib/env");
+    vi.mocked(getServerEnv).mockImplementationOnce(() => {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY missing");
+    });
+    resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+    const result = await requestPasswordRecoveryAction(forgotPasswordInitialState, recoveryRequest("staff@example.org"));
+    expect(result.status).toBe("success");
+    expect(getServerEnv).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid email without calling Supabase", async () => {

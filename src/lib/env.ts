@@ -21,3 +21,13 @@ export function getServerEnv() {
     APP_URL: process.env.APP_URL,
   });
 }
+
+// Password recovery needs only the public application origin, not admin credentials.
+export function getAppUrl() {
+  const origin = process.env.APP_URL || (
+    process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : undefined
+  );
+  return z.string().url().parse(origin);
+}

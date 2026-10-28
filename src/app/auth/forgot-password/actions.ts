@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerEnv } from "@/lib/env";
+import { getAppUrl } from "@/lib/env";
 import { recoveryEmailSchema } from "@/lib/auth/recovery";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -15,10 +15,25 @@ export async function requestPasswordRecoveryAction(
   const email = recoveryEmailSchema.safeParse(formData.get("email"));
   if (!email.success) return { status: "error", message: "Enter a valid email address." };
 
-  const callback = new URL("/auth/confirm", getServerEnv().APP_URL);
+  let callback: URL;
+  try {
+    callback = new URL("/auth/confirm", getAppUrl());
+  } catch {
+    console.error("Password recovery request unavailable: application URL is not configured.");
+    return { status: "error", message: "Password recovery is temporarily unavailable. Contact an administrator." };
+  }
   callback.searchParams.set("type", "recovery");
   const supabase = await createServerSupabaseClient();
-  await supabase.auth.resetPasswordForEmail(email.data, { redirectTo: callback.toString() });
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.data, { redirectTo: callback.toString() });
+    if (error) {
+      // Account existence must not be disclosed; never log email addresses or tokens.
+      console.error("Password recovery email request failed", { code: error.code, status: error.status });
+    }
+  } catch {
+    console.error("Password recovery email request failed unexpectedly");
+    return { status: "error", message: "Password recovery is temporarily unavailable. Contact an administrator." };
+  }
 
   return {
     status: "success",
