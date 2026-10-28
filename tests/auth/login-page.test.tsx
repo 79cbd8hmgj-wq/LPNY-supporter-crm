@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-vi.mock("@/app/login/actions", () => ({ loginAction: vi.fn() }));
+vi.mock("@/app/login/actions", () => ({ requestStaffEmailCode: vi.fn(), verifyStaffEmailCode: vi.fn(), loginAction: vi.fn() }));
 
 import LoginPage from "@/app/login/page";
 
