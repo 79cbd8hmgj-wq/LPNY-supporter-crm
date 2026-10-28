@@ -6,6 +6,7 @@ const errorMessages: Record<string, string> = {
   "invalid-credentials": "The email or password was not accepted.",
   "not-authorized": "This account does not have active CRM access.",
   "invalid-recovery": "This password recovery link is invalid, expired, or has already been used. Request a new link.",
+  "invalid-invitation": "This staff invitation link is invalid or expired. Ask an administrator to send a new invitation.",
 };
 
 export default async function LoginPage({
