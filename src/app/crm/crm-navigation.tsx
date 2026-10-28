@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { StaffRole } from "@/lib/auth/types";
+import { StaffSignOutForm } from "./staff-sign-out-form";
 
 export function CrmNavigation({ role }: { role: StaffRole }) {
   const canUseAdministration = role === "admin" || role === "state_organizer";
@@ -25,6 +26,7 @@ export function CrmNavigation({ role }: { role: StaffRole }) {
           Administration
         </Link>
       ) : null}
+      <StaffSignOutForm />
     </nav>
   );
 }
