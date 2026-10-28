@@ -25,12 +25,12 @@ jobs:
           node-version: 22
       - name: Rebuild lockfile with npm
         run: npm install --package-lock-only --ignore-scripts --no-fund
+      - name: Apply available nonbreaking dependency security fixes
+        run: npm audit fix --package-lock-only --ignore-scripts --no-fund
       - name: Verify fresh installation
         run: npm ci --no-fund
-      - name: Report high-severity findings (non-blocking until lockfile is saved)
-        shell: bash
-        run: |
-          npm audit --audit-level=high || echo 'Audit still needs attention; report above.'
+      - name: Enforce full production and development dependency security audit
+        run: npm audit --audit-level=high
       - name: Commit lockfile to feature branch
         shell: bash
         run: |
