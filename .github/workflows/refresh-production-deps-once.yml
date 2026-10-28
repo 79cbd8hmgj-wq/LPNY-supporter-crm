@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           npm install --save-exact next@16.4.3 eslint-config-next@16.4.3 zod@4.6.7
-          npm audit fix
+          npm audit fix --omit=dev
           npm audit --omit=dev --audit-level=high
       - name: Commit npm metadata only
         run: |
