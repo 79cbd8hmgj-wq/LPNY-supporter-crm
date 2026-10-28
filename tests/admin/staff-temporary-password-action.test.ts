@@ -106,6 +106,18 @@ describe("admin temporary staff password action", () => {
     expect(JSON.stringify(auditInsert.mock.calls)).not.toContain(password);
   });
 
+  it("rejects weak temporary passwords before contacting Supabase Auth", async () => {
+    const result = await setStaffTemporaryPassword({
+      staffUserId,
+      password: "weakpass",
+      confirmPassword: "weakpass",
+    });
+
+    expect(result.status).toBe("error");
+    expect(updateUserById).not.toHaveBeenCalled();
+    expect(auditInsert).not.toHaveBeenCalled();
+  });
+
   it("refuses to set a password for a disabled staff record", async () => {
     staffMaybeSingle.mockResolvedValue({
       data: { id: staffUserId, auth_user_id: authUserId, status: "disabled" },
