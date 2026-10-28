@@ -42,8 +42,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
         run: npm run build
 
-      - name: Production dependency audit
-        run: npm audit --omit=dev --audit-level=high
+      - name: Full dependency audit (including development tooling)
+        run: npm audit --audit-level=high
 
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
