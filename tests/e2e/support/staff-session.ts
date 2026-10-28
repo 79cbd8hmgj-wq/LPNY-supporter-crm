@@ -107,6 +107,7 @@ export async function provisionStaff(
 
   return {
     admin,
+    authUserId: createdAuth.user!.id,
     email,
     password,
     staffUserId: staff!.id,
