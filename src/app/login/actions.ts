@@ -8,7 +8,6 @@ const emailSchema = z.string().trim().email().max(254).transform((email) => emai
 const codeSchema = z.string().regex(/^[0-9]{6}$/);
 
 export type EmailCodeState = { status: "idle" | "sent" | "error"; message: string };
-export const emailCodeInitialState: EmailCodeState = { status: "idle", message: "" };
 
 export async function requestStaffEmailCode(_previous: EmailCodeState, form: FormData): Promise<EmailCodeState> {
   const parsed = emailSchema.safeParse(form.get("email"));
