@@ -2,10 +2,12 @@
 
 import { useActionState, useState } from "react";
 import {
-  emailCodeInitialState,
   requestStaffEmailCode,
   verifyStaffEmailCode,
+  type EmailCodeState,
 } from "./actions";
+
+const emailCodeInitialState: EmailCodeState = { status: "idle", message: "" };
 
 export function StaffEmailLogin() {
   const [email, setEmail] = useState("");
