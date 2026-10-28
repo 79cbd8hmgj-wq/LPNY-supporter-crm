@@ -95,33 +95,41 @@ describe("staff access update validation", () => {
 describe("staff temporary password validation", () => {
   const staffUserId = "33333333-3333-4333-8333-333333333333";
 
-  it("accepts a simple matching temporary password with at least 8 characters", () => {
+  it("accepts a policy-compliant matching temporary password", () => {
     expect(staffTemporaryPasswordSchema.parse({
       staffUserId,
-      password: "temporary",
-      confirmPassword: "temporary",
+      password: "Temporary-access-42!",
+      confirmPassword: "Temporary-access-42!",
     })).toEqual({
       staffUserId,
-      password: "temporary",
-      confirmPassword: "temporary",
+      password: "Temporary-access-42!",
+      confirmPassword: "Temporary-access-42!",
     });
   });
 
-  it("does not require uppercase, numbers, or symbols", () => {
-    for (const password of ["password", "lowercaseonly", "12345678"]) {
-      expect(staffTemporaryPasswordSchema.safeParse({
-        staffUserId,
-        password,
-        confirmPassword: password,
-      }).success).toBe(true);
-    }
-  });
-
-  it("rejects temporary passwords shorter than 8 characters", () => {
+  it.each([
+    "temporary",
+    "lowercaseonly",
+    "12345678",
+    "Short1!",
+    "NoSymbolsHere1",
+    "nouppercase1!",
+    "NOLOWERCASE1!",
+    "Missingnumber!",
+  ])("rejects a weak temporary password: %s", (password) => {
     expect(staffTemporaryPasswordSchema.safeParse({
       staffUserId,
-      password: "short7",
-      confirmPassword: "short7",
+      password,
+      confirmPassword: password,
+    }).success).toBe(false);
+  });
+
+  it("rejects temporary passwords over 128 characters", () => {
+    const password = "A1!" + "b".repeat(126);
+    expect(staffTemporaryPasswordSchema.safeParse({
+      staffUserId,
+      password,
+      confirmPassword: password,
     }).success).toBe(false);
   });
 

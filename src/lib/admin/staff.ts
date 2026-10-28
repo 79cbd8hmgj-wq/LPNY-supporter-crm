@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { normalizeName } from "@/lib/intake/normalize";
+import { staffPasswordSchema } from "@/lib/auth/recovery";
 
 export const staffRoleSchema = z.enum([
   "admin",
@@ -67,9 +68,7 @@ export const staffAccessUpdateSchema = z
   })
   .superRefine(enforceCountyRoleRules);
 
-const staffTemporaryPasswordValueSchema = z
-  .string()
-  .min(8, "Temporary password must be at least 8 characters.")
+const staffTemporaryPasswordValueSchema = staffPasswordSchema
   .max(128, "Temporary password must be 128 characters or fewer.");
 
 export const staffTemporaryPasswordSchema = z
